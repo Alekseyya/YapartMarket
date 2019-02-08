@@ -1,0 +1,12 @@
+C:\YapartStore\YapartMarket\YapartMarket.BL\bin\Debug\netcoreapp2.2\YapartMarket.BL.deps.json
+C:\YapartStore\YapartMarket\YapartMarket.BL\bin\Debug\netcoreapp2.2\YapartMarket.BL.dll
+C:\YapartStore\YapartMarket\YapartMarket.BL\bin\Debug\netcoreapp2.2\YapartMarket.BL.pdb
+C:\YapartStore\YapartMarket\YapartMarket.BL\obj\Debug\netcoreapp2.2\YapartMarket.BL.csproj.CoreCompileInputs.cache
+C:\YapartStore\YapartMarket\YapartMarket.BL\obj\Debug\netcoreapp2.2\YapartMarket.BL.AssemblyInfoInputs.cache
+C:\YapartStore\YapartMarket\YapartMarket.BL\obj\Debug\netcoreapp2.2\YapartMarket.BL.AssemblyInfo.cs
+C:\YapartStore\YapartMarket\YapartMarket.BL\obj\Debug\netcoreapp2.2\YapartMarket.BL.dll
+C:\YapartStore\YapartMarket\YapartMarket.BL\obj\Debug\netcoreapp2.2\YapartMarket.BL.pdb
+C:\YapartStore\YapartMarket\YapartMarket.BL\bin\Debug\netcoreapp2.2\YapartMarket.Core.dll
+C:\YapartStore\YapartMarket\YapartMarket.BL\bin\Debug\netcoreapp2.2\YapartMarket.Core.pdb
+C:\YapartStore\YapartMarket\YapartMarket.BL\obj\Debug\netcoreapp2.2\YapartMarket.BL.csprojAssemblyReference.cache
+C:\YapartStore\YapartMarket\YapartMarket.BL\obj\Debug\netcoreapp2.2\YapartMarket.BL.csproj.CopyComplete
