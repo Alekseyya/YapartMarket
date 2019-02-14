@@ -1,0 +1,149 @@
+﻿body {
+}
+/*Шапка сайта*/
+
+input#cutop__button {
+    border: none;
+    background-color: transparent;
+}
+
+/*Главное меню сайта*/
+nav.header__down {
+    margin: 13px 0 10px 16px;
+}
+
+ul.main__menu a {
+    font-weight: 700;
+    font-size: 10pt;
+    text-align: center;
+    font-family: Trebuchet,Tahoma,Helvetica,Arial,sans-serif;
+}
+    ul.main__menu a:hover {
+        text-decoration: none;
+    }
+
+ul.main__menu span:first-child {
+    margin-left: 40px;
+    margin-top: 3px;
+}
+
+ul.main__menu span:last-child {
+    color: #222;
+}
+
+
+ul.main__menu > li {
+    border-top: 2px solid #bed0dd;
+    background: linear-gradient(to bottom,#eff5fc 0,#d5e2eb 100%);
+    border-bottom: 2px solid rgb(190, 208, 221);
+}
+
+ul.main__menu > li:hover {
+    background: white;
+}
+
+ul.main__menu > li.car-carpets {
+    border-radius: 3px 0 0;
+    border-left: 2px solid #bed0dd;
+    border-right: 2px solid #bed0dd;
+}
+
+span.car-carpets__image {
+    background-image: url(../image/main-menu/car-carpets.png);
+    width: 110px;
+    height: 75px;
+    display: flex;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+span.car-carpets__descriptions {
+    margin-left: 3px;
+}
+
+ul.main__menu > li.wiper-blades {
+    border-right: 2px solid #bed0dd;
+}
+
+span.wiper-blades__image {
+    background-image: url(../image/main-menu/wiper-blades.png);
+    width: 85px;
+    height: 75px;
+    display: flex;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+span.wiper-blades__descriptions {
+    margin-left: 2px;
+}
+
+ul.main__menu > li.roof-racks {
+    border-right: 2px solid #bed0dd;
+}
+
+span.roof-racks__image {
+    background-image: url(../image/main-menu/roof-racks.png);
+    width: 85px;
+    height: 75px;
+    display: flex;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+span.roof-racks__descriptions {
+    margin-left: 40px;
+}
+
+ul.main__menu > li.wheel-covers {
+    border-right: 2px solid #bed0dd;
+}
+
+span.wheel-covers__image {
+    background-image: url(../image/main-menu/wheel-covers.png);
+    width: 85px;
+    height: 75px;
+    display: flex;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+span.wheel-covers__descriptions {
+    margin-left: 20px;
+}
+
+ul.main__menu > li.deflectors {
+    border-right: 2px solid #bed0dd;
+}
+
+span.deflectors__image {
+    background-image: url(../image/main-menu/deflectors.png);
+    width: 85px;
+    height: 75px;
+    display: flex;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+span.deflectors__descriptions {
+    margin-left: 40px;
+}
+
+ul.main__menu > li.mud-flaps {
+    border-right: 2px solid #bed0dd;
+}
+
+span.mud-flaps__image {
+    background-image: url(../image/main-menu/mud-flaps.png);
+    width: 85px;
+    height: 75px;
+    display: flex;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+span.mud-flaps__descriptions {
+    margin-left: 40px;
+}
+
+
+
