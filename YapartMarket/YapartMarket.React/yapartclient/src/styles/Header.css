@@ -1,0 +1,36 @@
+div.sectionHeader {
+    background: url(../../../wwwroot/images/clouds.jpg) repeat-x top;
+}
+
+div.logo {
+    width: 143px;
+    height: 61px;
+    background: url(../../../wwwroot/images/logo.png);
+    margin-top: 10px;
+}
+
+.logoNameCompany {
+    position: absolute;
+    top: 55px;
+    left: 80px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.addressCompany {
+    padding-top: 15px;
+    font-size: 18px;
+}
+.addressCompany .title {
+    color : #0b5ed7;
+    margin-bottom: 7px;
+}
+
+.addressCompany .address {
+    font-weight: bold;
+}
+
+div.phoneLogo {
+    height: 80px;
+    width: 30px;
+    background: url(../../../wwwroot/images/icon_phone.png) no-repeat 0px 20px;
+}

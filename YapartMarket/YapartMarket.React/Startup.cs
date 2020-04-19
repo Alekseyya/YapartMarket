@@ -31,6 +31,7 @@ namespace YapartMarket.React
             services.AddMvc(option => option.EnableEndpointRouting = false);
 
             //TODO вот это оставить под вопросом надо ли вообще!!
+            //TODO Перелодить позже в папку другую!!
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "yapartclient/build";
