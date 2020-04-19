@@ -14,12 +14,12 @@ namespace YapartMarket.Core.Data
 
         IList<TEntity> GetAll(Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc);
 
-        IList<TEntity> GetAll(List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> includeFuncs);
+        IList<TEntity> GetAll(Func<IQueryable<TEntity>, IQueryable<TEntity>> includeFuncs);
 
         IList<TEntity> GetAll(Expression<Func<TEntity, bool>> condition);
 
         IList<TEntity> GetAll(Expression<Func<TEntity, bool>> condition, Func<IQueryable<TEntity>,
-            IOrderedQueryable<TEntity>> sortFunc, List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> includeFuncs);
+            IOrderedQueryable<TEntity>> sortFunc, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeFuncs);
 
         int GetCount();
 

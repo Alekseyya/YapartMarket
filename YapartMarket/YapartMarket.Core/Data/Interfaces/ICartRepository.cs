@@ -1,6 +1,8 @@
-﻿namespace YapartMarket.Core.Data.Interfaces
+﻿using YapartMarket.Core.Models;
+
+namespace YapartMarket.Core.Data.Interfaces
 {
-    public interface ICartRepository
+    public interface ICartRepository: IRepository<Cart, int>
     {
     }
 }

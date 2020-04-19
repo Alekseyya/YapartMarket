@@ -1,0 +1,56 @@
+
+/*Общие настройки фильтра*/
+.filterContainer {
+    width: 252px;
+}
+
+#menuAccessories {
+    background-color: #EFF4F9;
+}
+
+.boxTitleText {
+    font-size: 14px;
+    color: #1160B3;
+    padding-left: 5px;
+    padding-top: 5px;
+}
+
+.filterReset {
+    margin-left: 5px;
+    margin-right: 5px;
+    text-decoration: none;
+}
+
+.filterReset > a {
+    font-size: 8pt;
+    font-weight: 400;
+    color: grey;
+}
+
+.boxTitleBoth {
+    clear: both;
+}
+
+.boxContent {
+    border-top: 1px solid #bed0dd;
+    font-size: 8pt !important;
+}
+
+/*Меню фильтров для модели*/
+/*.saleCheckboxContainer input {
+    margin: 3px 3px 3px 4px;
+}*/
+
+.accessoriesSelect{
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.accessoriesSelect label {
+    padding-left: 5px;
+}
+
+.accessoriesSelect select {
+    height: 27px;
+    margin-bottom: 5px;
+}

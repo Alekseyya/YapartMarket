@@ -1,0 +1,38 @@
+﻿@model YapartMarket.MainApp.ViewModels.CarViewModel
+
+
+@{
+    ViewData["Title"] = "Cars";
+}
+
+@if (ViewBag.TypeView == "Marks")
+{
+
+    <ul>
+        @foreach (var mark in Model.Marks)
+        {
+            <li>@Html.DisplayFor(x => mark.Id)</li>
+            <li>@Html.DisplayFor(x => mark.Name)</li>
+            <li>@Html.DisplayFor(x => mark.Pictures)</li>
+        }
+    </ul>
+}
+
+@if (ViewBag.TypeView == "Models")
+{
+    <div class="filterContainer">
+        @{
+            await Html.RenderPartialAsync("MenuAccessories");
+        }
+    </div>
+
+    <ul>
+        @foreach (var model in Model.Models)
+        {
+            <li>@Html.DisplayFor(x => model.Id)</li>
+            <li>@Html.DisplayFor(x => model.Name)</li>
+            <li>@Html.DisplayFor(x => model.Years)</li>
+        }
+    </ul>
+}
+

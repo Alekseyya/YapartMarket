@@ -5,7 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using YapartMarket.BL.Implementation;
+using YapartMarket.Core.BL;
+using YapartMarket.Core.Data;
 using YapartMarket.Data;
+using YapartMarket.Data.Implementation;
 
 namespace YapartMarket.MainApp
 {
@@ -47,6 +51,29 @@ namespace YapartMarket.MainApp
             //Todo httpAccessor singleton
             services.AddHttpContextAccessor();
 
+            #region Регистраци сервисов
+
+            services.AddScoped<IYapartDbAccessor, YapartSingletonDbAccessor>();
+            services.AddScoped<IRepositoryFactory, YapartRepositoryFactory>();
+            services.AddScoped<IUnitOfWork, YapartUnitOfWork>();
+
+            services.AddTransient<IBrandService, BrandService>();
+            services.AddTransient<ICartLineService, CartLineService>();
+            services.AddTransient<ICartService, CartService>();
+            services.AddTransient<ICategoryService, CategoryService>();
+            services.AddTransient<IGroupService, GroupService>();
+            services.AddTransient<IMarkService, MarkService>();
+            services.AddTransient<IModelService, ModelService>();
+            services.AddTransient<IModificationService, ModificationService>();
+            services.AddTransient<IOrderItemService, OrderItemService>();
+            services.AddTransient<IOrderService, OrderService>();
+            services.AddTransient<IPictureService, PictureService>();
+            services.AddTransient<IProductService, ProductService>();
+            services.AddTransient<IProductModificationService, ProductModificationService>();
+            services.AddTransient<ISectionService, SectionService>();
+
+
+            #endregion
 
 
         }

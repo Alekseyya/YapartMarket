@@ -9,8 +9,6 @@ namespace YapartMarket.Data.Implementation
 {
     public abstract class RepositoryBase<TEntity, TId> : IRepository<TEntity, TId> where TEntity : class
     {
-        public DbContext DbContext { get; }
-
         protected RepositoryBase(DbContext dbContext)
         {
             if (dbContext == null)
@@ -38,7 +36,7 @@ namespace YapartMarket.Data.Implementation
             return GetAll(null, sortFunc, null);
         }
 
-        public virtual IList<TEntity> GetAll(List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> includeFuncs)
+        public virtual IList<TEntity> GetAll(Func<IQueryable<TEntity>, IQueryable<TEntity>> includeFuncs)
         {
             return GetAll(null, null, includeFuncs);
         }
@@ -48,7 +46,7 @@ namespace YapartMarket.Data.Implementation
             return GetAll(condition, null, null); 
         }
 
-        public virtual IList<TEntity> GetAll(Expression<Func<TEntity, bool>> condition, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc, List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> includeFuncs)
+        public virtual IList<TEntity> GetAll(Expression<Func<TEntity, bool>> condition, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeFuncs)
         {
             var data = GetQueryable();
             return GetAllInternal(data, condition, sortFunc, includeFuncs);
@@ -108,7 +106,9 @@ namespace YapartMarket.Data.Implementation
         #endregion
 
         #region Internal implementation
-        
+
+        protected DbContext DbContext { get; }
+
         protected virtual DbSet<TEntity> DbSet
         {
             get { return DbContext.Set<TEntity>(); }
@@ -128,15 +128,14 @@ namespace YapartMarket.Data.Implementation
         }
 
         protected virtual IList<TEntity> GetAllInternal(IQueryable<TEntity> data, Expression<Func<TEntity, bool>> condition,
-            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc, List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> includeFuncs)
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeFuncs)
         {
             if (condition != null)
                 data = data.Where(condition);
             List<TEntity> result;
             if (includeFuncs != null)
             {
-                foreach (var inclidFunc in includeFuncs)
-                    data = inclidFunc(data);
+                data = includeFuncs(data);
             }
             if (sortFunc != null)
             {
