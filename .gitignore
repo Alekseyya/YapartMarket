@@ -12,6 +12,13 @@
 *.userosscache
 *.sln.docstates
 
+#Файлы конфигов
+YapartMarket/YapartMarket.Parser/appsettings.json
+
+#Файл Access 2016
+YapartMarket/Parcer.accdb
+YapartMarket/Parcer.laccdb
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
