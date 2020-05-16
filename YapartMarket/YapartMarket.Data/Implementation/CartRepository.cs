@@ -4,7 +4,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Data.Implementation
 {
-   public class CartRepository: RepositoryBase<Cart, int>, ICartRepository
+   public class CartRepository: GenericRepository<Cart, int>, ICartRepository
     {
         public CartRepository(DbContext dbContext) : base(dbContext)
         {

@@ -4,7 +4,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Data.Implementation
 {
-   public class ModificationRepository : RepositoryBase<Modification, int>, IModificationRepository
+   public class ModificationRepository : GenericRepository<Modification, int>, IModificationRepository
     {
         public ModificationRepository(DbContext dbContext) : base(dbContext)
         {}

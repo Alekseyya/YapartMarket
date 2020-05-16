@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using YapartMarket.Core.Data;
+﻿using YapartMarket.Core.Data;
 
 namespace YapartMarket.Data.Implementation
 {

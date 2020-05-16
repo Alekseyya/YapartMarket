@@ -4,7 +4,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Data.Implementation
 {
-   public class OrderItemRepository : RepositoryBase<OrderItem, int>, IOrderItemRepository
+   public class OrderItemRepository : GenericRepository<OrderItem, int>, IOrderItemRepository
     {
         public OrderItemRepository(DbContext dbContext) : base(dbContext)
         {}

@@ -5,7 +5,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Data.Implementation
 {
-    public class BrandRepository : RepositoryBase<Brand, int>, IBrandRepository
+    public class BrandRepository : GenericRepository<Brand, int>, IBrandRepository
     {
         public BrandRepository(DbContext dbContext) :base(dbContext)
         {}

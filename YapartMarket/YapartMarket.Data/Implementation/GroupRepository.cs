@@ -4,7 +4,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Data.Implementation
 {
-    public class GroupRepository : RepositoryBase<Group, int>, IGroupRepository
+    public class GroupRepository : GenericRepository<Group, int>, IGroupRepository
     {
         public GroupRepository(DbContext dbContext) : base(dbContext)
         {

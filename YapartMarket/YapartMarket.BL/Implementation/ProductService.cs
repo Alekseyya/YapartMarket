@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Data;
 using YapartMarket.Core.Data.Interfaces;
@@ -10,33 +9,11 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.BL.Implementation
 {
-    public class ProductService : RepositoryAwareServiceBase, IProductService
+    public class ProductService : GenericService<Product, int, IProductRepository>, IProductService
     {
         public ProductService(IRepositoryFactory repositoryFactory) : base(repositoryFactory)
         {
         }
-
-        public Product Add(Product product)
-        {
-            var productRepository = RepositoryFactory.GetRepository<IProductRepository>();
-            productRepository.Add(product);
-            return product;
-        }
-
-        public Product Update(Product product)
-        {
-            var productRepository = RepositoryFactory.GetRepository<IProductRepository>();
-            productRepository.Update(product);
-            return product;
-        }
-
-        public Product GetById(int id)
-        {
-            var productRepository = RepositoryFactory.GetRepository<IProductRepository>();
-            var model = productRepository.GetById(id);
-            return model;
-        }
-
         public IList<Product> GetAll()
         {
             return GetAll(null);

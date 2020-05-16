@@ -7,7 +7,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Data.Implementation
 {
-   public class ModelRepository : RepositoryBase<Model, int>, IModelRepository
+   public class ModelRepository : GenericRepository<Model, int>, IModelRepository
     {
         public ModelRepository(DbContext dbContext) : base(dbContext)
         {}

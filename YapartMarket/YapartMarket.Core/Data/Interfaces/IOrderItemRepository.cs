@@ -5,7 +5,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Core.Data.Interfaces
 {
-    public interface IOrderItemRepository : IRepository<OrderItem, int>
+    public interface IOrderItemRepository : IGenericRepository<OrderItem, int>
     {
     }
 }

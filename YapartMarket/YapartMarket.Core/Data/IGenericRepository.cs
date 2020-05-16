@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace YapartMarket.Core.Data
 {
-   public interface IRepository<TEntity, TId>
+   public interface IGenericRepository<TEntity, TId>
     {
         TEntity GetById(TId id);
 
@@ -31,10 +32,13 @@ namespace YapartMarket.Core.Data
         IList<TEntity> GetWindow(Expression<Func<TEntity, bool>> condition, int startFrom, int windowSize,
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc);
 
+        Task<TEntity> AddAsync(TEntity entry);
         TEntity Add(TEntity entity);
 
         TEntity Update(TEntity entity);
 
+        void RemoveRange(IList<TEntity> entries);
+        void RemoveRangeAsync(IList<TEntity> entries);
         void Delete(TEntity entity);
 
         void Delete(TId id);

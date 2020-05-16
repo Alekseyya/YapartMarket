@@ -4,7 +4,7 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.Data.Implementation
 {
-    public class PictureRepository : RepositoryBase<Picture, int>, IPictureRepository
+    public class PictureRepository : GenericRepository<Picture, int>, IPictureRepository
     {
         public PictureRepository(DbContext dbContext) : base(dbContext)
         {}

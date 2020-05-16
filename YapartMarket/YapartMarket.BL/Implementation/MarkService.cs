@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Data;
 using YapartMarket.Core.Data.Interfaces;
@@ -10,33 +12,11 @@ using YapartMarket.Core.Models;
 
 namespace YapartMarket.BL.Implementation
 {
-   public class MarkService : RepositoryAwareServiceBase, IMarkService
+    public class MarkService : GenericService<Mark, int, IMarkRepository>, IMarkService
     {
         public MarkService(IRepositoryFactory repositoryFactory) : base(repositoryFactory)
         {
         }
-
-        public Mark Add(Mark mark)
-        {
-            var markRepository = RepositoryFactory.GetRepository<IMarkRepository>();
-            markRepository.Add(mark);
-            return mark;
-        }
-
-        public Mark Update(Mark mark)
-        {
-            var markRepository = RepositoryFactory.GetRepository<IMarkRepository>();
-            markRepository.Update(mark);
-            return mark;
-        }
-
-        public Mark GetById(int id)
-        {
-            var markRepository = RepositoryFactory.GetRepository<IMarkRepository>();
-            var mark = markRepository.GetById(id);
-            return mark;
-        }
-
         public IList<Mark> GetAll()
         {
             return GetAll(null);
@@ -75,6 +55,49 @@ namespace YapartMarket.BL.Implementation
             else if(conditionFunc == null && sortFunc == null && includeFuncs == null)
             {
                 marks = markRepository.GetAll().AsQueryable().ToList();
+            }
+            return marks;
+        }
+
+        public Task<IList<Mark>> GetAllAsync()
+        {
+            return GetAllAsync(null);
+        }
+
+        public Task<IList<Mark>> GetAllAsync(Expression<Func<Mark, bool>> conditionFunc)
+        {
+            return GetAllAsync(conditionFunc, null, null);
+        }
+
+        public Task<IList<Mark>> GetAllAsync(Expression<Func<Mark, bool>> conditionFunc, Func<IQueryable<Mark>, IOrderedQueryable<Mark>> sortFunc)
+        {
+            return GetAllAsync(conditionFunc, sortFunc, null);
+        }
+
+        public async Task<IList<Mark>> GetAllAsync(Expression<Func<Mark, bool>> conditionFunc, Func<IQueryable<Mark>, IOrderedQueryable<Mark>> sortFunc, Func<IQueryable<Mark>, IQueryable<Mark>> includeFuncs)
+        {
+            var markRepository = RepositoryFactory.GetRepository<IMarkRepository>();
+            IList<Mark> marks = null;
+            if (conditionFunc != null && sortFunc == null && includeFuncs == null)
+            {
+                marks = await markRepository.GetAll(conditionFunc, null, null).AsQueryable().ToListAsync();
+
+            }
+            else if (conditionFunc != null && sortFunc != null && includeFuncs == null)
+            {
+                marks = await markRepository.GetAll(conditionFunc, sortFunc, null).AsQueryable().ToListAsync();
+            }
+            else if (conditionFunc != null && sortFunc == null && includeFuncs != null)
+            {
+                marks = await markRepository.GetAll(conditionFunc, null, includeFuncs).AsQueryable().ToListAsync();
+            }
+            else if (conditionFunc != null && sortFunc != null && includeFuncs != null)
+            {
+                marks = await markRepository.GetAll(conditionFunc, sortFunc, includeFuncs).AsQueryable().ToListAsync();
+            }
+            else if (conditionFunc == null && sortFunc == null && includeFuncs == null)
+            {
+                marks = await markRepository.GetAll().AsQueryable().ToListAsync();
             }
             return marks;
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Models;
 using YapartMarket.MainApp.ViewModels;
@@ -16,11 +17,12 @@ namespace YapartMarket.MainApp.Controllers
         private readonly IModelService _modelService;
         private readonly IModificationService _modificationService;
 
-        public CatalogController(IMarkService markService, IModelService modelService, IModificationService modificationService)
+        public CatalogController(IMarkService markService, IModelService modelService, IModificationService modificationService, IServiceProvider serviceProvider)
         {
             _markService = markService;
             _modelService = modelService;
             _modificationService = modificationService;
+            _modificationService = serviceProvider.GetService<IModificationService>();
         }
         public ActionResult Cars(string mark, string model, string modification)
         {

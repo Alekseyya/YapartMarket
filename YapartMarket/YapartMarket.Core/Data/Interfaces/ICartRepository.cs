@@ -2,7 +2,7 @@
 
 namespace YapartMarket.Core.Data.Interfaces
 {
-    public interface ICartRepository: IRepository<Cart, int>
+    public interface ICartRepository: IGenericRepository<Cart, int>
     {
     }
 }

@@ -2,7 +2,7 @@
 
 namespace YapartMarket.Core.Data.Interfaces
 {
-   public  interface ISectionRepository : IRepository<Section, int>
+   public  interface ISectionRepository : IGenericRepository<Section, int>
     {
     }
 }

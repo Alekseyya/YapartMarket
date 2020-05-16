@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using YapartMarket.Core.Data;
 
 namespace YapartMarket.Data.Implementation
 {
-    public abstract class RepositoryBase<TEntity, TId> : IRepository<TEntity, TId> where TEntity : class
+    public abstract class GenericRepository<TEntity, TId> : IGenericRepository<TEntity, TId> where TEntity : class
     {
-        protected RepositoryBase(DbContext dbContext)
+        protected GenericRepository(DbContext dbContext)
         {
             if (dbContext == null)
                 throw new ArgumentNullException(nameof(dbContext));
@@ -74,6 +75,15 @@ namespace YapartMarket.Data.Implementation
             return GetWindowInternal(data, condition, startFrom, windowSize, sortFunc);
         }
 
+        public virtual Task<TEntity> AddAsync(TEntity entry)
+        {
+            if (entry == null)
+                throw new ArgumentNullException(nameof(entry));
+            DbSet.AddAsync(entry);
+            DbContext.SaveChangesAsync();
+            return Task.FromResult(entry);
+        }
+
         public virtual TEntity Add(TEntity entity)
         {
             if (entity == null)
@@ -87,6 +97,18 @@ namespace YapartMarket.Data.Implementation
         public virtual TEntity Update(TEntity entity)
         {
             return UpdateInternal(entity);
+        }
+
+        public void RemoveRange(IList<TEntity> entries)
+        {
+            DbContext.Set<TEntity>().RemoveRange(entries);
+            DbContext.SaveChanges();
+        }
+
+        public void RemoveRangeAsync(IList<TEntity> entries)
+        {
+            DbSet.RemoveRange(entries);
+            DbContext.SaveChangesAsync();
         }
 
         public virtual void Delete(TEntity entity)
