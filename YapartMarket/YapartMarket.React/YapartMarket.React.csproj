@@ -5,12 +5,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="yapartclient\src\components\catalog\Catalog.tsx" />
+    <None Remove="yapartclient\src\components\Header\Form.tsx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="3.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="yapartclient\src\components\catalog\Catalog.tsx" />
+    <TypeScriptCompile Include="yapartclient\src\components\Header\Form.tsx" />
   </ItemGroup>
 
 

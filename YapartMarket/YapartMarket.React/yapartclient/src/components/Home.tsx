@@ -13,22 +13,27 @@ export class Home extends React.Component<RouteComponentProps<any>, any>{
         var data = fetch("https://localhost:44346/api/WeatherForecast/list")
             .then(response => response.json() as Promise<IWeatherForecast[]>)
             .then(data => {
-                this.setState({ weatherForecasts: data })
+                this.setState({ weatherForecasts: data });
             });
-
-        // console.log(content);
     }
-    render() {
-        let content = this.renderWeatherForecastsTable(this.state.weatherForecasts)
-        return <div>
-            <Header />
-            <div>                
-                {content}
-                <h1>HOmeeeee</h1>
-            </div>
-            <Footer />
-        </div>   
 
+    private onChange() {
+
+    }
+
+    render() {
+        let content = this.renderWeatherForecastsTable(this.state.weatherForecasts);
+        return (
+            <div>
+                <Header />
+                <div>
+                    {content}
+                </div>
+                <div>
+                </div>
+                <Footer />
+            </div>
+        );
     };
 
 

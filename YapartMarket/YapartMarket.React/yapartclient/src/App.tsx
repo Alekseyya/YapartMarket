@@ -2,9 +2,7 @@ import React from 'react';
 import * as ReactDOM from 'react-dom';
 import './App.css';
 import Routes from './components/Routes';
-import { Home } from './components/Home';
-import { Header } from './components/Header/Header';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Switch } from 'react-router-dom';
 
 // function App() {
 //   return (
@@ -16,11 +14,11 @@ import { BrowserRouter as Router } from 'react-router-dom';
 
 export class App extends React.Component {
   render() {
-    return (
-      <Router>
-        <Routes />
-      </Router>
-    )
+      return (
+          <Router>
+              <Routes/>
+          </Router>
+      );
   }
 }
 
