@@ -7,7 +7,7 @@ export class MainMenu extends React.Component {
                 <div className="mainMenuWrapper row">
                     <ul className="menuList">
                         <li>
-                            <a href="/">
+                            <a href="/catalog">
                                 <div className="block_icon"></div>
                                 <div className="block_title">Каталог товаров</div>
                             </a>
