@@ -25,13 +25,9 @@ export class Home extends React.Component<RouteComponentProps<any>, any>{
         let content = this.renderWeatherForecastsTable(this.state.weatherForecasts);
         return (
             <div>
-                <Header />
                 <div>
                     {content}
                 </div>
-                <div>
-                </div>
-                <Footer />
             </div>
         );
     };

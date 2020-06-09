@@ -3,23 +3,21 @@ import * as ReactDOM from 'react-dom';
 import './App.css';
 import Routes from './components/Routes';
 import { BrowserRouter as Router, Switch } from 'react-router-dom';
-
-// function App() {
-//   return (
-//     <div className="App111">
-//       {Home}
-//     </div>
-//   );
-// }
+import { Header } from './components/Header/Header';
+import { Footer } from './components/Footer/Footer';
 
 export class App extends React.Component {
-  render() {
-      return (
-          <Router>
-              <Routes/>
-          </Router>
-      );
-  }
+    render() {
+        return (
+            <Router>
+                <div>
+                    <Header />
+                    <Routes />
+                    <Footer />
+                </div>
+            </Router>
+        );
+    }
 }
 
 export default App;
