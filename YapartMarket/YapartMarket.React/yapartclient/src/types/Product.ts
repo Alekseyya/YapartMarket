@@ -1,8 +1,10 @@
 export interface IProduct{
-    Id : number;
-    Name: string;
-    Picture?: string;
-    BrandName: string;
+    Id: number;
+    Article: string;
     Description: string;
     Price: number;
+    DaysDelivery: number;
+    OldPrice: number;
+    Brand: string;
+    Picture: string;
 }

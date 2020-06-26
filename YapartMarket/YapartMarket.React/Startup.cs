@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -28,7 +29,10 @@ namespace YapartMarket.React
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddMvc(option => option.EnableEndpointRouting = false);
+            services.AddMvc(option => option.EnableEndpointRouting = false).AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null );
+
+            services.AddAutoMapper(typeof(Startup));
+            services.AddControllers();
 
             //TODO вот это оставить под вопросом надо ли вообще!!
             //TODO Перелодить позже в папку другую!!
@@ -59,6 +63,7 @@ namespace YapartMarket.React
 
                 if (env.IsDevelopment())
                 {
+                    //Запускает сборку React приложения
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
