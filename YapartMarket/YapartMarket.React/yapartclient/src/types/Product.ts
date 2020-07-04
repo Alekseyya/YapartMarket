@@ -1,4 +1,4 @@
-export interface IProduct{
+export interface Product{
     Id: number;
     Article: string;
     Description: string;
@@ -8,3 +8,7 @@ export interface IProduct{
     Brand: string;
     Picture: string;
 }
+
+export interface ProductState {
+    products: Promise<Product[]>
+};

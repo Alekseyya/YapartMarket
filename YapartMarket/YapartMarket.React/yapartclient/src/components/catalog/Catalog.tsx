@@ -2,14 +2,14 @@
 import { ICatalog } from "../../types/Catalog";
 import { Switch, Route } from "react-router-dom";
 import { ProductList } from "./ProductList";
-import {Product} from './Product';
-import AddCatalogForm from "./AddCatalogForm";
-import { IProduct } from "../../types/Product";
+import {ProductComponent} from './Product';
+//import AddCatalogForm from "./AddCatalogForm";
+import { Product } from "../../types/Product";
 import { connect } from 'react-redux';
 import * as actions from '../../actions/catalog';
 
 interface ICatalogProps {
-    products : IProduct[]
+    products : ProductComponent[]
 }
 
 interface ICatalogState { 
@@ -22,11 +22,10 @@ export class Catalog extends React.Component<ICatalogProps, ICatalogState> {
 
     render() {
         return (
-            <div>                
-            <AddCatalogForm/>
+            <div>
                 <Switch>
                     <Route exact path={"/catalog"} component={ProductList}></Route>
-                    <Route path={"/catalog/:Id?"} component={Product}></Route>
+                    <Route path={"/catalog/:Id?"} component={ProductComponent}></Route>
                 </Switch>                
             </div>
         );

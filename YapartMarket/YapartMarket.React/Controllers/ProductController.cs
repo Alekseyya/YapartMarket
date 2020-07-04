@@ -14,6 +14,7 @@ namespace YapartMarket.React.Controllers
     public class ProductController : Controller
     {
         private readonly IMapper _mapper;
+        private readonly List<Product> _products;
 
         //public async Task<IActionResult> Products()
         //{
@@ -22,17 +23,11 @@ namespace YapartMarket.React.Controllers
         public ProductController(IMapper mapper)
         {
             _mapper = mapper;
-        }
-
-        [HttpGet]
-        [Route("Products")]
-        public IEnumerable<ProductViewModel> Products()
-        {
-            var list = new List<Product>()
+            _products = new List<Product>()
             {
                 new Product()
                 {
-                    Id = 1, Article = "No-Po-1", 
+                    Id = 1, Article = "No-Po-1",
                     Descriptions = "First",
                     Brand = new Brand(){Name = "Norplast", Picture = new Picture(){Path ="\\No-Po-1.png" }},
                     Price = (decimal) 15.6
@@ -40,11 +35,23 @@ namespace YapartMarket.React.Controllers
                 new Product()
                 {
                     Id = 2, Article = "NO-1231", Descriptions = "Second",
-                    Brand = new Brand(){Name = "Norplast", Picture = new Picture(){Path = "\\NO-1231.png"}}, 
+                    Brand = new Brand(){Name = "Norplast", Picture = new Picture(){Path = "\\NO-1231.png"}},
                     Price = (decimal) 13.2
                 }
             };
-            return _mapper.Map<List<ProductViewModel>>(list);
+        }
+
+        [HttpGet]
+        [Route("Products")]
+        public IEnumerable<ProductViewModel> Products()
+        {
+            return _mapper.Map<List<ProductViewModel>>(_products);
+        }
+
+        [HttpGet]
+        public ProductViewModel GetProductById(int id)
+        {
+            return _mapper.Map<ProductViewModel>(_products.FirstOrDefault(x => x.Id == id));
         }
     }
 }

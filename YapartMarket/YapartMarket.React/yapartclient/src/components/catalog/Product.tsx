@@ -1,13 +1,13 @@
 ﻿import * as React from "react";
 import { Col, Container, Row } from 'react-bootstrap';
-import { IProduct } from "../../types/Product";
+import { Product } from "../../types/Product";
 import { RouteComponentProps } from 'react-router';
 
 
 //type TParams = {id : string}
 
-export class Product extends React.Component<IProduct> {
-    constructor(props: IProduct) {
+export class ProductComponent extends React.Component<Product> {
+    constructor(props: Product) {
         super(props);
         //let prodId = this.props.match.params.id;
         //console.log(prodId);
