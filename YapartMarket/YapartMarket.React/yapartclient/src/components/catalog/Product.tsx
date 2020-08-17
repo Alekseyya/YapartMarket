@@ -1,17 +1,22 @@
 ﻿import * as React from "react";
 import { Col, Container, Row } from 'react-bootstrap';
-import { Product } from "../../types/Product";
+import { IProduct } from "../../types/Product";
 import { RouteComponentProps } from 'react-router';
 
 
 //type TParams = {id : string}
 
-export class ProductComponent extends React.Component<Product> {
-    constructor(props: Product) {
+export class ProductComponent extends React.Component<IProduct> {
+    constructor(props: IProduct) {
         super(props);
         //let prodId = this.props.match.params.id;
         //console.log(prodId);
     }
+
+    componentDidMount(){
+        
+    }
+
     render() {
         return (
             <Col key = {this.props.Id}

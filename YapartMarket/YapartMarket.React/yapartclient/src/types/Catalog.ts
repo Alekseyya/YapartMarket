@@ -1,5 +1,6 @@
-import { Product } from "./Product";
+import { IProduct } from "./Product";
+
 
 export interface ICatalog {
-    Products : Product[]
+    Products : IProduct[]
 }

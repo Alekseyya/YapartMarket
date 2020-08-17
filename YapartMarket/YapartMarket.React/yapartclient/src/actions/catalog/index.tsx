@@ -1,4 +1,4 @@
-import { Product } from "../../types/Product"
+import { IProduct } from "../../types/Product"
 import { createAction } from 'typesafe-actions';
 import { GET_PRODUCT_BYID, FETCH_PRODUCTS_COMPLETED, ADD_PRODUCT, FetchProducts } from "../../types/types";
 import { Action } from "redux";
@@ -17,12 +17,12 @@ import { Action } from "redux";
 
 
 
-const fetchProductsCompleted = (products: Product[]) : FetchProducts=> ({
+const fetchProductsCompleted = (products: IProduct[]) : FetchProducts=> ({
     type:  FETCH_PRODUCTS_COMPLETED,
     payload: products
 })
 export const fetchProductsAction = () => (dispatch: any) => {
-    api<Product[]>('api/Product/Products').then((products) => {
+    api<IProduct[]>('api/Product/Products').then((products) => {
         dispatch(fetchProductsCompleted(products));
     });
 }
@@ -39,7 +39,7 @@ export const fetchProductsAction = () => (dispatch: any) => {
 //     });
 // }
 
- export function addProduct(product: Product) {
+ export function addProduct(product: IProduct) {
      return {
          type: ADD_PRODUCT,
          payload: product

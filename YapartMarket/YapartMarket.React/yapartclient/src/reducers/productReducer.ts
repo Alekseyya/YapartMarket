@@ -1,103 +1,168 @@
-import { Product, ProductState } from "../types/Product";
-import { FetchProducts, FETCH_PRODUCTS_COMPLETED, FetchProductsCompleted } from "../types/types";
 
-// export type ProjectAction = ActionType<typeof actions>
+import { IProduct, defaultValue } from "../types/Product";
+import { REQUEST, SUCCESS, FAILURE } from '../reducers/action-type.util';
+import axios from 'axios';
+import { ICrudGetAction, ICrudGetAllAction, ICrudPutAction, ICrudDeleteAction } from 'react-jhipster';
+import { cleanEntity } from '../utils/entity-units';
 
-// export type ProductState = Readonly<{
-//     products: IProduct[]
-// }>;
-// const initialState: ProductState = {
-//     products: []
-// };
-
-//ProductState
-// const initialState: ProductState = {
-//     products: new Promise<Product[]>((null) as any)
-// };
-interface FetchState{
-    products : Product[]
-}
-
-//Устанавливливается начальное состояние в пустой массив[]
-export function productReducer(state: Product[] = [], action: FetchProducts) {
-    switch (action.type){
-        case FETCH_PRODUCTS_COMPLETED:
-            return handleFetchProductCompleted(state, action as FetchProductsCompleted);
-        // case actionTypes.GET_PRODUCT_BYID:
-        //     return handleFetchProductByIdCompleted({Id =}, action.payload)
-        default:
-            return state;
-    }
-};
-
-const handleFetchProductCompleted = (state: Product[], action: FetchProductsCompleted): Product[] => {
-    return action.payload;
-};
-
-//const handleFetchProductCompleted = (state: Product[], payload: Product[]) : Product[] => {
-//    return payload;
-//};
-
-const handleFetchProductByIdCompleted = (state: Product, payload: Product): Product => {
-    return payload;
+export const ACTION_TYPES = {
+    FETCH_PRODUCT_LIST: 'product/FETCH_PRODUCT_LIST',
+    FETCH_PRODUCT: 'product/FETCH_PRODUCT',
+    CREATE_PRODUCT: 'product/CREATE_PRODUCT',
+    UPDATE_PRODUCT: 'product/UPDATE_PRODUCT',
+    DELETE_PRODUCT: 'product/DELETE_PRODUCT',
+    SET_BLOB: 'product/SET_BLOB',
+    RESET: 'product/RESET'
   };
 
+  const initialState = {
+    loading: false,
+    errorMessage: null,
+    entities: [] as ReadonlyArray<IProduct>,
+    entity: defaultValue,
+    updating: false,
+    totalItems: 0,
+    updateSuccess: false
+  };
 
-// export const todos = createReducer([
-//   {Id: 0, Name: "First", BrandName: "Brand", Description : "Descr", Price : 10},
-// ] as IProduct[])
-//   .handleAction(actions.AddProduct, (state : IProduct[], action: ActionType<typeof actions>) => [...state, action.payload])
-//   .handleAction(actions.DeleteProduct, (state : IProduct[], action: ActionType<typeof actions>) =>
-//     state.filter(i => i.Id !== action.payload.Id)
-//   );
+  export type ProductState = Readonly<typeof initialState>;
 
-// export default function(state = initialState, action: ProductsActionTypes) : ProductState{
-//         switch (action.type) {
-//             case FETCH_PRODUCTS :
-//                 return {...state, products : action.payload}
-//             // case ADD_PRODUCT:               
-//             //     return [
-//             //         {
-//             //             Id: state.reduce((maxId, product) => Math.max(product.Id, maxId), -1) + 1,
-//             //             Article :action.payload.Article,
-//             //             Brand: action.payload.Brand,
-//             //             Description: action.payload.Description,
-//             //             Price: action.payload.Price,
-//             //             OldPrice: action.payload.OldPrice,
-//             //             Picture: action.payload.Picture,
-//             //             DaysDelivery : action.payload.DaysDelivery
-//             //         }, ...state
-//             //     ];
-//             // case DELETE_PRODUCT:
-//             //     return state.filter(project => project.Id !== action.payload.Id);
-//             // case GET_PRODUCTS:
-//             //     return state;
-//             default:
-//                 return state;
-//         }
-//     };
-// export default combineReducers<ProductState, ProjectAction>({
-//     products: (state = initialState.products, action: ProjectAction) => {
-//         switch (action.type) {
-//             case ADD_PRODUCT:               
-//                 return [
-//                     {
-//                         Id: state.reduce((maxId, product) => Math.max(product.Id, maxId), -1) + 1,
-//                         Article :action.payload.Article,
-//                         Brand: action.payload.Brand,
-//                         Description: action.payload.Description,
-//                         Price: action.payload.Price,
-//                         OldPrice: action.payload.OldPrice,
-//                         Picture: action.payload.Picture,
-//                         DaysDelivery : action.payload.DaysDelivery
-//                     }, ...state
-//                 ];
-//             case DELETE_PRODUCT:
-//                 return state.filter(project => project.Id !== action.payload.Id);
-//             case GET_PRODUCTS:
-//                 return state;
-//             default:
-//                 return state;
-//         }
-//     }
-// });
+//Reducer
+export default (state: ProductState = initialState, action: any): ProductState => {
+    switch (action.type) {
+      case REQUEST(ACTION_TYPES.FETCH_PRODUCT_LIST):
+      case REQUEST(ACTION_TYPES.FETCH_PRODUCT):
+        return {
+          ...state,
+          errorMessage: null,
+          updateSuccess: false,
+          loading: true
+        };
+      case REQUEST(ACTION_TYPES.CREATE_PRODUCT):
+      case REQUEST(ACTION_TYPES.UPDATE_PRODUCT):
+      case REQUEST(ACTION_TYPES.DELETE_PRODUCT):
+        return {
+          ...state,
+          errorMessage: null,
+          updateSuccess: false,
+          updating: true
+        };
+      case FAILURE(ACTION_TYPES.FETCH_PRODUCT_LIST):
+      case FAILURE(ACTION_TYPES.FETCH_PRODUCT):
+      case FAILURE(ACTION_TYPES.CREATE_PRODUCT):
+      case FAILURE(ACTION_TYPES.UPDATE_PRODUCT):
+      case FAILURE(ACTION_TYPES.DELETE_PRODUCT):
+        return {
+          ...state,
+          loading: false,
+          updating: false,
+          updateSuccess: false,
+          errorMessage: action.payload
+        };
+      case SUCCESS(ACTION_TYPES.FETCH_PRODUCT_LIST):
+        return {
+          ...state,
+          loading: false,
+          entities: action.payload.data,
+          totalItems: parseInt(action.payload.headers['x-total-count'], 10)
+        };
+      case SUCCESS(ACTION_TYPES.FETCH_PRODUCT):
+        return {
+          ...state,
+          loading: false,
+          entity: action.payload.data
+        };
+      case SUCCESS(ACTION_TYPES.CREATE_PRODUCT):
+      case SUCCESS(ACTION_TYPES.UPDATE_PRODUCT):
+        return {
+          ...state,
+          updating: false,
+          updateSuccess: true,
+          entity: action.payload.data
+        };
+      case SUCCESS(ACTION_TYPES.DELETE_PRODUCT):
+        return {
+          ...state,
+          updating: false,
+          updateSuccess: true,
+          entity: {}
+        };
+      case ACTION_TYPES.SET_BLOB: {
+        const { name, data, contentType } = action.payload;
+        return {
+          ...state,
+          entity: {
+            ...state.entity,
+            [name]: data,
+            [name + 'ContentType']: contentType
+          }
+        };
+      }
+      case ACTION_TYPES.RESET:
+        return {
+          ...initialState
+        };
+      default:
+        return state;
+    }
+  };
+
+  //url
+  const apiUrl = 'api/product';
+
+  //Actions
+
+  export const getEntities: ICrudGetAllAction<IProduct> = (page, size, sort) => {
+    const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
+    return {
+      type: ACTION_TYPES.FETCH_PRODUCT_LIST,
+      payload: axios.get<IProduct>(`${requestUrl}${sort ? '&' : '?'}cacheBuster=${new Date().getTime()}`)
+    };
+  };
+
+  export const getEntity: ICrudGetAction<IProduct> = id => {
+    const requestUrl = `${apiUrl}/${id}`;
+    return {
+      type: ACTION_TYPES.FETCH_PRODUCT,
+      payload: axios.get<IProduct>(requestUrl)
+    };
+  };
+  
+  export const createEntity: ICrudPutAction<IProduct> = entity => async dispatch => {
+    const result = await dispatch({
+      type: ACTION_TYPES.CREATE_PRODUCT,
+      payload: axios.post(apiUrl, cleanEntity(entity))
+    });
+    dispatch(getEntities());
+    return result;
+  };
+  
+  export const updateEntity: ICrudPutAction<IProduct> = entity => async dispatch => {
+    const result = await dispatch({
+      type: ACTION_TYPES.UPDATE_PRODUCT,
+      payload: axios.put(apiUrl, cleanEntity(entity))
+    });
+    return result;
+  };
+  
+  export const deleteEntity: ICrudDeleteAction<IProduct> = id => async dispatch => {
+    const requestUrl = `${apiUrl}/${id}`;
+    const result = await dispatch({
+      type: ACTION_TYPES.DELETE_PRODUCT,
+      payload: axios.delete(requestUrl)
+    });
+    return result;
+  };
+  
+  export const setBlob = (name: any, data: any, contentType?: any) => ({
+    type: ACTION_TYPES.SET_BLOB,
+    payload: {
+      name,
+      data,
+      contentType
+    }
+  });
+  
+  export const reset = () => ({
+    type: ACTION_TYPES.RESET
+  });

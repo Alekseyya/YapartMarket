@@ -1,4 +1,4 @@
-import { Product } from "./Product";
+import { IProduct } from "./Product";
 // interface IFetchProducts {
 //     type : typeof FETCH_PRODUCTS,
 //     payload : Promise<Product[]>
@@ -16,13 +16,13 @@ export const FETCH_PRODUCTS_COMPLETED= "FETCH_PRODUCTS_COMPLETED";
 
 export interface FetchProductsCompleted {
     type: typeof FETCH_PRODUCTS_COMPLETED,
-    payload: Product[]
+    payload: IProduct[]
 }
 
 
 interface FetchProductByIdCompleted{
     type: typeof GET_PRODUCT_BYID,
-    payload: Product;
+    payload: IProduct;
 }
 
 export type FetchProducts = FetchProductsCompleted| FetchProductByIdCompleted;
