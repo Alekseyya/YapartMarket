@@ -1,26 +1,27 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from "react-redux";
-import { bindActionCreators } from 'redux';
+import 'bootstrap/dist/css/bootstrap.css';
 
-import DevTools from './config/devtools';
-import initStore from './config/store';
-import './index.css';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { ConnectedRouter } from 'connected-react-router';
+import { createBrowserHistory } from 'history';
+import configureStore from './store/configureStore';
 import App from './App';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import registerServiceWorker from './registerServiceWorker';
 
+// Create browser history to use in the Redux store
+const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href') as string;
+const history = createBrowserHistory({ basename: baseUrl });
 
+// Get the application-wide store instance, prepopulating with state from the server where available.
+const store = configureStore(history);
 
-const devTools = process.env.NODE_ENV === 'development' ? <DevTools /> : null;
-const store = initStore();
+ReactDOM.render(
+    <Provider store={store}>
+        <ConnectedRouter history={history}>
+            <App />
+        </ConnectedRouter>
+    </Provider>,
+    document.getElementById('root'));
 
-// const actions = bindActionCreators({ clearAuthentication }, store.dispatch);
-// setupAxiosInterceptors(() => actions.clearAuthentication('login.error.unauthorized'));
-
- ReactDOM.render(
-  <Provider store={store}>
-    {devTools}
-    <App />,
-  </Provider>,
-  document.getElementById('root')
-);
+registerServiceWorker();

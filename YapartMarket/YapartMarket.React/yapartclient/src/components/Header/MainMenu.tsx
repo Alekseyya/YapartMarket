@@ -1,32 +1,33 @@
 import * as React from "react";
-
+import { Container, Row } from "reactstrap";
+import "../../styles/mainMenu.css";
 export class MainMenu extends React.Component {
     render() {
         return <div className="sectionMainMenu">
-            <div className="mainMenu container">
-                <div className="mainMenuWrapper row">
-                    <ul className="menuList">
-                        <li>
+            <Container className="mainMenu" >
+                <Row className="mainMenuWrapper">
+                <ul className="menuList nav">
+                        <li className="nav-item">
                             <a href="/catalog">
                                 <div className="block_icon"></div>
                                 <div className="block_title">Каталог товаров</div>
                             </a>
                         </li>
-                        <li>
+                        <li className="nav-item">
                             <a href="/">
                                 <div className="block_icon"></div>
                                 <div className="block_title">Как заказать</div>
                             </a>
 
                         </li>
-                        <li>
+                        <li className="nav-item">
                             <a href="/">
                                 <div className="block_icon"></div>
                                 <div className="block_title">Доставка и оплата</div>
                             </a>
 
                         </li>
-                        <li>
+                        <li className="nav-item">
                             <a href="/">
                                 <div className="block_icon"></div>
                                 <div className="block_title">Полезные советы</div>
@@ -40,14 +41,14 @@ export class MainMenu extends React.Component {
                             </a>
 
                         </li>
-                        <li>
+                        <li className="nav-item">
                             <a href="/">
                                 <div className="block_icon"></div>
                                 <div className="block_title">Оптовикам</div>
                             </a>
 
                         </li>
-                        <li>
+                        <li className="nav-item">
                             <a href="/">
                                 <div className="block_icon"></div>
                                 <div className="block_title">Акции</div>
@@ -55,8 +56,8 @@ export class MainMenu extends React.Component {
 
                         </li>
                     </ul>
-                </div>
-            </div>
+                </Row>
+            </Container>            
         </div>
     }
 }

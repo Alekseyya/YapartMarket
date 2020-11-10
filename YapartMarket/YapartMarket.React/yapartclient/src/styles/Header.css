@@ -1,11 +1,11 @@
 div.sectionHeader {
-    background: url(../../../wwwroot/images/clouds.jpg) repeat-x top;
+    background: url(../images/clouds.jpg) repeat-x top;
 }
 
 div.logo {
     width: 143px;
     height: 61px;
-    background: url(../../../wwwroot/images/logo.png);
+    background: url(../images/logo.png);
     margin-top: 10px;
 }
 
@@ -32,5 +32,5 @@ div.logo {
 div.phoneLogo {
     height: 80px;
     width: 30px;
-    background: url(../../../wwwroot/images/icon_phone.png) no-repeat 0px 20px;
+    background: url(../images/icon_phone.png) no-repeat 0px 20px;
 }
