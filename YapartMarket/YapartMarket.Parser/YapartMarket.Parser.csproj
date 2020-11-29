@@ -11,11 +11,15 @@
     <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
     <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="81.0.4044.6900" />
     <PackageReference Include="System.Data.Odbc" Version="4.7.0" />
-    <PackageReference Include="System.Data.OleDb" Version="4.7.0" />
+    <PackageReference Include="System.Data.OleDb" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Data\Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
   </ItemGroup>
 
 </Project>

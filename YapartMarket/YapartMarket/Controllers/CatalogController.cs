@@ -17,7 +17,8 @@ namespace YapartMarket.MainApp.Controllers
         private readonly IModelService _modelService;
         private readonly IModificationService _modificationService;
 
-        public CatalogController(IMarkService markService, IModelService modelService, IModificationService modificationService, IServiceProvider serviceProvider)
+        public CatalogController(IMarkService markService, IModelService modelService, IModificationService modificationService,
+            IServiceProvider serviceProvider)
         {
             _markService = markService;
             _modelService = modelService;

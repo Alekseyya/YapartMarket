@@ -2,26 +2,46 @@
 using System.Data;
 using System.Data.OleDb;
 using System.IO;
+using System.Linq;
+using Dapper;
 using Newtonsoft.Json;
 using Xunit;
-using YapartMarket.Parser;
+using Xunit.Abstractions;
+using YapartMarket.Core.AccessModels;
+using YapartMarket.Data;
+using YapartMarket.Data.Implementation.Access;
 using YapartMarket.Parser.Data.Models;
 
 namespace YapartMarket.UnitTests.YapartMarket.Parser
 {
+
+    public class Post
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public User Owner { get; set; }
+    }
+
+    public class User
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
     public class AccessContextTest
     {
+        private readonly ITestOutputHelper _output;
         private readonly AppSettings _appSettings;
-        public AccessContextTest()
+        public AccessContextTest(ITestOutputHelper output)
         {
-            using (var r = new StreamReader("C:\\YapartStore\\YapartMarket\\YapartMarket.Parser\\appsettings.json"))
+            using (var r = new StreamReader("C:\\MyOwn\\YapartStore\\YapartMarket\\YapartMarket.Parser\\appsettings.json"))
             {
                 var json = r.ReadToEnd();
                 _appSettings = JsonConvert.DeserializeObject<AppSettings>(json);
+                _output = output;
             }
         }
-
-
         [Fact]
         public void AccessContextTest_ReadJson()
         {
@@ -29,22 +49,53 @@ namespace YapartMarket.UnitTests.YapartMarket.Parser
             var jsonO = JsonConvert.DeserializeObject<AppSettings>(json);
             Assert.NotNull(jsonO);
         }
-
         [Fact]
         public void AccessContext_ConnectionAccess2016File()
         {
-            using (var r = new StreamReader("C:\\YapartStore\\YapartMarket\\YapartMarket.Parser\\appsettings.json"))
+            using (var r = new StreamReader("C:\\MyOwn\\YapartStore\\YapartMarket\\YapartMarket.Parser\\appsettings.json"))
             {
                 var json = r.ReadToEnd();
                 var jsonObject = JsonConvert.DeserializeObject<AppSettings>(json);
                 Assert.NotNull(jsonObject);
             }
         }
+        [Fact]
+        public void Test_AccessProductRepository_Get()
+        {
+            var accessProductRepository = new AccessProductRepository(_appSettings);
+            var accessProducts = accessProductRepository.Get();
+            Assert.NotNull(accessProducts);
+        }
+        [Fact]
+        public void Test_AccessProductRepository_GetInnerJoin()
+        {
+            var accessProductRepository = new AccessProductRepository(_appSettings);
+            var accessProducts = accessProductRepository.GetInnerJoin();
+            Assert.NotNull(accessProducts);
+        }
+
+
+        [Fact]
+        public void Test_AccessTypeProductRepository_Get()
+        {
+            var accessProductRepository = new AccessProductTypeRepository(_appSettings);
+            var accessProducts = accessProductRepository.Get();
+            Assert.NotNull(accessProducts);
+        }
+
+        [Fact]
+        public void Test_AccessProductTypeRepository_GetInnerJoin()
+        {
+            var accessProductRepository = new AccessProductTypeRepository(_appSettings);
+            var accessProducts = accessProductRepository.GetInnerJoin();
+            Assert.NotNull(accessProducts);
+            
+        }
 
         [Fact]
         public void AccessContext_TestConnectionOleDB()
         {
-            using (OleDbConnection connection = new OleDbConnection(_appSettings.connectionAccess))
+            using (OleDbConnection connection = new OleDbConnection(_appSettings.ConnectionAccess))
             {
                 string sqlExpression = "INSERT INTO Parcer_Output_Data (Brand, Article, 1Price, 1Count, 1Days, 2Price, 2Count, 2Days, 3Price, 3Count, 3Days, YourPrice, YourCount, YourDays)" +
                       "VALUES (@Brand, @Article, @1Price, @1Count, @1Days, @2Price, @2Count, @2Days, @3Price, @3Count, @3Days, @YourPrice, @YourCount, @YourDays)";
@@ -52,13 +103,12 @@ namespace YapartMarket.UnitTests.YapartMarket.Parser
                 connection.Open();
             };
         }
-
         [Fact]
         public void AccessContext_GetAll()
         {
             string sqlQuery = "Select * from Parcer_Sheriff";
             List<Product> listProducts = new List<Product>();
-            using (OleDbConnection connection = new OleDbConnection(_appSettings.connectionAccess))
+            using (OleDbConnection connection = new OleDbConnection(_appSettings.ConnectionAccess))
             {
                 connection.Open();
                 OleDbDataAdapter adapter = new OleDbDataAdapter(sqlQuery, connection);

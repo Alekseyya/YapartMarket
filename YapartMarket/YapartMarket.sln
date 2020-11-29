@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.UnitTests", "Y
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.React", "YapartMarket.React\YapartMarket.React.csproj", "{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YapartMarket.Parser", "YapartMarket.Parser\YapartMarket.Parser.csproj", "{902F0D62-3D34-428D-8886-DC72FE8C4D65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.Parser", "YapartMarket.Parser\YapartMarket.Parser.csproj", "{902F0D62-3D34-428D-8886-DC72FE8C4D65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

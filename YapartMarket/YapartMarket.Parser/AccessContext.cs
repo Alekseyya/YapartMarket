@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Newtonsoft.Json;
+using YapartMarket.Data;
 
 namespace YapartMarket.Parser
 {
@@ -16,7 +17,7 @@ namespace YapartMarket.Parser
                 using (var r = new StreamReader("C:\\YapartStore\\YapartMarket\\YapartMarket.Parser\\appsettings.json"))
                 {
                     var json = r.ReadToEnd();
-                    _connectionString = JsonConvert.DeserializeObject<AppSettings>(json).connectionAccess;
+                    _connectionString = JsonConvert.DeserializeObject<AppSettings>(json).ConnectionAccess;
                 }
             }
             catch (Exception ex)
@@ -25,11 +26,5 @@ namespace YapartMarket.Parser
                 throw ex;
             }
         }
-    }
-    public class AppSettings
-    {
-        public string connectionAccess { get; set; }
-        public string Login { get; set; }
-        public string Password { get; set; }
     }
 }
