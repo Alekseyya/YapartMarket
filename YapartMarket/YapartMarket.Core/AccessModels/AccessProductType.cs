@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace YapartMarket.Core.AccessModels
 {
     public class AccessProductType
     {
+        [Key]
         public int Tip { get; set; }
         public List<AccessProduct> AccessProducts { get; set; }
         public string Kategoria { get; set; }

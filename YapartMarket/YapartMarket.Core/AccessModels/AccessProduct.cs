@@ -1,7 +1,11 @@
-﻿namespace YapartMarket.Core.AccessModels
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace YapartMarket.Core.AccessModels
 {
     public class AccessProduct
     {
+        [Key]
         /// <summary>
         /// Ассортимент код
         /// </summary>
@@ -21,6 +25,7 @@
         public int Proizvoditel { get; set; }
         public string Marka { get; set; }
         public string Public_Cross { get; set; }
+        [ForeignKey("Tip")]
         public int Tip { get; set; }
         public AccessProductType AccessProductType { get; set; }
         public string Opisanie { get; set; }

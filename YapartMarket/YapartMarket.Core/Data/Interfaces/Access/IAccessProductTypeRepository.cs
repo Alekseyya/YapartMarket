@@ -4,9 +4,7 @@ using YapartMarket.Core.AccessModels;
 
 namespace YapartMarket.Core.Data.Interfaces.Access
 {
-    public interface IAccessProductTypeRepository<T> where  T : AccessProductType
+    public interface IAccessProductTypeRepository : IAccessGenericRepository<AccessProductType>
     {
-        Task<List<T>> Get();
-        List<T> GetInnerJoin();
     }
 }

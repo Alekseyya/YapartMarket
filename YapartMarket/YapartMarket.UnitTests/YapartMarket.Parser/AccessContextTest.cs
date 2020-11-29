@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Data.OleDb;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Dapper;
 using Newtonsoft.Json;
 using Xunit;
@@ -14,21 +16,6 @@ using YapartMarket.Parser.Data.Models;
 
 namespace YapartMarket.UnitTests.YapartMarket.Parser
 {
-
-    public class Post
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Content { get; set; }
-        public User Owner { get; set; }
-    }
-
-    public class User
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
     public class AccessContextTest
     {
         private readonly ITestOutputHelper _output;
@@ -60,12 +47,13 @@ namespace YapartMarket.UnitTests.YapartMarket.Parser
             }
         }
         [Fact]
-        public void Test_AccessProductRepository_Get()
+        public void Test_AccessProductRepository_GetAllAsync()
         {
             var accessProductRepository = new AccessProductRepository(_appSettings);
-            var accessProducts = accessProductRepository.Get();
+            var accessProducts = accessProductRepository.GetAllAsync();
             Assert.NotNull(accessProducts);
         }
+
         [Fact]
         public void Test_AccessProductRepository_GetInnerJoin()
         {
@@ -74,12 +62,11 @@ namespace YapartMarket.UnitTests.YapartMarket.Parser
             Assert.NotNull(accessProducts);
         }
 
-
         [Fact]
-        public void Test_AccessTypeProductRepository_Get()
+        public void Test_AccessTypeProductRepository_GetAllAsync()
         {
             var accessProductRepository = new AccessProductTypeRepository(_appSettings);
-            var accessProducts = accessProductRepository.Get();
+            var accessProducts = accessProductRepository.GetAllAsync();
             Assert.NotNull(accessProducts);
         }
 
