@@ -41,7 +41,55 @@ namespace YapartMarket.Data.Implementation.Access
             }
         }
 
-        //Todo Для Insert взять с сайта https://itnext.io/generic-repository-pattern-using-dapper-bd48d9cd7ead
+        public async Task InsertAsync(T t)
+        {
+            var insertQuery = GenerateInsertQuery();
+            using (var connection = new OleDbConnection(_connectionString))
+            {
+                connection.Open();
+                await connection.ExecuteAsync(insertQuery, t);
+            }
+        }
+
+        public async Task Update(T t)
+        {
+            var updateQuery = GenerateUpdateQuery();
+            using (var connection = new OleDbConnection(_connectionString))
+            {
+                await connection.ExecuteAsync(updateQuery, t);
+            }
+        }
+
+        public string GenerateUpdateQuery()
+        {
+            var updateQuery = new StringBuilder($"UPDATE {_tableName} SET ");
+            var properites = AccessExtension.GetProperties<T>();
+            var idProperty = AccessExtension.GetKeyProperty<T>();
+            properites.ForEach(prop =>
+            {
+                if (!prop.Equals(idProperty))
+                {
+                    updateQuery.Append($"{prop}=@{prop},");
+                }
+            });
+            updateQuery.Remove(updateQuery.Length - 1, 1); //Удалить последнюю запятую
+            updateQuery.Append($" WHERE {idProperty}=@{idProperty}");
+            return updateQuery.ToString();
+        }
+
+        public string GenerateInsertQuery()
+        {
+            var insertQuery = new StringBuilder($"INSERT INTO {_tableName}");
+            insertQuery.Append("(");
+            var properties = AccessExtension.GetProperties<T>();
+            properties.ForEach(prop => { insertQuery.Append($"{prop},"); });
+            //Удалить последнюю запятую
+            insertQuery.Remove(insertQuery.Length - 1, 1).Append(") VALUES (");
+            properties.ForEach(prop => { insertQuery.Append($"@{prop},"); });
+            //Удалить последнюю запятую
+            insertQuery.Remove(insertQuery.Length - 1, 1).Append(")");
+            return insertQuery.ToString();
+        }
 
         public async Task<T> GetById(int id)
         {

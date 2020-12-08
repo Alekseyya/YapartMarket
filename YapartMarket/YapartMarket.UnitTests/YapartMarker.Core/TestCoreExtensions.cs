@@ -28,5 +28,12 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             Assert.NotNull(result);
             Assert.Equal("AS_ID", result);
         }
+
+        [Fact]
+        public void Test_GetProperties()
+        {
+            var list = AccessExtension.GetKeyProperty<AccessProduct>();
+            Assert.Contains(list, "AS_ID");
+        }
     }
 }
