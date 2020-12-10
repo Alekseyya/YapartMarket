@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using YapartMarket.Core.Data.Interfaces.Access;
+using YapartMarket.Data.Implementation.Access;
 
 namespace YapartMarket.React
 {
@@ -26,6 +28,9 @@ namespace YapartMarket.React
 
             services.AddAutoMapper(typeof(Startup));
             services.AddControllers();
+
+            //Регистрация сервисов
+            //services.AddTransient<IAccessProductRepository, AccessProductRepository>();
 
             //TODO вот это оставить под вопросом надо ли вообще!!
             //TODO Перелодить позже в папку другую!!

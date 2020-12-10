@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
+    <ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

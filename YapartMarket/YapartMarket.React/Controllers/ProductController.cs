@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using YapartMarket.Core.Data.Interfaces.Access;
 using YapartMarket.Core.Models;
 using YapartMarket.React.ViewModels;
 
@@ -13,15 +14,13 @@ namespace YapartMarket.React.Controllers
     [Route("api/[controller]")]
     public class ProductController : Controller
     {
+        //private readonly IAccessProductRepository _accessProductRepository;
         private readonly IMapper _mapper;
         private readonly List<Product> _products;
-
-        //public async Task<IActionResult> Products()
-        //{
-        //    return Ok(await )
-        //}
-        public ProductController(IMapper mapper)
+        //IAccessProductRepository accessProductRepository,
+        public ProductController( IMapper mapper)
         {
+            //_accessProductRepository = accessProductRepository;
             _mapper = mapper;
             _products = new List<Product>()
             {
@@ -41,11 +40,20 @@ namespace YapartMarket.React.Controllers
             };
         }
 
+        //[HttpGet]
+        //[Route("GetProducts")]
+        //public async Task<IActionResult> GetProducts()
+        //{
+        //    var products = await _accessProductRepository.GetAsync("select * from Tovari");
+        //    return Ok(products);
+
+        //}
+
         [HttpGet]
-        [Route("Products")]
-        public IEnumerable<ProductViewModel> Products()
+        [Route("ListProducts")]
+        public IActionResult ListProducts()
         {
-            return _mapper.Map<List<ProductViewModel>>(_products);
+            return Ok(_mapper.Map<List<ProductViewModel>>(_products));
         }
 
         [HttpGet]
