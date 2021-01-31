@@ -51,7 +51,7 @@ namespace YapartMarket.React.Controllers
 
         [HttpGet]
         [Route("ListProducts")]
-        public IActionResult ListProducts()
+        public ActionResult ListProducts()
         {
             return Ok(_mapper.Map<List<ProductViewModel>>(_products));
         }
