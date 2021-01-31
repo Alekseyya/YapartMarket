@@ -42,7 +42,7 @@ namespace YapartMarket.React.Controllers
 
         //[HttpGet]
         //[Route("GetProducts")]
-        //public async Task<IActionResult> GetProducts()
+        //public async Task<ActionResult> GetProducts()
         //{
         //    var products = await _accessProductRepository.GetAsync("select * from Tovari");
         //    return Ok(products);

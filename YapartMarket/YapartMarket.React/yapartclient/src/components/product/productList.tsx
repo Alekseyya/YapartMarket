@@ -20,13 +20,13 @@ type ProductsProps =
 class ProductListComponent extends  React.PureComponent<ProductsProps>{
     constructor(props : ProductsProps) {
         super(props);
-        // let a: Product[] = [
-        //     { Id : 1, Descriptions : "111", Price : 10, count : 6 },
-        //     { Id : 2, Descriptions : "222", Price : 101, count : 4 },
-        //     { Id : 3, Descriptions : "333", Price : 101, count : 5 },
-        //     { Id : 4, Descriptions : "444", Price : 102, count : 6 },
-        // ];
-        //this.state = {products : a};        
+        let a: Product[] = [
+            { Id : 1, Descriptions : "111", Price : 10, count : 6, Article : "asd" },
+            { Id : 2, Descriptions : "222", Price : 101, count : 4, Article : "adas" },
+            { Id : 3, Descriptions : "333", Price : 101, count : 5, Article: "aaa" },
+            { Id : 4, Descriptions : "444", Price : 102, count : 6, Article : "sdas" },
+        ];
+        this.state = {products : a};        
     }
     
     public componentDidMount() {
