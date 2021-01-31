@@ -18,7 +18,7 @@ namespace YapartMarket.React.Controllers
         private readonly IMapper _mapper;
         private readonly List<Product> _products;
         //IAccessProductRepository accessProductRepository,
-        public ProductController( IMapper mapper)
+        public ProductController(IMapper mapper)
         {
             //_accessProductRepository = accessProductRepository;
             _mapper = mapper;
