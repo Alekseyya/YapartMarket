@@ -12,6 +12,7 @@ namespace YapartMarket.Core.Models
     public class Section
     {
         public int Id { get; set; }
+        public int AccessProductTypeId { get; set; }
         public string Name { get; set; }
         public bool Show { get; set; }
         public int Sort { get; set; }

@@ -10,460 +10,447 @@ using YapartMarket.Data;
 namespace YapartMarket.Data.Migrations
 {
     [DbContext(typeof(YapartContext))]
-    [Migration("20190123130039_init")]
+    [Migration("20210203230607_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .UseIdentityByDefaultColumns()
+                .HasAnnotation("Relational:MaxIdentifierLength", 63)
+                .HasAnnotation("ProductVersion", "5.0.2");
 
             modelBuilder.Entity("YapartMarket.Core.Models.Brand", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
                     b.Property<int?>("PictureId")
-                        .HasColumnName("picture_id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("Id")
-                        .HasName("pk_brands");
+                    b.HasKey("Id");
 
-                    b.ToTable("brands");
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Cart", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<Guid>("UserId")
-                        .HasColumnName("user_id");
+                        .HasColumnType("uuid");
 
-                    b.HasKey("Id")
-                        .HasName("pk_carts");
+                    b.HasKey("Id");
 
-                    b.ToTable("carts");
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.CartLine", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Article")
                         .IsRequired()
-                        .HasColumnName("article");
+                        .HasColumnType("text");
 
                     b.Property<int>("CartId")
-                        .HasColumnName("cart_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Descriptions")
-                        .HasColumnName("descriptions");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("Price")
-                        .HasColumnName("price");
+                        .HasColumnType("numeric");
 
                     b.Property<int>("Quantity")
-                        .HasColumnName("quantity");
+                        .HasColumnType("integer");
 
-                    b.HasKey("Id")
-                        .HasName("pk_cart_lines");
+                    b.HasKey("Id");
 
-                    b.HasIndex("CartId")
-                        .HasName("ix_cart_lines_cart_id");
+                    b.HasIndex("CartId");
 
-                    b.ToTable("cart_lines");
+                    b.ToTable("CartLines");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("EnglishName")
-                        .HasColumnName("english_name");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
                     b.Property<int?>("SectionId")
-                        .HasColumnName("section_id");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("Show")
-                        .HasColumnName("show");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Sort")
-                        .HasColumnName("sort");
+                        .HasColumnType("integer");
 
-                    b.HasKey("Id")
-                        .HasName("pk_categories");
+                    b.HasKey("Id");
 
-                    b.HasIndex("SectionId")
-                        .HasName("ix_categories_section_id");
+                    b.HasIndex("SectionId");
 
-                    b.ToTable("categories");
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Group", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
-                    b.HasKey("Id")
-                        .HasName("pk_groups");
+                    b.HasKey("Id");
 
-                    b.ToTable("groups");
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Mark", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
                     b.Property<bool>("Show")
-                        .HasColumnName("show");
+                        .HasColumnType("boolean");
 
-                    b.HasKey("Id")
-                        .HasName("pk_marks");
+                    b.HasKey("Id");
 
-                    b.ToTable("marks");
+                    b.ToTable("Marks");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Model", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<int?>("MarkId")
-                        .HasColumnName("mark_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
                     b.Property<string>("Years")
-                        .HasColumnName("years");
+                        .HasColumnType("text");
 
-                    b.HasKey("Id")
-                        .HasName("pk_models");
+                    b.HasKey("Id");
 
-                    b.HasIndex("MarkId")
-                        .HasName("ix_models_mark_id");
+                    b.HasIndex("MarkId");
 
-                    b.ToTable("models");
+                    b.ToTable("Models");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Modification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<int?>("ModelId")
-                        .HasColumnName("model_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
                     b.Property<int>("Sort")
-                        .HasColumnName("sort");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Url")
-                        .HasColumnName("url");
+                        .HasColumnType("text");
 
                     b.Property<string>("Years")
-                        .HasColumnName("years");
+                        .HasColumnType("text");
 
-                    b.HasKey("Id")
-                        .HasName("pk_modifications");
+                    b.HasKey("Id");
 
-                    b.HasIndex("ModelId")
-                        .HasName("ix_modifications_model_id");
+                    b.HasIndex("ModelId");
 
-                    b.ToTable("modifications");
+                    b.ToTable("Modifications");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("City")
-                        .HasColumnName("city");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("ClientGuid")
-                        .HasColumnName("client_guid");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Comment")
-                        .HasColumnName("comment");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CreationTime")
-                        .HasColumnName("creation_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsClosed")
-                        .HasColumnName("is_closed");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsSent")
-                        .HasColumnName("is_sent");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PaymentMethod")
-                        .HasColumnName("payment_method");
+                        .HasColumnType("text");
 
                     b.Property<string>("Phone")
-                        .HasColumnName("phone");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("ShippedDate")
-                        .HasColumnName("shipped_date");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("ShippingMethod")
-                        .HasColumnName("shipping_method");
+                        .HasColumnType("text");
 
-                    b.HasKey("Id")
-                        .HasName("pk_orders");
+                    b.HasKey("Id");
 
-                    b.ToTable("orders");
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.OrderItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Articul")
-                        .HasColumnName("articul");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("ClientGuid")
-                        .HasColumnName("client_guid");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Comment")
-                        .HasColumnName("comment");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CreationTime")
-                        .HasColumnName("creation_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
-                        .HasColumnName("description");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsClosed")
-                        .HasColumnName("is_closed");
+                        .HasColumnType("boolean");
 
                     b.Property<int?>("OrderId")
-                        .HasColumnName("order_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("OrderStatus")
-                        .HasColumnName("order_status");
+                        .HasColumnType("text");
 
                     b.Property<string>("OrderStatusComment")
-                        .HasColumnName("order_status_comment");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("PriceWithDiscount")
-                        .HasColumnName("price_with_discount");
+                        .HasColumnType("numeric");
 
                     b.Property<int>("Quantity")
-                        .HasColumnName("quantity");
+                        .HasColumnType("integer");
 
-                    b.HasKey("Id")
-                        .HasName("pk_order_items");
+                    b.HasKey("Id");
 
-                    b.HasIndex("OrderId")
-                        .HasName("ix_order_items_order_id");
+                    b.HasIndex("OrderId");
 
-                    b.ToTable("order_items");
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Picture", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<int?>("BrandId")
-                        .HasColumnName("brand_id");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("MarkId")
-                        .HasColumnName("mark_id");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("ModelId")
-                        .HasColumnName("model_id");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("ModificationId")
-                        .HasColumnName("modification_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
                     b.Property<string>("Path")
                         .IsRequired()
-                        .HasColumnName("path");
+                        .HasColumnType("text");
 
                     b.Property<int?>("ProductId")
-                        .HasColumnName("product_id");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdateTimestamp")
-                        .HasColumnName("update_timestamp");
+                        .HasColumnType("timestamp without time zone");
 
-                    b.HasKey("Id")
-                        .HasName("pk_pictures");
+                    b.HasKey("Id");
 
                     b.HasIndex("BrandId")
-                        .IsUnique()
-                        .HasName("ix_pictures_brand_id");
+                        .IsUnique();
 
-                    b.HasIndex("MarkId")
-                        .HasName("ix_pictures_mark_id");
+                    b.HasIndex("MarkId");
 
-                    b.HasIndex("ModelId")
-                        .HasName("ix_pictures_model_id");
+                    b.HasIndex("ModelId");
 
-                    b.HasIndex("ModificationId")
-                        .HasName("ix_pictures_modification_id");
+                    b.HasIndex("ModificationId");
 
-                    b.HasIndex("ProductId")
-                        .HasName("ix_pictures_product_id");
+                    b.HasIndex("ProductId");
 
-                    b.ToTable("pictures");
+                    b.ToTable("Pictures");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Article")
                         .IsRequired()
-                        .HasColumnName("article")
-                        .HasMaxLength(50);
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int?>("BrandId")
-                        .HasColumnName("brand_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Brief")
-                        .HasColumnName("brief");
+                        .HasColumnType("text");
 
                     b.Property<int?>("CategoryId")
-                        .HasColumnName("category_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Characteristic")
-                        .HasColumnName("characteristic");
+                        .HasColumnType("text");
 
                     b.Property<int>("DaysDelivery")
-                        .HasColumnName("days_delivery");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Descriptions")
                         .IsRequired()
-                        .HasColumnName("descriptions");
+                        .HasColumnType("text");
 
                     b.Property<bool>("Discount")
-                        .HasColumnName("discount");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Keywords")
-                        .HasColumnName("keywords");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("OldPrice")
-                        .HasColumnName("old_price");
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("Popular")
-                        .HasColumnName("popular");
+                        .HasColumnType("boolean");
 
                     b.Property<decimal>("Price")
-                        .HasColumnName("price")
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<bool>("RemoveMarketplace")
-                        .HasColumnName("remove_marketplace");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ShortArticle")
-                        .HasColumnName("short_article");
+                        .HasColumnType("text");
 
                     b.Property<bool>("Show")
-                        .HasColumnName("show");
+                        .HasColumnType("boolean");
 
-                    b.HasKey("Id")
-                        .HasName("pk_products");
+                    b.HasKey("Id");
 
-                    b.HasIndex("BrandId")
-                        .HasName("ix_products_brand_id");
+                    b.HasIndex("BrandId");
 
-                    b.HasIndex("CategoryId")
-                        .HasName("ix_products_category_id");
+                    b.HasIndex("CategoryId");
 
-                    b.ToTable("products");
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.ProductModification", b =>
                 {
                     b.Property<int?>("ProductId")
-                        .HasColumnName("product_id");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("ModificationId")
-                        .HasColumnName("modification_id");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Id")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("ProductId", "ModificationId")
-                        .HasName("pk_product_modifications");
+                    b.HasKey("ProductId", "ModificationId");
 
-                    b.HasIndex("ModificationId")
-                        .HasName("ix_product_modifications_modification_id");
+                    b.HasIndex("ModificationId");
 
-                    b.ToTable("product_modifications");
+                    b.ToTable("ProductModifications");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Section", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
+
+                    b.Property<int>("AccessProductTypeId")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("GroupId")
-                        .HasColumnName("group_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnName("name");
+                        .HasColumnType("text");
 
                     b.Property<bool>("Show")
-                        .HasColumnName("show");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Sort")
-                        .HasColumnName("sort");
+                        .HasColumnType("integer");
 
-                    b.HasKey("Id")
-                        .HasName("pk_sections");
+                    b.HasKey("Id");
 
-                    b.HasIndex("GroupId")
-                        .HasName("ix_sections_group_id");
+                    b.HasIndex("GroupId");
 
-                    b.ToTable("sections");
+                    b.ToTable("Sections");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.CartLine", b =>
@@ -471,81 +458,94 @@ namespace YapartMarket.Data.Migrations
                     b.HasOne("YapartMarket.Core.Models.Cart", "Cart")
                         .WithMany("Lines")
                         .HasForeignKey("CartId")
-                        .HasConstraintName("fk_cart_lines_carts_cart_id")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cart");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Category", b =>
                 {
                     b.HasOne("YapartMarket.Core.Models.Section", "Section")
                         .WithMany("Categories")
-                        .HasForeignKey("SectionId")
-                        .HasConstraintName("fk_categories_sections_section_id");
+                        .HasForeignKey("SectionId");
+
+                    b.Navigation("Section");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Model", b =>
                 {
                     b.HasOne("YapartMarket.Core.Models.Mark", "Mark")
                         .WithMany("Models")
-                        .HasForeignKey("MarkId")
-                        .HasConstraintName("fk_models_marks_mark_id");
+                        .HasForeignKey("MarkId");
+
+                    b.Navigation("Mark");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Modification", b =>
                 {
                     b.HasOne("YapartMarket.Core.Models.Model", "Model")
                         .WithMany("Modifications")
-                        .HasForeignKey("ModelId")
-                        .HasConstraintName("fk_modifications_models_model_id");
+                        .HasForeignKey("ModelId");
+
+                    b.Navigation("Model");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.OrderItem", b =>
                 {
                     b.HasOne("YapartMarket.Core.Models.Order", "Order")
                         .WithMany("OrderItems")
-                        .HasForeignKey("OrderId")
-                        .HasConstraintName("fk_order_items_orders_order_id");
+                        .HasForeignKey("OrderId");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Picture", b =>
                 {
                     b.HasOne("YapartMarket.Core.Models.Brand", "Brand")
                         .WithOne("Picture")
-                        .HasForeignKey("YapartMarket.Core.Models.Picture", "BrandId")
-                        .HasConstraintName("fk_pictures_brands_brand_id");
+                        .HasForeignKey("YapartMarket.Core.Models.Picture", "BrandId");
 
                     b.HasOne("YapartMarket.Core.Models.Mark", "Mark")
                         .WithMany("Pictures")
-                        .HasForeignKey("MarkId")
-                        .HasConstraintName("fk_pictures_marks_mark_id");
+                        .HasForeignKey("MarkId");
 
                     b.HasOne("YapartMarket.Core.Models.Model", "Model")
                         .WithMany("Pictures")
-                        .HasForeignKey("ModelId")
-                        .HasConstraintName("fk_pictures_models_model_id");
+                        .HasForeignKey("ModelId");
 
                     b.HasOne("YapartMarket.Core.Models.Modification", "Modification")
                         .WithMany("Pictures")
-                        .HasForeignKey("ModificationId")
-                        .HasConstraintName("fk_pictures_modifications_modification_id");
+                        .HasForeignKey("ModificationId");
 
                     b.HasOne("YapartMarket.Core.Models.Product", "Product")
                         .WithMany("Pictures")
-                        .HasForeignKey("ProductId")
-                        .HasConstraintName("fk_pictures_products_product_id");
+                        .HasForeignKey("ProductId");
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Mark");
+
+                    b.Navigation("Model");
+
+                    b.Navigation("Modification");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Product", b =>
                 {
                     b.HasOne("YapartMarket.Core.Models.Brand", "Brand")
                         .WithMany("Products")
-                        .HasForeignKey("BrandId")
-                        .HasConstraintName("fk_products_brands_brand_id");
+                        .HasForeignKey("BrandId");
 
                     b.HasOne("YapartMarket.Core.Models.Category", "Category")
                         .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .HasConstraintName("fk_products_categories_category_id");
+                        .HasForeignKey("CategoryId");
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.ProductModification", b =>
@@ -553,22 +553,82 @@ namespace YapartMarket.Data.Migrations
                     b.HasOne("YapartMarket.Core.Models.Modification", "Modification")
                         .WithMany("ProductModifications")
                         .HasForeignKey("ModificationId")
-                        .HasConstraintName("fk_product_modifications_modifications_modification_id")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("YapartMarket.Core.Models.Product", "Product")
                         .WithMany("ProductModifications")
                         .HasForeignKey("ProductId")
-                        .HasConstraintName("fk_product_modifications_products_product_id")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Modification");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("YapartMarket.Core.Models.Section", b =>
                 {
                     b.HasOne("YapartMarket.Core.Models.Group", "Group")
                         .WithMany()
-                        .HasForeignKey("GroupId")
-                        .HasConstraintName("fk_sections_groups_group_id");
+                        .HasForeignKey("GroupId");
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Brand", b =>
+                {
+                    b.Navigation("Picture");
+
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Cart", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Mark", b =>
+                {
+                    b.Navigation("Models");
+
+                    b.Navigation("Pictures");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Model", b =>
+                {
+                    b.Navigation("Modifications");
+
+                    b.Navigation("Pictures");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Modification", b =>
+                {
+                    b.Navigation("Pictures");
+
+                    b.Navigation("ProductModifications");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Order", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Product", b =>
+                {
+                    b.Navigation("Pictures");
+
+                    b.Navigation("ProductModifications");
+                });
+
+            modelBuilder.Entity("YapartMarket.Core.Models.Section", b =>
+                {
+                    b.Navigation("Categories");
                 });
 #pragma warning restore 612, 618
         }

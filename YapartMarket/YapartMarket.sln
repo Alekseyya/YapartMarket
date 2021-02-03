@@ -35,6 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.UnitTests", "Y
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.React", "YapartMarket.React\YapartMarket.React.csproj", "{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}"
 	ProjectSection(ProjectDependencies) = postProject
+		{AFB20531-7149-4D70-A257-CF9C6B73E7F8} = {AFB20531-7149-4D70-A257-CF9C6B73E7F8}
 		{CD368DC8-170E-4D96-986E-494F7B5B46F7} = {CD368DC8-170E-4D96-986E-494F7B5B46F7}
 	EndProjectSection
 EndProject

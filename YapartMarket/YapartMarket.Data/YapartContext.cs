@@ -48,7 +48,7 @@ namespace YapartMarket.Data
             modelBuilder.ApplyConfiguration(new ProductModificationConfiguration());
 
             //Todo название таблиц SnakeCase
-            modelBuilder.NamesToSnakeCase();
+            //modelBuilder.NamesToSnakeCase();
         }
 
         //TODO Нужно для того, чтобы работала инициализация первой миграции
@@ -57,7 +57,7 @@ namespace YapartMarket.Data
             YapartContext IDesignTimeDbContextFactory<YapartContext>.CreateDbContext(string[] args)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<YapartContext>();
-                optionsBuilder.UseNpgsql<YapartContext>("Server=localhost;Port=5432;Database=yapart_store;Username=postgres;Password=jfgSvSD@gM;");
+                optionsBuilder.UseNpgsql<YapartContext>("Server=localhost;Port=5432;Database=yapart_store;Username=postgres;Password=jfgSvSD@gM;").UseSnakeCaseNamingConvention();
 
                 return new YapartContext(optionsBuilder.Options);
             }

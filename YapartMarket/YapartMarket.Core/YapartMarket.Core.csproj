@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Folder Include="Models\Identiry\" />
+    <Folder Include="Config\" />
   </ItemGroup>
 
   <ItemGroup>
