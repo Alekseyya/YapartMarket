@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace YapartMarket.Core.Models
 {
+    /// <summary>
+    /// Раздел
+    /// </summary>
     public class Section
     {
         public int Id { get; set; }

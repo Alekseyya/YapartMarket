@@ -17,7 +17,7 @@ type ProductsProps =
   & typeof Products.productActionCreators;
 
 
-class ProductListComponent extends  React.PureComponent<ProductsProps>{
+export class ProductListComponent extends React.PureComponent<ProductsProps>{
     constructor(props : ProductsProps) {
         super(props);
         let a: Product[] = [

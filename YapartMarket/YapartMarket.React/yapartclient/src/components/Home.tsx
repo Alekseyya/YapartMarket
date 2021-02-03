@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ProductListComponent from './product/ProductList';
+import ProductListComponent from './product/productList'
 import { ApplicationState } from '../store';
 import * as WeatherForecastsStore from '../store/WeatherForecasts';
 import { WeatherForecastsState } from '../store/WeatherForecasts';

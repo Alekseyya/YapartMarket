@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace YapartMarket.Core.Models
 {
+    /// <summary>
+    /// Группа
+    /// </summary>
     public class Group
     {
         public int Id { get; set; }
