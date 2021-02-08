@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using YapartMarket.Core.Data;
 
 namespace YapartMarket.BL.Implementation
@@ -63,5 +64,9 @@ namespace YapartMarket.BL.Implementation
             return delegateExpr(repositoryQuery);
         }
 
+        public virtual async Task<List<TEntry>> Get()
+        {
+            return await RepositoryFactory.GetRepository<TRepository>().GetQueryable().ToListAsync();
+        }
     }
 }

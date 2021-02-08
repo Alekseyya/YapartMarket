@@ -21,4 +21,22 @@ namespace YapartMarket.React.App_Start
                 .ForMember(prodViewModel => prodViewModel.Picture,  prod => prod.MapFrom(src=>src.Brand.Picture.Path));
         }
     }
+
+    public class BrandProfile : Profile
+    {
+        public BrandProfile()
+        {
+            CreateMap<BrandViewModel, Brand>()
+                .ForMember(brand => brand.Name, view => view.MapFrom(v => v.Name));
+        }
+    }
+
+    public class BrandViewModelProfile : Profile
+    {
+        public BrandViewModelProfile()
+        {
+            CreateMap<Brand, BrandViewModel>()
+                .ForMember(brv => brv.Name, br => br.MapFrom(b=>b.Name));
+        }
+    }
 }

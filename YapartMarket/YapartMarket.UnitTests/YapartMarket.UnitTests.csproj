@@ -8,7 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.78" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="Moq" Version="4.16.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -17,9 +20,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\YapartMarket.BL\YapartMarket.BL.csproj" />
     <ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
     <ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
     <ProjectReference Include="..\YapartMarket.Parser\YapartMarket.Parser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

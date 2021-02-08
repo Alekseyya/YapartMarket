@@ -1,5 +1,6 @@
 using System.IO;
 using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
@@ -19,11 +20,11 @@ namespace YapartMarket.React
 {
     public class Startup
     {
-        private readonly ILoggerFactory _loggerFactory;
+        //private readonly ILoggerFactory _loggerFactory;
 
-        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
+        public Startup(IConfiguration configuration)
         {
-            _loggerFactory = loggerFactory;
+            //_loggerFactory = loggerFactory;
             Configuration = configuration;
         }
 
@@ -36,8 +37,8 @@ namespace YapartMarket.React
             {
                 var ob = new DbContextOptionsBuilder<YapartContext>();
                 ob.UseNpgsql(Configuration["ConnectionStrings:PostgresConnectionString"])
-                    .UseSnakeCaseNamingConvention();
-                ob.UseLoggerFactory(_loggerFactory);
+                    /*.UseSnakeCaseNamingConvention()*/;
+                //ob.UseLoggerFactory(_loggerFactory);
                 return ob.Options;
             });
 
@@ -69,6 +70,8 @@ namespace YapartMarket.React
             services.AddTransient<IProductModificationService, ProductModificationService>();
             services.AddTransient<ISectionService, SectionService>();
             #endregion
+
+            services.AddMediatR(typeof(Startup));
             
             //TODO вот это оставить под вопросом надо ли вообще!!
             //TODO Перелодить позже в папку другую!!
