@@ -281,3 +281,4 @@ __pycache__/
 
 # End of https://www.gitignore.io/api/aspnetcore
 YapartMarket/YapartMarket.Test/appSettings.json
+/YapartMarket/YapartMarket.UnitTests/appSettings.json
