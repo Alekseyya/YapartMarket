@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using AutoMapper;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using YapartMarket.Core.Data.Interfaces.Access;
 using YapartMarket.Core.Models;
@@ -18,12 +21,15 @@ namespace YapartMarket.React.Controllers
     {
         //private readonly IAccessProductRepository _accessProductRepository;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
+
         private readonly List<YapartMarket.Core.Models.Product> _products;
         //IAccessProductRepository accessProductRepository,
-        public ProductController(IMapper mapper)
+        public ProductController(IMapper mapper, IConfiguration configuration)
         {
             //_accessProductRepository = accessProductRepository;
             _mapper = mapper;
+            _configuration = configuration;
             _products = new List<YapartMarket.Core.Models.Product>()
             {
                 new YapartMarket.Core.Models.Product()
@@ -51,10 +57,31 @@ namespace YapartMarket.React.Controllers
 
         //}
 
+        [HttpGet]
+        [Route("products")]
+        [Produces("application/json")]
+        public IActionResult GetAzureProducts()
+        {
+            try
+            {
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                {
+                    var sql = "select * from dbo.products";
+                    connection.Open();
+                    var products = connection.Query<List<Product>>(sql);
+                    return Ok(products);
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         [HttpPost]
         [Route("stocks")]
         [Produces("application/json")]
-        public async Task<IActionResult> Stocks([FromBody] Stock stock)
+        public IActionResult Stocks([FromBody] Stock stock)
         {
             if (stock == null)
                 return BadRequest();
@@ -112,11 +139,12 @@ namespace YapartMarket.React.Controllers
 
     public class Product
     {
+        public int id { get; set; }
         [JsonPropertyName("type")]
         public string Type { get; set; }
         [JsonPropertyName("count")]
         public Int64 Count { get; set; }
-        [JsonPropertyName("updatedId")]
+        [JsonPropertyName("updatedAt")]
         public string UpdatedAt { get; set; }
     }
 
