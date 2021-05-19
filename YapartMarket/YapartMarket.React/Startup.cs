@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -43,7 +44,7 @@ namespace YapartMarket.React
             });
 
             services.AddControllers();
-            services.AddMvc(option => option.EnableEndpointRouting = false).AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null );
+            services.AddMvc(option => option.EnableEndpointRouting = false).AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null);
 
             services.AddAutoMapper(typeof(Startup));
             services.AddControllers();
