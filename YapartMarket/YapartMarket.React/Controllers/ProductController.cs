@@ -68,7 +68,7 @@ namespace YapartMarket.React.Controllers
                 {
                     var sql = "select * from dbo.products";
                     connection.Open();
-                    var products = connection.Query<List<Product>>(sql);
+                    var products = connection.Query<Product>(sql).ToList();
                     return Ok(products);
                 }
             }
@@ -79,26 +79,53 @@ namespace YapartMarket.React.Controllers
         }
 
         [HttpPost]
+        [Route("setProducts")]
+        [Produces("application/json")]
+        public async Task<IActionResult> SetProducts([FromBody] ItemsDto itemsDto)
+        {
+            if (itemsDto != null)
+            {
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                {
+                    var insertSql = "insert into products (sku, count, updatedAt, type)  values (@sku, @count, @updateAt, @type)";
+                    connection.Open();
+                    foreach (var itemDto in itemsDto.Products)
+                    {
+                        await connection.ExecuteAsync(insertSql, new
+                        {
+                            sku = itemDto.Sku,
+                            count = itemDto.Count,
+                            updateAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                            type = nameof(ProductType.FIT)
+                        });
+                    }
+                    return Ok(itemsDto);
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
         [Route("stocks")]
         [Produces("application/json")]
-        public IActionResult Stocks([FromBody] Stock stock)
+        public IActionResult Stocks([FromBody] StockDto stockDto)
         {
-            if (stock == null)
+            if (stockDto == null)
                 return BadRequest();
-            var listSkuInfo = new List<SkuInfo>();
-            foreach (var sku in stock.Skus)
+            var listSkuInfo = new List<SkuInfoDto>();
+            foreach (var sku in stockDto.Skus)
             {
-                listSkuInfo.Add(new SkuInfo
+                listSkuInfo.Add(new SkuInfoDto
                 {
                     Sku = sku,
-                    WarehouseId = stock.WarehouseId,
-                    Items = new List<Product>
+                    WarehouseId = stockDto.WarehouseId,
+                    Items = new List<ProductDto>
                         {
-                            new Product {Type = nameof(ProductType.FIT), Count = 1, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
+                            new ProductDto {Type = nameof(ProductType.FIT), Count = 1, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
                         }
                 });
             }
-            return Ok(listSkuInfo);
+            return Ok(new StocksSkuDto(){ Skus = listSkuInfo });
         }
 
         [HttpGet]
@@ -115,31 +142,49 @@ namespace YapartMarket.React.Controllers
         }
     }
 
-    public class Stock
+    public class Product
+    {
+        public int id { get; set; }
+        public string Type { get; set; }
+        public Int64 Count { get; set; }
+        public string UpdatedAt { get; set; }
+    }
+
+    public class ItemsDto
+    {
+        public List<ItemDto> Products { get; set; }
+    }
+
+    public class ItemDto
+    {
+        public string Sku { get; set; }
+        public int Count { get; set; }
+    }
+
+    public class StockDto
     {
         public Int64 WarehouseId { get; set; }
         public List<string> Skus { get; set; }
     }
 
-    public class StocksSku
+    public class StocksSkuDto
     {
         [JsonPropertyName("skus")]
-        public List<SkuInfo> Skus { get; set; }
+        public List<SkuInfoDto> Skus { get; set; }
     }
 
-    public class SkuInfo
+    public class SkuInfoDto
     {
         [JsonPropertyName("sku")]
         public string Sku { get; set; }
         [JsonPropertyName("warehouseId")]
         public Int64 WarehouseId { get; set; }
         [JsonPropertyName("items")]
-        public List<Product> Items { get; set; }
+        public List<ProductDto> Items { get; set; }
     }
 
-    public class Product
+    public class ProductDto
     {
-        public int id { get; set; }
         [JsonPropertyName("type")]
         public string Type { get; set; }
         [JsonPropertyName("count")]
