@@ -87,17 +87,40 @@ namespace YapartMarket.React.Controllers
             {
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
-                    var insertSql = "insert into products (sku, count, updatedAt, type)  values (@sku, @count, @updateAt, @type)";
+                    var insertSql = "insert into products (sku, count, updatedAt, type)  values (@sku, @count, @updatedAt, @type)";
                     connection.Open();
                     foreach (var itemDto in itemsDto.Products)
                     {
-                        await connection.ExecuteAsync(insertSql, new
+                        try
                         {
-                            sku = itemDto.Sku,
-                            count = itemDto.Count,
-                            updateAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                            type = nameof(ProductType.FIT)
-                        });
+                            var productInDb = await connection.QueryFirstOrDefaultAsync("select * from products where sku = @sku", new { sku = itemDto.Sku });
+                            if (productInDb != null)
+                            {
+                                await connection.ExecuteAsync(
+                                    "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
+                                    new
+                                    {
+                                        count = itemDto.Count,
+                                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                        sku = itemDto.Sku
+                                    });
+                            }
+                            else
+                            {
+                                await connection.ExecuteAsync(insertSql, new
+                                {
+                                    sku = itemDto.Sku,
+                                    count = itemDto.Count,
+                                    updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                    type = nameof(ProductType.FIT)
+                                });
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            return BadRequest(e.Message);
+                        }
+                        
                     }
                     return Ok(itemsDto);
                 }
