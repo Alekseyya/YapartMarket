@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -93,17 +95,18 @@ namespace YapartMarket.React.Controllers
                     {
                         try
                         {
-                            var productInDb = await connection.QueryFirstOrDefaultAsync("select * from products where sku = @sku", new { sku = itemDto.Sku });
+                            var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku", new { sku = itemDto.Sku });
                             if (productInDb != null)
                             {
-                                await connection.ExecuteAsync(
-                                    "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
-                                    new
-                                    {
-                                        count = itemDto.Count,
-                                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                        sku = itemDto.Sku
-                                    });
+                                if (productInDb.Count != itemDto.Count)
+                                    await connection.ExecuteAsync(
+                                        "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
+                                        new
+                                        {
+                                            count = itemDto.Count,
+                                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                            sku = itemDto.Sku
+                                        });
                             }
                             else
                             {
@@ -167,9 +170,19 @@ namespace YapartMarket.React.Controllers
 
     public class Product
     {
-        public int id { get; set; }
+        [Column("id")]
+        public int Id { get; set; }
+        [Column("sku")]
+        [Display(Name = "Артикул")]
+        public string Sku { get; set; }
+        [Column("type")]
+        [Display(Name = "Тип товара")]
         public string Type { get; set; }
+        [Column("count")]
+        [Display(Name = "Количество")]
         public Int64 Count { get; set; }
+        [Column("updatedAt")]
+        [Display(Name = "Время обновления записи")]
         public string UpdatedAt { get; set; }
     }
 
