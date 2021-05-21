@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json.Converters;
 
 namespace YapartMarket.React.ViewModels
 {
@@ -32,8 +34,10 @@ namespace YapartMarket.React.ViewModels
         public string OfferId { get; set; }
     }
 
+    
     public enum Currency
     {
-        RUB
+        [EnumMember(Value = "RUR")]
+        RUR
     }
 }

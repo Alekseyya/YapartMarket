@@ -81,6 +81,27 @@ namespace YapartMarket.React.Controllers
         }
 
         [HttpPost]
+        [HttpPost]
+        [Route("order/accept")]
+        [Produces("application/json")]
+        public IActionResult AcceptOrder([FromBody] OrderDto orderDto)
+        {
+            if (orderDto != null)
+            {
+                return Ok(new OrderViewModel()
+                {
+                    OrderInfoViewModel =  new OrderInfoViewModel()
+                    {
+                        Accepted = true,
+                        Id = orderDto.OrderInfoDto.Id.ToString()
+                    }
+                });
+            }
+            return BadRequest();
+        }
+
+
+        [HttpPost]
         [Route("cart")]
         [Produces("application/json")]
         public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto)
