@@ -81,13 +81,55 @@ namespace YapartMarket.React.Controllers
         }
 
         [HttpPost]
+        [Route("cart")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto)
+        {
+            if (cartDto != null)
+            {
+                if (cartDto.Cart.CartItems != null)
+                {
+                    var cartViewModel = new CartViewModel()
+                    {
+                       Cart = new CartInfoViewModel()
+                       {
+                           CartItems = new List<CartItemViewModel>()
+                       }
+                    };
+                    await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                    {
+                        connection.Open();
+                        foreach (var cartItemDto in cartDto.Cart.CartItems)
+                        {
+                            var isDelivery = false;
+                            var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count",
+                                new { sku = cartItemDto.OfferId, count = cartItemDto.Count });
+                            if (productInDb != null)
+                                isDelivery = true;
+
+                            cartViewModel.Cart.CartItems.Add(new CartItemViewModel()
+                            {
+                                FeedId = cartItemDto.FeedId,
+                                OfferId = cartItemDto.OfferId,
+                                Count = cartItemDto.Count,
+                                Delivery = isDelivery
+                            });
+                        }
+                    }
+                    return Ok(cartViewModel);
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
         [Route("setProducts")]
         [Produces("application/json")]
         public async Task<IActionResult> SetProducts([FromBody] ItemsDto itemsDto)
         {
             if (itemsDto != null)
             {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     var insertSql = "insert into products (sku, count, updatedAt, type)  values (@sku, @count, @updatedAt, @type)";
                     connection.Open();
