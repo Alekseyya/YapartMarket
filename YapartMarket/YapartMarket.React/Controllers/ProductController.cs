@@ -81,7 +81,6 @@ namespace YapartMarket.React.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
         [Route("order/accept")]
         [Produces("application/json")]
         public IActionResult AcceptOrder([FromBody] OrderDto orderDto)
@@ -96,6 +95,18 @@ namespace YapartMarket.React.Controllers
                         Id = orderDto.OrderInfoDto.Id.ToString()
                     }
                 });
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("order/status")]
+        [Produces("application/json")]
+        public IActionResult SetOrderStatus([FromBody] OrderDto orderStatusDto)
+        {
+            if (orderStatusDto != null)
+            {
+                return Ok();
             }
             return BadRequest();
         }

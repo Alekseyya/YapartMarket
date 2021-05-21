@@ -13,18 +13,30 @@ namespace YapartMarket.React.ViewModels
 
     public class OrderInfoDto
     {
+        [JsonPropertyName("creationDate")]
+        public string CreationDate { get; set; }
         [JsonPropertyName("currency")]
         public string Currency { get; set; }
         [JsonPropertyName("fake")]
         public bool Fake { get; set; }
         [JsonPropertyName("id")]
         public Int64 Id { get; set; }
+        [JsonPropertyName("itemsTotal")]
+        public double ItemsTotal { get; set; }
         [JsonPropertyName("paymentType")]
         public string PaymentType { get; set; }
         [JsonPropertyName("paymentMethod")]
         public string PaymentMethod { get; set; }
+        [JsonPropertyName("status")]
+        public string Status { get; set; }
+        [JsonPropertyName("substatus")]
+        public string SubStatus { get; set; }
         [JsonPropertyName("taxSystem")]
         public string TaxSystem { get; set; }
+        [JsonPropertyName("total")]
+        public double Total { get; set; }
+        [JsonPropertyName("subsidyTotal")]
+        public double SubsidyTotal { get; set; }
         [JsonPropertyName("delivery")]
         public DeliveryOrderDto DeliveryOrderDto { get; set; }
     }
@@ -82,6 +94,14 @@ namespace YapartMarket.React.ViewModels
         public string ShopSku { get; set; }
         [JsonPropertyName("promos")]
         public List<PromosOrderDto> PromosOrderDto { get; set; }
+        [JsonPropertyName("instances")]
+        public List<InstanceDto> Instances { get; set; }
+    }
+
+    public class InstanceDto
+    {
+        [JsonPropertyName("cis")]
+        public string Cis { get; set; }
     }
 
     public class PromosOrderDto
@@ -124,5 +144,38 @@ namespace YapartMarket.React.ViewModels
         public Int64 Id { get; set; }
         [JsonPropertyName("shipmentDate")]
         public string ShipmentDate { get; set; }
+
+        [JsonPropertyName("boxes")]
+        public List<OrderBox> OrderBoxes { get; set; }
+    }
+
+    public class OrderBox
+    {
+        [JsonPropertyName("id")]
+        public Int64 Id { get; set; }
+
+        [JsonPropertyName("weight")]
+        public Int64 Weight { get; set; }
+
+        [JsonPropertyName("width")]
+        public Int64 Width { get; set; }
+
+        [JsonPropertyName("height")]
+        public Int64 Height { get; set; }
+
+        [JsonPropertyName("depth")]
+        public Int64 Depth { get; set; }
+
+        [JsonPropertyName("items")]
+        public List<OrderBoxItem> OrderBoxItems { get; set; }
+    }
+
+    public class OrderBoxItem
+    {
+        [JsonPropertyName("id")]
+        public Int64 Id { get; set; }
+
+        [JsonPropertyName("count")]
+        public int Count { get; set; }
     }
 }
