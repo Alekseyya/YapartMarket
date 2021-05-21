@@ -134,16 +134,20 @@ namespace YapartMarket.React.Controllers
                         foreach (var cartItemDto in cartDto.Cart.CartItems)
                         {
                             var isDelivery = false;
+                            var count = 0;
                             var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count",
                                 new { sku = cartItemDto.OfferId, count = cartItemDto.Count });
                             if (productInDb != null)
+                            {
                                 isDelivery = true;
+                                count = productInDb.Count;
+                            }
 
                             cartViewModel.Cart.CartItems.Add(new CartItemViewModel()
                             {
                                 FeedId = cartItemDto.FeedId,
                                 OfferId = cartItemDto.OfferId,
-                                Count = cartItemDto.Count,
+                                Count =  count,
                                 Delivery = isDelivery
                             });
                         }
@@ -254,7 +258,7 @@ namespace YapartMarket.React.Controllers
         public string Type { get; set; }
         [Column("count")]
         [Display(Name = "Количество")]
-        public Int64 Count { get; set; }
+        public int Count { get; set; }
         [Column("updatedAt")]
         [Display(Name = "Время обновления записи")]
         public string UpdatedAt { get; set; }
