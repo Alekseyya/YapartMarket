@@ -83,18 +83,26 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("order/accept")]
         [Produces("application/json")]
-        public IActionResult AcceptOrder([FromBody] OrderDto orderDto)
+        public async Task<IActionResult> AcceptOrder([FromBody] OrderDto orderDto)
         {
             if (orderDto != null)
             {
-                return Ok(new OrderViewModel()
+                var isAccepted = true;
+                await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
-                    OrderInfoViewModel =  new OrderInfoViewModel()
+                    //Пройтись по всем товарам, если хоть одного нету или количество меньше того что есть на сервере = отменить заказа
+                    connection.Open();
+                    foreach (var orderItem in orderDto.OrderInfoDto.OrderItemsDto)
                     {
-                        Accepted = true,
-                        Id = orderDto.OrderInfoDto.Id.ToString()
+                        var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new {sku = orderItem.Sku, count = orderItem.Count});
+                        if (productInDb == null)
+                        {
+                            isAccepted = false;
+                            break;
+                        }
                     }
-                });
+                }
+                return Ok(isAccepted ? (object) new OrderViewModel() {OrderInfoViewModel = new OrderInfoViewModel() {Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString()}} : new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = "OUT_OF_DATE" });
             }
             return BadRequest();
         }

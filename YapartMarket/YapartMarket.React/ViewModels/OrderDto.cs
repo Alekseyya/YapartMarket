@@ -39,6 +39,8 @@ namespace YapartMarket.React.ViewModels
         public double SubsidyTotal { get; set; }
         [JsonPropertyName("delivery")]
         public DeliveryOrderDto DeliveryOrderDto { get; set; }
+        [JsonPropertyName("items")]
+        public List<OrderItemDto> OrderItemsDto { get; set; }
     }
 
     public class DeliveryOrderDto
@@ -59,7 +61,7 @@ namespace YapartMarket.React.ViewModels
         [JsonPropertyName("region")]
         public RegionOrderDto RegionOrderDto { get; set; }
         [JsonPropertyName("items")]
-        public List<OrderItemDto> OrderItemDto { get; set; }
+        public List<OrderItemDto> OrderItemsDto { get; set; }
         [JsonPropertyName("notes")]
         public string Notes { get; set; }
     }
