@@ -135,12 +135,12 @@ namespace YapartMarket.React.Controllers
                         {
                             var isDelivery = false;
                             var count = 0;
-                            var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count",
-                                new { sku = cartItemDto.OfferId, count = cartItemDto.Count });
+                            var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku",
+                                new { sku = cartItemDto.OfferId});
                             if (productInDb != null)
                             {
                                 isDelivery = true;
-                                count = productInDb.Count;
+                                count = productInDb.Count >= cartItemDto.Count ? cartItemDto.Count : productInDb.Count;
                             }
 
                             cartViewModel.Cart.CartItems.Add(new CartItemViewModel()
