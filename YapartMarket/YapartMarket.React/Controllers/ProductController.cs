@@ -220,23 +220,22 @@ namespace YapartMarket.React.Controllers
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 connection.Open();
-                foreach (var sku in stockDto.Skus)
+                var productsFromDb = connection.Query<Product>("select * from dbo.products").ToList();
+                foreach (var productFromDb in productsFromDb.Where(x=> stockDto.Skus.Any(t=> x.Sku.Equals(t))))
                 {
-                    var productFromBd = connection.QueryFirstOrDefault<Product>("select * from dbo.products where sku = @sku", new {sku = sku});
                     listSkuInfo.Add(new SkuInfoDto
                     {
-                        Sku = productFromBd.Sku,
+                        Sku = productFromDb.Sku,
                         WarehouseId = stockDto.WarehouseId,
                         Items = new List<ProductDto>
                         {
-                            new ProductDto {Type = nameof(ProductType.FIT), 
-                                Count = productFromBd.Count, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
+                            new ProductDto {Type = nameof(ProductType.FIT),
+                                Count = productFromDb.Count, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
                         }
                     });
                 }
             }
-            
-            return Ok(new StocksSkuDto(){ Skus = listSkuInfo });
+            return Ok(new StocksSkuDto() { Skus = listSkuInfo });
         }
 
         [HttpGet]
