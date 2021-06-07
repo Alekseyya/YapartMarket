@@ -228,19 +228,25 @@ namespace YapartMarket.React.Controllers
             if (stockDto == null)
                 return BadRequest();
             var listSkuInfo = new List<SkuInfoDto>();
-            foreach (var sku in stockDto.Skus)
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                listSkuInfo.Add(new SkuInfoDto
+                connection.Open();
+                var productsFromDb = connection.Query<Product>("select * from dbo.products").ToList();
+                foreach (var productFromDb in productsFromDb.Where(x=> stockDto.Skus.Any(t=> x.Sku.Equals(t))))
                 {
-                    Sku = sku,
-                    WarehouseId = stockDto.WarehouseId,
-                    Items = new List<ProductDto>
+                    listSkuInfo.Add(new SkuInfoDto
+                    {
+                        Sku = productFromDb.Sku,
+                        WarehouseId = stockDto.WarehouseId,
+                        Items = new List<ProductDto>
                         {
-                            new ProductDto {Type = nameof(ProductType.FIT), Count = 1, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
+                            new ProductDto {Type = nameof(ProductType.FIT),
+                                Count = productFromDb.Count, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
                         }
-                });
+                    });
+                }
             }
-            return Ok(new StocksSkuDto(){ Skus = listSkuInfo });
+            return Ok(new StocksSkuDto() { Skus = listSkuInfo });
         }
 
         [HttpGet]
