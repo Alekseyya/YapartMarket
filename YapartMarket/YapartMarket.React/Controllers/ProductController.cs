@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Transactions;
 using AutoMapper;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -176,14 +178,14 @@ namespace YapartMarket.React.Controllers
         {
             if (itemsDto != null)
             {
-                await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    var insertSql = "insert into products (sku, count, updatedAt, type)  values (@sku, @count, @updatedAt, @type)";
-                    connection.Open();
-                    await using (var transaction = connection.BeginTransaction())
+                    try
                     {
-                        try
+                        await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                         {
+                            var insertSql = "insert into products (sku, count, updatedAt, type)  values (@sku, @count, @updatedAt, @type)";
+                            connection.Open();
                             foreach (var itemDto in itemsDto.Products)
                             {
 
@@ -211,16 +213,17 @@ namespace YapartMarket.React.Controllers
                                     });
                                 }
                             }
-                            transaction.Commit();
+
                         }
-                        catch (Exception e)
-                        {
-                            transaction.Rollback();
-                            return BadRequest(e.Message);
-                        }
+                        transaction.Complete();
                     }
-                    return Ok(itemsDto);
+                    catch (Exception e)
+                    {
+                        transaction.Dispose();
+                        return BadRequest(e.Message);
+                    }
                 }
+                return Ok(itemsDto);
             }
             return BadRequest();
         }
