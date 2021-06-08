@@ -96,7 +96,7 @@ namespace YapartMarket.React.Controllers
                     connection.Open();
                     foreach (var orderItem in orderDto.OrderInfoDto.OrderItemsDto)
                     {
-                        var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new {sku = orderItem.Sku, count = orderItem.Count});
+                        var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new {sku = orderItem.OfferId, count = orderItem.Count});
                         if (productInDb == null)
                         {
                             isAccepted = false;
