@@ -184,30 +184,33 @@ namespace YapartMarket.React.Controllers
                     {
                         await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                         {
-                            var insertSql = "insert into products (sku, count, updatedAt, type)  values (@sku, @count, @updatedAt, @type)";
                             connection.Open();
-                            foreach (var itemDto in itemsDto.Products)
-                            {
+                            var productsInDb = await connection.QueryAsync<Product>("select * from products");
+                            var updateProducts = itemsDto.Products.Where(x=> productsInDb.Any(t=>t.Sku.Equals(x.Sku) && t.Count != x.Count));
+                            var insertProducts = itemsDto.Products.Where(x=> productsInDb.All(t => t.Sku != x.Sku));
 
-                                var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku", new { sku = itemDto.Sku });
-                                if (productInDb != null)
+                            if (updateProducts.Any())
+                            {
+                                foreach (var updateProduct in updateProducts)
                                 {
-                                    if (productInDb.Count != itemDto.Count)
-                                        await connection.ExecuteAsync(
-                                            "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
-                                            new
-                                            {
-                                                count = itemDto.Count,
-                                                updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                                sku = itemDto.Sku
-                                            });
+                                    await connection.ExecuteAsync(
+                                        "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
+                                        new
+                                        {
+                                            count = updateProduct.Count,
+                                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                            sku = updateProduct.Sku
+                                        });
                                 }
-                                else
+                            }
+                            if (insertProducts.Any())
+                            {
+                                foreach (var insertProduct in insertProducts)
                                 {
-                                    await connection.ExecuteAsync(insertSql, new
+                                    await connection.ExecuteAsync("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
                                     {
-                                        sku = itemDto.Sku,
-                                        count = itemDto.Count,
+                                        sku = insertProduct.Sku,
+                                        count = insertProduct.Sku,
                                         updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
                                         type = nameof(ProductType.FIT)
                                     });
