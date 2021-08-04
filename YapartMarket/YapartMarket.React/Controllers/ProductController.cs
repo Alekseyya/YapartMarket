@@ -125,8 +125,12 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("cart")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto)
+        public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto, [FromQuery(Name = "auth-token")] string authToken)
         {
+            if (string.IsNullOrEmpty(_configuration.GetValue<string>("auth-token")))
+                return StatusCode(500);
+            if (string.IsNullOrEmpty(authToken) || (!string.IsNullOrEmpty(_configuration.GetValue<string>("auth-token")) && !string.IsNullOrEmpty(authToken) && _configuration.GetValue<string>("auth-token") != authToken))
+                return StatusCode(403);
             if (cartDto != null)
             {
                 if (cartDto.Cart.CartItems != null)
@@ -174,18 +178,18 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("setProducts")]
         [Produces("application/json")]
-        public async Task<IActionResult> SetProducts([FromBody] ItemsDto itemsDto)
+        public IActionResult SetProducts([FromBody] ItemsDto itemsDto)
         {
             if (itemsDto != null)
             {
-                using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                {
+                //using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                //{
                     try
                     {
-                        await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                        using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                         {
                             connection.Open();
-                            var productsInDb = await connection.QueryAsync<Product>("select * from products");
+                            var productsInDb = connection.Query<Product>("select * from products");
                             var updateProducts = itemsDto.Products.Where(x=> productsInDb.Any(t=>t.Sku.Equals(x.Sku) && t.Count != x.Count));
                             var insertProducts = itemsDto.Products.Where(x=> productsInDb.All(t => t.Sku != x.Sku));
 
@@ -193,7 +197,7 @@ namespace YapartMarket.React.Controllers
                             {
                                 foreach (var updateProduct in updateProducts)
                                 {
-                                    await connection.ExecuteAsync(
+                                    connection.Execute(
                                         "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
                                         new
                                         {
@@ -207,7 +211,7 @@ namespace YapartMarket.React.Controllers
                             {
                                 foreach (var insertProduct in insertProducts)
                                 {
-                                    await connection.ExecuteAsync("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
+                                    connection.Execute("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
                                     {
                                         sku = insertProduct.Sku,
                                         count = insertProduct.Sku,
@@ -218,15 +222,15 @@ namespace YapartMarket.React.Controllers
                             }
 
                         }
-                        transaction.Complete();
+                        //transaction.Complete();
                     }
                     catch (Exception e)
                     {
-                        transaction.Dispose();
+                        //transaction.Dispose();
                         return BadRequest(e.Message);
                     }
-                }
-                return Ok(itemsDto);
+                //}
+                return Ok();
             }
             return BadRequest();
         }
