@@ -214,7 +214,7 @@ namespace YapartMarket.React.Controllers
                                     connection.Execute("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
                                     {
                                         sku = insertProduct.Sku,
-                                        count = insertProduct.Sku,
+                                        count = insertProduct.Count,
                                         updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
                                         type = nameof(ProductType.FIT)
                                     });
