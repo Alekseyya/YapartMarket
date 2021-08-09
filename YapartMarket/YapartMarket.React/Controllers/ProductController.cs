@@ -184,51 +184,50 @@ namespace YapartMarket.React.Controllers
             {
                 //using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 //{
-                    try
+                try
+                {
+                    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
-                        using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                        connection.Open();
+                        var productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
+                        var updateProducts = itemsDto.Products.Where(x => productsInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
+                        var insertProducts = itemsDto.Products.Where(x => productsInDb.All(t => t.Sku != x.Sku));
+                        if (updateProducts.Any())
                         {
-                            connection.Open();
-                            var productsInDb = connection.Query<Product>("select * from products");
-                            var updateProducts = itemsDto.Products.Where(x=> productsInDb.Any(t=>t.Sku.Equals(x.Sku) && t.Count != x.Count));
-                            var insertProducts = itemsDto.Products.Where(x=> productsInDb.All(t => t.Sku != x.Sku));
-
-                            if (updateProducts.Any())
+                            foreach (var updateProduct in updateProducts)
                             {
-                                foreach (var updateProduct in updateProducts)
-                                {
-                                    connection.Execute(
-                                        "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
-                                        new
-                                        {
-                                            count = updateProduct.Count,
-                                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                            sku = updateProduct.Sku
-                                        });
-                                }
-                            }
-                            if (insertProducts.Any())
-                            {
-                                foreach (var insertProduct in insertProducts)
-                                {
-                                    connection.Execute("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
+                                connection.Execute(
+                                    "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
+                                    new
                                     {
-                                        sku = insertProduct.Sku,
-                                        count = insertProduct.Count,
+                                        count = updateProduct.Count,
                                         updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                        type = nameof(ProductType.FIT)
+                                        sku = updateProduct.Sku
                                     });
-                                }
                             }
-
                         }
-                        //transaction.Complete();
+                        if (insertProducts.Any())
+                        {
+                            foreach (var insertProduct in insertProducts)
+                            {
+                                connection.Execute("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
+                                {
+                                    sku = insertProduct.Sku,
+                                    count = insertProduct.Count,
+                                    updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                    type = nameof(ProductType.FIT)
+                                });
+                            }
+                        }
+
                     }
-                    catch (Exception e)
-                    {
-                        //transaction.Dispose();
-                        return BadRequest(e.Message);
-                    }
+                    //transaction.Complete();
+                }
+                catch (Exception e)
+                {
+                    //transaction.Dispose();
+                    return BadRequest(e.Message);
+                }
                 //}
                 return Ok();
             }
