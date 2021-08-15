@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
+using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation;
@@ -74,6 +75,8 @@ namespace YapartMarket.React
             #endregion
 
             services.AddMediatR(typeof(Startup));
+
+            services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
             
             //TODO вот это оставить под вопросом надо ли вообще!!
             //TODO Перелодить позже в папку другую!!
