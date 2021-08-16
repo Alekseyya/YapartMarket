@@ -9,4 +9,10 @@
     <ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="topsdk-net-core">
+      <HintPath>topsdk-net-core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

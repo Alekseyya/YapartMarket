@@ -43,6 +43,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="topsdk-net-core">
+      <HintPath>topsdk-net-core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <TypeScriptCompile Include="yapartclient\src\components\catalog\Catalog.tsx" />
     <TypeScriptCompile Include="yapartclient\src\components\Header\Form.tsx" />
   </ItemGroup>

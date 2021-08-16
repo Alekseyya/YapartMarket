@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace YapartMarket.Core.Config
+﻿namespace YapartMarket.Core.Config
 {
     public class AliExpressOptions
     {
@@ -34,5 +30,13 @@ namespace YapartMarket.Core.Config
         /// Id юзера
         /// </summary>
         public string UserId { get; set; }
+        /// <summary>
+        /// Код авторизации
+        /// </summary>
+        public string AuthorizationCode { get; set; }
+        /// <summary>
+        /// Ссылка, куда придет код авторизации
+        /// </summary>
+        public string ReturnUrl { get; set; }
     }
 }
