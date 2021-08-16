@@ -38,5 +38,9 @@
         /// Ссылка, куда придет код авторизации
         /// </summary>
         public string ReturnUrl { get; set; }
+        /// <summary>
+        /// Пароль доступа для получения AuthorizeCode
+        /// </summary>
+        public string PassAliExpressCode { get; set; }
     }
 }
