@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using YapartMarket.Core.Config;
+using YapartMarket.React.Options;
 
 namespace YapartMarket.React.Controllers
 {
@@ -8,9 +9,14 @@ namespace YapartMarket.React.Controllers
     [Route("api/[controller]")]
     public class AliExpressTokenController : Controller
     {
+        private readonly IOptions<AliExpressOptions> _options;
+        private readonly IWritableOptions<AliExpressOptions> _writableOptions;
         private readonly AliExpressOptions _aliExpressOptions;
-        public AliExpressTokenController(IOptions<AliExpressOptions> options)
+        
+        public AliExpressTokenController(IOptions<AliExpressOptions> options, IWritableOptions<AliExpressOptions> writableOptions)
         {
+            _options = options;
+            _writableOptions = writableOptions;
             _aliExpressOptions = options.Value;
         }
 
@@ -20,7 +26,10 @@ namespace YapartMarket.React.Controllers
         {
             if (!string.IsNullOrEmpty(code))
             {
-                _aliExpressOptions.AuthorizationCode = code;
+                _writableOptions.Update(opt =>
+                {
+                    opt.AuthorizationCode = code;
+                });
                 return Ok();
             }
             return BadRequest();
