@@ -9,15 +9,11 @@ namespace YapartMarket.React.Controllers
     [Route("api/[controller]")]
     public class AliExpressTokenController : Controller
     {
-        private readonly IOptions<AliExpressOptions> _options;
         private readonly IWritableOptions<AliExpressOptions> _writableOptions;
-        private readonly AliExpressOptions _aliExpressOptions;
         
-        public AliExpressTokenController(IOptions<AliExpressOptions> options, IWritableOptions<AliExpressOptions> writableOptions)
+        public AliExpressTokenController(IWritableOptions<AliExpressOptions> writableOptions)
         {
-            _options = options;
             _writableOptions = writableOptions;
-            _aliExpressOptions = options.Value;
         }
 
         [HttpPost]
