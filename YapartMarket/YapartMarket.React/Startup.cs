@@ -74,6 +74,7 @@ namespace YapartMarket.React
             services.AddTransient<IProductModificationService, ProductModificationService>();
             services.AddTransient<ISectionService, SectionService>();
             services.AddTransient<IAliExpressTokenService, AliExpressTokenService>();
+            services.AddTransient<IAliExpressProductService, AliExpressProductService>();
             #endregion
 
             services.AddMediatR(typeof(Startup));

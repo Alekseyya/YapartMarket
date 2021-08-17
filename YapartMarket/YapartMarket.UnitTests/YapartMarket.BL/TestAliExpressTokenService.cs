@@ -17,7 +17,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             {
                 AppKey = "32974644",
                 AppSecret = "067237b4a92136723992d89bc877d75a",
-                AuthorizationCode = "0_aAbjGpcMwCHL0sc0DbZgVw9k33659",
+                AuthorizationCode = "0_oifwMrouDFF4PS7CXXl5mv3933424",
                 ReturnUrl = "https://yapart.azurewebsites.net/api/AliExpressToken"
             });
         }
