@@ -20,7 +20,7 @@
         /// <summary>
         /// Время истечения срока действия токена
         /// </summary>
-        public int ExpireToken { get; set; }
+        public long ExpireToken { get; set; }
 
         /// <summary>
         /// Ник пользователя
@@ -42,5 +42,7 @@
         /// Пароль доступа для получения AuthorizeCode
         /// </summary>
         public string PassAliExpressCode { get; set; }
+
+        public string HttpsEndPoint { get; set; }
     }
 }

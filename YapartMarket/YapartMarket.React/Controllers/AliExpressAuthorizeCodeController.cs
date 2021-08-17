@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using YapartMarket.Core.Config;
@@ -20,6 +21,7 @@ namespace YapartMarket.React.Controllers
         }
 
         [HttpGet]
+        [Route("getCode")]
         [Produces("application/json")]
         public IActionResult GetCode(string passToken)
         {
@@ -32,18 +34,26 @@ namespace YapartMarket.React.Controllers
         }
 
         [HttpPost]
-        [Produces("application/json")]
+        //[Produces("application/json")]
+        [Route("SetCode")]
         public IActionResult SetCode(string code)
         {
             if (!string.IsNullOrEmpty(code))
             {
-                _writableOptions.Update(opt =>
+                try
                 {
-                    opt.AuthorizationCode = code;
-                });
-                return Ok();
+                    _writableOptions.Update(opt =>
+                    {
+                        opt.AuthorizationCode = code;
+                    });
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
+                return StatusCode(200);
             }
-            return BadRequest();
+            return BadRequest("Не указан код");
         }
     }
 }
