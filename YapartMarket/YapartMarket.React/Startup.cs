@@ -13,9 +13,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
+using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation;
+using YapartMarket.React.Options;
 
 
 namespace YapartMarket.React
@@ -71,9 +73,13 @@ namespace YapartMarket.React
             services.AddTransient<IProductService, ProductService>();
             services.AddTransient<IProductModificationService, ProductModificationService>();
             services.AddTransient<ISectionService, SectionService>();
+            services.AddTransient<IAliExpressTokenService, AliExpressTokenService>();
             #endregion
 
             services.AddMediatR(typeof(Startup));
+
+            services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
+            services.ConfigureWritable<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
             
             //TODO вот это оставить под вопросом надо ли вообще!!
             //TODO Перелодить позже в папку другую!!

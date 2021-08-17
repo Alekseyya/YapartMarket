@@ -2,10 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="topsdk-net-core">
+      <HintPath>topsdk-net-core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

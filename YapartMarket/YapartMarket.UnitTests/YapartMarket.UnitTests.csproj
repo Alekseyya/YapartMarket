@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +26,12 @@
     <ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
     <ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
     <ProjectReference Include="..\YapartMarket.Parser\YapartMarket.Parser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="topsdk-net-core">
+      <HintPath>topsdk-net-core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

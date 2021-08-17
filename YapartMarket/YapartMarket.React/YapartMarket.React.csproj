@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>7a8beece-9c46-432b-9b26-14a7c3c548b0</UserSecretsId>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +40,12 @@
     <ProjectReference Include="..\YapartMarket.BL\YapartMarket.BL.csproj" />
     <ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
     <ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="topsdk-net-core">
+      <HintPath>topsdk-net-core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
