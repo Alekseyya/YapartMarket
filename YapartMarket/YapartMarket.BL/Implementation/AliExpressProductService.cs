@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Dapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,15 +13,18 @@ using Top.Api.Response;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
 {
     public class AliExpressProductService : IAliExpressProductService
     {
+        private readonly IConfiguration _configuration;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressProductService(IOptions<AliExpressOptions> options)
+        public AliExpressProductService(IOptions<AliExpressOptions> options, IConfiguration configuration)
         {
+            _configuration = configuration;
             _aliExpressOptions = options.Value;
         }
         public void UpdateInventoryProducts(List<long> productIds)
@@ -50,6 +57,35 @@ namespace YapartMarket.BL.Implementation
             req.AeopAEProductListQuery_ = obj1;
             var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
             return rsp.Body;
+        }
+
+        public void ProcessAliExpressProductId(List<AliExpressProductDTO> aliExpressProducts)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                connection.Open();
+                var productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) });
+                var updateProducts = aliExpressProducts.Where(x => productsInDb.Any(t => t.Sku.Equals(x.SkuCode) 
+                                            && (!t.AliExpressProductId.HasValue || t.AliExpressProductId != x.ProductId)
+                                            ));
+                if(updateProducts.Any())
+                    UpdateAliExpressProductId(connection, updateProducts);
+            }
+        }
+
+        private void UpdateAliExpressProductId(SqlConnection connection, IEnumerable<AliExpressProductDTO> updateProducts)
+        {
+            foreach (var updateProduct in updateProducts)
+            {
+                connection.Execute(
+                    "update products set aliExpressProductId = @aliExpressProductId, updatedAt = @updatedAt where sku = @sku",
+                    new
+                    {
+                        aliExpressProductId = updateProduct.ProductId,
+                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                        sku = updateProduct.SkuCode
+                    });
+            }
         }
 
         public AliExpressProductDTO GetProduct(long productId)

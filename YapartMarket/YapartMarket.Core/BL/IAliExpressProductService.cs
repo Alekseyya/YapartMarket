@@ -9,5 +9,7 @@ namespace YapartMarket.Core.BL
         string GetProducts(); 
         AliExpressProductDTO GetProduct(long productId);
         void UpdatePriceProduct(List<long> productIds);
+        AliExpressProductDTO ProductStringToDTO(string json);
+        void ProcessAliExpressProductId(List<AliExpressProductDTO> aliExpressProducts);
     }
 }
