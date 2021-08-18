@@ -6,7 +6,7 @@ namespace YapartMarket.Core.BL
     public interface IAliExpressProductService
     {
         void UpdateInventoryProducts(List<long> productIds);
-        string GetProducts(); 
+        IEnumerable<AliExpressProductDTO> GetProducts();
         AliExpressProductDTO GetProduct(long productId);
         void UpdatePriceProduct(List<long> productIds);
         AliExpressProductDTO ProductStringToDTO(string json);

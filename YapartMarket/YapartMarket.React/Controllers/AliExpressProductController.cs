@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using YapartMarket.Core.BL;
@@ -23,7 +25,7 @@ namespace YapartMarket.React.Controllers
 
         [HttpGet]
         [Route("productsInfo")]
-        //[Produces("application/json")]
+        [Produces("application/json")]
         public IActionResult GetProductsInfo()
         {
             try
@@ -31,9 +33,9 @@ namespace YapartMarket.React.Controllers
                 var productsJson = _aliExpressProductService.GetProducts();
                 return Ok(productsJson);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return BadRequest(e.Message);
+                return BadRequest(ex.Message);
             }
         }
 

@@ -4,7 +4,7 @@ namespace YapartMarket.Core.DTO
 {
     public class AliExpressProductDTO
     {
-        
+        [JsonProperty("product_id")]
         public long ProductId { get; set; }
         public string Description { get; set; }
         /// <summary>

@@ -46,17 +46,38 @@ namespace YapartMarket.BL.Implementation
             Console.WriteLine(rsp.Body);
         }
 
-        public string GetProducts()
+        public IEnumerable<AliExpressProductDTO> GetProducts()
         {
-            ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-            var req = new AliexpressSolutionProductListGetRequest();
-            var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
+            var listProducts = new List<AliExpressProductDTO>();
+            bool haveElement = true;
+            long currentPage = 1;
+            try
             {
-                ProductStatusType = "onSelling"
-            };
-            req.AeopAEProductListQuery_ = obj1;
-            var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-            return rsp.Body;
+                do
+                {
+                    ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+                    var req = new AliexpressSolutionProductListGetRequest();
+                    var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
+                    {
+                        CurrentPage = currentPage,
+                        ProductStatusType = "onSelling",
+                        PageSize = 99
+                    };
+                    req.AeopAEProductListQuery_ = obj1;
+                    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
+                    var tmpListProductFromJson = GetProductFromJson(rsp.Body);
+                    if (!tmpListProductFromJson.Any())
+                        haveElement = false;
+                    else
+                        listProducts.AddRange(tmpListProductFromJson);
+                    currentPage++;
+                } while (haveElement);
+                return listProducts.AsEnumerable();
+            }
+            catch (Exception)
+            {
+                return listProducts.AsEnumerable();
+            }
         }
 
         public void ProcessAliExpressProductId(List<AliExpressProductDTO> aliExpressProducts)
@@ -99,6 +120,12 @@ namespace YapartMarket.BL.Implementation
             return ProductStringToDTO(rsp.Body);
         }
 
+        private IEnumerable<AliExpressProductDTO> GetProductFromJson(string json)
+        {
+            var jsonObject = JObject.Parse(json);
+            var listProductDtos = jsonObject.SelectToken("aliexpress_solution_product_list_get_response.result.aeop_a_e_product_display_d_t_o_list.item_display_dto")?.ToObject<IEnumerable<AliExpressProductDTO>>();
+            return listProductDtos;
+        }
 
         public AliExpressProductDTO ProductStringToDTO(string json)
         {
