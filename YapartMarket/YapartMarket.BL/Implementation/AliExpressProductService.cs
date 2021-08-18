@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Top.Api;
 using Top.Api.Request;
 using Top.Api.Response;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
+using YapartMarket.Core.DTO;
 
 namespace YapartMarket.BL.Implementation
 {
@@ -49,7 +52,7 @@ namespace YapartMarket.BL.Implementation
             return rsp.Body;
         }
 
-        public string GetProduct(long productId)
+        public AliExpressProductDTO GetProduct(long productId)
         {
             ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
             AliexpressSolutionProductInfoGetRequest req = new AliexpressSolutionProductInfoGetRequest
@@ -57,7 +60,34 @@ namespace YapartMarket.BL.Implementation
                 ProductId = productId
             };
             AliexpressSolutionProductInfoGetResponse rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-            return rsp.Body;
+            return ProductStringToDTO(rsp.Body);
+        }
+
+
+        public AliExpressProductDTO ProductStringToDTO(string json)
+        {
+            var jsonObject = JObject.Parse(json);
+            var productJson = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.aeop_ae_product_s_k_us.global_aeop_ae_product_sku")[0].ToString();
+            try
+            {
+                if (!string.IsNullOrEmpty(productJson))
+                {
+                    var aliExpressProduct = JsonConvert.DeserializeObject<AliExpressProductDTO>(productJson);
+                    var productId = (long) jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.product_id");
+                    var description = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.subject").ToString();
+                    if (aliExpressProduct != null)
+                    {
+                        aliExpressProduct.ProductId = productId;
+                        aliExpressProduct.Description = description;
+                        return aliExpressProduct;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            return null;
         }
 
         public void UpdatePriceProduct(List<long> productIds)

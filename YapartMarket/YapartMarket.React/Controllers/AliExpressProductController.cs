@@ -1,9 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Top.Api;
-using Top.Api.Request;
-using Top.Api.Response;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 
@@ -26,7 +23,7 @@ namespace YapartMarket.React.Controllers
 
         [HttpGet]
         [Route("productsInfo")]
-        [Produces("application/json")]
+        //[Produces("application/json")]
         public IActionResult GetProductsInfo()
         {
             try
@@ -49,8 +46,8 @@ namespace YapartMarket.React.Controllers
             {
                 if (productId == 0)
                     return BadRequest("Не указан productId");
-                var productInfoJson =_aliExpressProductService.GetProduct(productId);
-                return Ok(productInfoJson);
+                var productInfo =_aliExpressProductService.GetProduct(productId);
+                return Ok(productInfo);
             }
             catch (Exception e)
             {
