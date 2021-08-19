@@ -127,7 +127,7 @@ namespace YapartMarket.React
             {
                 scheduler.Schedule(
                     () => Console.WriteLine($"Runs every second. Ran at: {DateTime.UtcNow}")
-                ).EverySecond();
+                ).DailyAt(20, 00);
 
             });
         }

@@ -83,7 +83,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
                 }
             };
             //arrange
-            aliExpressProductService.ProcessAliExpressProductId(aliExpressProduct);
+            aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId(aliExpressProduct);
             Product productsInDb = null;
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
@@ -411,7 +411,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             //act
             var aliExpressProductService = new AliExpressProductService(_aliExpressOption, _configuration);
             //arrange
-            var aliExpressProducts = aliExpressProductService.GetProducts();
+            var aliExpressProducts = aliExpressProductService.GetProductsAliExpress();
             //assert
             Assert.True(aliExpressProducts.Count() > 50);
         }

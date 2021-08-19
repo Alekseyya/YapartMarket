@@ -46,7 +46,9 @@ namespace YapartMarket.BL.Implementation
             Console.WriteLine(rsp.Body);
         }
 
-        public IEnumerable<AliExpressProductDTO> GetProducts()
+
+
+        public IEnumerable<AliExpressProductDTO> GetProductsAliExpress()
         {
             var listProducts = new List<AliExpressProductDTO>();
             bool haveElement = true;
@@ -69,7 +71,19 @@ namespace YapartMarket.BL.Implementation
                     if (!tmpListProductFromJson.Any())
                         haveElement = false;
                     else
+                    {
+                        foreach (var tmpProductDto in tmpListProductFromJson)
+                        {
+                            var reqInfoProduct = new AliexpressSolutionProductInfoGetRequest
+                            {
+                                ProductId = tmpProductDto.ProductId
+                            };
+                            var executeProductInfo = client.Execute(reqInfoProduct, _aliExpressOptions.AccessToken);
+                            var tmpInfoProduct = ProductStringToDTO(executeProductInfo.Body);
+                            tmpProductDto.SkuCode = tmpInfoProduct.SkuCode;
+                        }
                         listProducts.AddRange(tmpListProductFromJson);
+                    }
                     currentPage++;
                 } while (haveElement);
                 return listProducts.AsEnumerable();
@@ -80,17 +94,20 @@ namespace YapartMarket.BL.Implementation
             }
         }
 
-        public void ProcessAliExpressProductId(List<AliExpressProductDTO> aliExpressProducts)
+        public void ProcessUpdateDatabaseAliExpressProductId(IEnumerable<AliExpressProductDTO> aliExpressProducts)
         {
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            if (aliExpressProducts.Any())
             {
-                connection.Open();
-                var productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) });
-                var updateProducts = aliExpressProducts.Where(x => productsInDb.Any(t => t.Sku.Equals(x.SkuCode) 
-                                            && (!t.AliExpressProductId.HasValue || t.AliExpressProductId != x.ProductId)
-                                            ));
-                if(updateProducts.Any())
-                    UpdateAliExpressProductId(connection, updateProducts);
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                {
+                    connection.Open();
+                    var productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) });
+                    var updateProducts = aliExpressProducts.Where(x => productsInDb.Any(t => t.Sku.Equals(x.SkuCode)
+                        && (!t.AliExpressProductId.HasValue || t.AliExpressProductId != x.ProductId)
+                    ));
+                    if (updateProducts.Any())
+                        UpdateAliExpressProductId(connection, updateProducts);
+                }
             }
         }
 

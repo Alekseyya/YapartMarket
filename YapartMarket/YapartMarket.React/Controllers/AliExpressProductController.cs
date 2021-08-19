@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +31,8 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                var productsJson = _aliExpressProductService.GetProducts();
-                return Ok(productsJson);
+                var products = _aliExpressProductService.GetProductsAliExpress();
+                return Ok(products);
             }
             catch (Exception ex)
             {
