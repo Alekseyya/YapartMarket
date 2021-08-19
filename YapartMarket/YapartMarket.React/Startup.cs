@@ -19,6 +19,7 @@ using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation;
+using YapartMarket.React.Invocables;
 using YapartMarket.React.Options;
 
 
@@ -125,10 +126,10 @@ namespace YapartMarket.React
             });
             app.ApplicationServices.UseScheduler(scheduler =>
             {
-                scheduler.Schedule(
-                    () => Console.WriteLine($"Runs every second. Ran at: {DateTime.UtcNow}")
-                ).DailyAt(20, 00);
+                scheduler.OnWorker("UpdateInventoryProductInAliExpress");
 
+                scheduler.OnWorker("UpdateProductIdFromAliExpress");
+                scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
             });
         }
     }

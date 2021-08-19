@@ -406,7 +406,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         }
 
         [Fact]
-        public void TestAliExpressService_GetProducts()
+        public void TestAliExpressService_GetProducts_CountDefferentFifty()
         {
             //act
             var aliExpressProductService = new AliExpressProductService(_aliExpressOption, _configuration);
@@ -414,6 +414,26 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             var aliExpressProducts = aliExpressProductService.GetProductsAliExpress();
             //assert
             Assert.True(aliExpressProducts.Count() > 50);
+        }
+        
+        [Fact]
+        public void TestAliExpressService_SetInventoryFromDatabase_SetInventoryValue()
+        {
+            //act
+            var aliExpressProductService = new AliExpressProductService(_aliExpressOption, _configuration);
+            var aliExpressProductTest = new List<AliExpressProductDTO>()
+            {
+                new()
+                {
+                    SkuCode = "REINWV1181"
+                }
+            };
+            //arrange
+            var aliExpressProducts = aliExpressProductService.SetInventoryFromDatabase(aliExpressProductTest);
+            //assert
+            Assert.NotNull(aliExpressProducts);
+            Assert.True(aliExpressProducts.Count > 0);
+            Assert.Equal(1, aliExpressProducts.First().Inventory);
         }
     }
 }

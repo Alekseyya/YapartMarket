@@ -27,26 +27,36 @@ namespace YapartMarket.BL.Implementation
             _configuration = configuration;
             _aliExpressOptions = options.Value;
         }
-        public void UpdateInventoryProducts(List<long> productIds)
+        public void UpdateInventoryProducts(List<AliExpressProductDTO> aliExpressProducts)
         {
             ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret);
             AliexpressSolutionBatchProductInventoryUpdateRequest req = new AliexpressSolutionBatchProductInventoryUpdateRequest();
-            List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain> list2 = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain>();
-            AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain obj3 = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain();
-            list2.Add(obj3);
-            obj3.ProductId = 1000005237852L;
-            List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain> list5 = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain>();
-            AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain obj6 = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain();
-            list5.Add(obj6);
-            obj6.SkuCode = "123abc";
-            obj6.Inventory = 99L;
-            obj3.MultipleSkuUpdateList = list5;
-            req.MutipleProductUpdateList_ = list2;
-            AliexpressSolutionBatchProductInventoryUpdateResponse rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-            Console.WriteLine(rsp.Body);
+            for (int i = 0; i < aliExpressProducts.Count; i+=20)
+            {
+                var takeProducts = aliExpressProducts.Skip(i).Take(20);
+                if (takeProducts.Any())
+                {
+                    var reqMultipleProductUpdateList = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain>();
+                    foreach (var takeProduct in takeProducts)
+                    {
+                        var objectProductId = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain();
+                        reqMultipleProductUpdateList.Add(objectProductId);
+                        objectProductId.ProductId = takeProduct.ProductId;
+                        var synchronizeSkuRequestDtoDomains = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain>();
+                        var synchronizeSkuRequestDtoDomain = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain();
+                        synchronizeSkuRequestDtoDomains.Add(synchronizeSkuRequestDtoDomain);
+                        synchronizeSkuRequestDtoDomain.SkuCode = takeProduct.SkuCode;
+                        synchronizeSkuRequestDtoDomain.Inventory = takeProduct.Inventory;
+                        objectProductId.MultipleSkuUpdateList = synchronizeSkuRequestDtoDomains;
+                    }
+
+                    req.MutipleProductUpdateList_ = reqMultipleProductUpdateList;
+                    var request = client.Execute(req, _aliExpressOptions.AccessToken);
+                    //todo обработка ошибок, дописать!!
+                }
+            }
+            //Console.WriteLine(rsp.Body);
         }
-
-
 
         public IEnumerable<AliExpressProductDTO> GetProductsAliExpress()
         {
@@ -72,6 +82,7 @@ namespace YapartMarket.BL.Implementation
                         haveElement = false;
                     else
                     {
+                        //обновление коллекции полем SKUCode
                         foreach (var tmpProductDto in tmpListProductFromJson)
                         {
                             var reqInfoProduct = new AliexpressSolutionProductInfoGetRequest
@@ -82,6 +93,7 @@ namespace YapartMarket.BL.Implementation
                             var tmpInfoProduct = ProductStringToDTO(executeProductInfo.Body);
                             tmpProductDto.SkuCode = tmpInfoProduct.SkuCode;
                         }
+                        tmpListProductFromJson = SetInventoryFromDatabase(tmpListProductFromJson.ToList());
                         listProducts.AddRange(tmpListProductFromJson);
                     }
                     currentPage++;
@@ -92,6 +104,34 @@ namespace YapartMarket.BL.Implementation
             {
                 return listProducts.AsEnumerable();
             }
+        }
+
+        public List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts)
+        {
+            if (aliExpressProducts.Any())
+            {
+                var newAliExpressProduct = new List<AliExpressProductDTO>();
+                newAliExpressProduct = aliExpressProducts;
+                IEnumerable<Product> productsInDb = null;
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                {
+                    connection.Open();
+                    productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) });
+                }
+
+                if (productsInDb.Any())
+                {
+                    var pairs = newAliExpressProduct.Join(productsInDb, aliExpProd => aliExpProd.SkuCode,
+                        prodDb => prodDb.Sku, (aliExpProd, prodDb) => new {prodDb, aliExpProd});
+                    foreach (var pair in pairs)
+                    {
+                        pair.aliExpProd.Inventory = pair.prodDb.Count;
+                    }
+                    return newAliExpressProduct;
+                }
+                return null;
+            }
+            return null;
         }
 
         public void ProcessUpdateDatabaseAliExpressProductId(IEnumerable<AliExpressProductDTO> aliExpressProducts)
