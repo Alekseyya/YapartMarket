@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -98,16 +99,7 @@ namespace YapartMarket.BL.Implementation
                     else
                     {
                         //обновление коллекции полем SKUCode
-                        foreach (var tmpProductDto in tmpListProductFromJson)
-                        {
-                            var reqInfoProduct = new AliexpressSolutionProductInfoGetRequest
-                            {
-                                ProductId = tmpProductDto.ProductId
-                            };
-                            var executeProductInfo = client.Execute(reqInfoProduct, _aliExpressOptions.AccessToken);
-                            var tmpInfoProduct = ProductStringToDTO(executeProductInfo.Body);
-                            tmpProductDto.SkuCode = tmpInfoProduct.SkuCode;
-                        }
+                        tmpListProductFromJson = UpdateSkuFromAliExpress(tmpListProductFromJson, client);
                         tmpListProductFromJson = SetInventoryFromDatabase(tmpListProductFromJson.ToList());
                         listProducts.AddRange(tmpListProductFromJson);
                     }
@@ -124,6 +116,53 @@ namespace YapartMarket.BL.Implementation
                    return listProducts.AsQueryable().Where(conditionFunction).AsEnumerable();
                 return listProducts.AsEnumerable();
             }
+        }
+
+        private IEnumerable<T> UpdateSkuFromAliExpress<T>(IEnumerable<T> products, ITopClient client) where T : AliExpressProductDTO
+        {
+            if (products.Any())
+            {
+                ReturnProductNotFoundDatabase(products, out IEnumerable<T> intersectProducts, out IEnumerable<T> exceptProducts);
+                foreach (var expressProduct in exceptProducts)
+                {
+                    var reqInfoProduct = new AliexpressSolutionProductInfoGetRequest
+                    {
+                        ProductId = expressProduct.ProductId
+                    };
+                    var executeProductInfo = client.Execute(reqInfoProduct, _aliExpressOptions.AccessToken);
+                    var tmpInfoProduct = ProductStringToDTO(executeProductInfo.Body);
+                    expressProduct.SkuCode = tmpInfoProduct?.SkuCode;
+                }
+
+                ((List<T>)intersectProducts).AddRange(exceptProducts);
+                return intersectProducts;
+            }
+            return null;
+        }
+        //todo переименовать метод
+        private void ReturnProductNotFoundDatabase<T>(IEnumerable<T> products, out IEnumerable<T> intersectProducts, out IEnumerable<T> exceptProducts) where T : AliExpressProductDTO
+        {
+            IEnumerable<Product> productsInDb = null;
+            if (products.Any())
+            {
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                {
+                    connection.Open();
+                    productsInDb = connection.Query<Product>("select * from products where aliExpressProductId IN @aliExpressProductIds", new { aliExpressProductIds = products.Select(x => x.ProductId) });
+                }
+                if (productsInDb.Any())
+                {
+                    //проставить sku в aliExpressProducts
+                    var pairs = products.Join(productsInDb, aliExpProd => aliExpProd.ProductId,
+                        prodDb => prodDb.AliExpressProductId, (aliExpProd, prodDb) => new { prodDb, aliExpProd });
+                    foreach (var pair in pairs)
+                    {
+                        pair.aliExpProd.SkuCode = pair.prodDb.Sku;
+                    }
+                }
+            }
+            intersectProducts = products.Where(x => x.SkuCode != null).ToList();
+            exceptProducts = products.Where(prod => productsInDb.All(prodDb => prodDb.AliExpressProductId != prod.ProductId)).ToList();
         }
 
         public List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts)
@@ -203,18 +242,18 @@ namespace YapartMarket.BL.Implementation
             var listProductDtos = jsonObject.SelectToken("aliexpress_solution_product_list_get_response.result.aeop_a_e_product_display_d_t_o_list.item_display_dto")?.ToObject<IEnumerable<AliExpressProductDTO>>();
             return listProductDtos;
         }
-
+        //todo переписать на объект сериализации!!
         public AliExpressProductDTO ProductStringToDTO(string json)
         {
             var jsonObject = JObject.Parse(json);
-            var productJson = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.aeop_ae_product_s_k_us.global_aeop_ae_product_sku")[0].ToString();
+            var productJson = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.aeop_ae_product_s_k_us.global_aeop_ae_product_sku")?[0]?.ToString();
             try
             {
                 if (!string.IsNullOrEmpty(productJson))
                 {
                     var aliExpressProduct = JsonConvert.DeserializeObject<AliExpressProductDTO>(productJson);
                     var productId = (long) jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.product_id");
-                    var description = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.subject").ToString();
+                    var description = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.subject")?.ToString();
                     if (aliExpressProduct != null)
                     {
                         aliExpressProduct.ProductId = productId;
@@ -223,9 +262,9 @@ namespace YapartMarket.BL.Implementation
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw e;
+                throw;
             }
             return null;
         }
