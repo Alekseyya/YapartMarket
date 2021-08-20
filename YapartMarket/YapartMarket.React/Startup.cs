@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 using System.Text.Json;
 using AutoMapper;
+using Coravel;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -17,6 +19,7 @@ using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation;
+using YapartMarket.React.Invocables;
 using YapartMarket.React.Options;
 
 
@@ -77,6 +80,8 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressProductService, AliExpressProductService>();
             #endregion
 
+            services.AddScheduler();
+
             services.AddMediatR(typeof(Startup));
 
             services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
@@ -118,6 +123,13 @@ namespace YapartMarket.React
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+            app.ApplicationServices.UseScheduler(scheduler =>
+            {
+                scheduler.OnWorker("UpdateInventoryProductInAliExpress");
+
+                scheduler.OnWorker("UpdateProductIdFromAliExpress");
+                scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
             });
         }
     }
