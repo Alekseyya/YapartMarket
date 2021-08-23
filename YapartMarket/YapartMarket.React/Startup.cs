@@ -30,14 +30,14 @@ namespace YapartMarket.React
     {
         //private readonly ILoggerFactory _loggerFactory;
 
-        public Startup(IConfiguration configuration, IServiceProvider serviceProvider)
+        public Startup(IConfiguration configuration/*, IServiceProvider serviceProvider*/)
         {
             //_loggerFactory = loggerFactory;
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
-        public IServiceProvider Services { get; }
+        //public IServiceProvider Services { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
