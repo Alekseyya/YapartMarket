@@ -126,14 +126,14 @@ namespace YapartMarket.React
             {
                 endpoints.MapControllers();
             });
-            app.ApplicationServices.UseScheduler(scheduler =>
-            {
-                scheduler.OnWorker("UpdateInventoryProductInAliExpress");
-                scheduler.Schedule<UpdateInventoryAliExpress>().Hourly();
+            //app.ApplicationServices.UseScheduler(scheduler =>
+            //{
+            //    scheduler.OnWorker("UpdateInventoryProductInAliExpress");
+            //    scheduler.Schedule<UpdateInventoryAliExpress>().Hourly();
 
-                scheduler.OnWorker("UpdateProductIdFromAliExpress");
-                scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
-            }).LogScheduledTaskProgress(Services.GetService<ILogger<IScheduler>>());
+            //    scheduler.OnWorker("UpdateProductIdFromAliExpress");
+            //    scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
+            //}).LogScheduledTaskProgress(Services.GetService<ILogger<IScheduler>>());
         }
     }
 }
