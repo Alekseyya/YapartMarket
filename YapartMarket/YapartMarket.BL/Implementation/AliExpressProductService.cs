@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -23,20 +24,22 @@ namespace YapartMarket.BL.Implementation
     public class AliExpressProductService : IAliExpressProductService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AliExpressProductService> _logger;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressProductService(IOptions<AliExpressOptions> options, IConfiguration configuration)
+        public AliExpressProductService(IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
         {
             _configuration = configuration;
+            _logger = logger;
             _aliExpressOptions = options.Value;
         }
-        public void UpdateInventoryProducts(List<AliExpressProductDTO> aliExpressProducts)
+        public void UpdateInventoryProducts(IEnumerable<AliExpressProductDTO> aliExpressProducts)
         {
             try
             {
                 ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
                 AliexpressSolutionBatchProductInventoryUpdateRequest req = new AliexpressSolutionBatchProductInventoryUpdateRequest();
-                for (int i = 0; i < aliExpressProducts.Count; i += 20)
+                for (int i = 0; i < aliExpressProducts.Count(); i += 20)
                 {
                     var takeProducts = aliExpressProducts.Skip(i).Take(20);
                     if (takeProducts.Any())
@@ -83,6 +86,7 @@ namespace YapartMarket.BL.Implementation
             {
                 do
                 {
+                    _logger.LogInformation($"Запрос. Страница {currentPage}");
                     ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
                     var req = new AliexpressSolutionProductListGetRequest();
                     var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
@@ -93,13 +97,16 @@ namespace YapartMarket.BL.Implementation
                     };
                     req.AeopAEProductListQuery_ = obj1;
                     var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
+                    _logger.LogInformation($"Страница {currentPage} Десериализация json продуктов");
                     var tmpListProductFromJson = GetProductFromJson(rsp.Body);
                     if (!tmpListProductFromJson.Any())
                         haveElement = false;
                     else
                     {
                         //обновление коллекции полем SKUCode
+                        _logger.LogInformation("Обновление информации о SKU");
                         tmpListProductFromJson = UpdateSkuFromAliExpress(tmpListProductFromJson, client);
+                        _logger.LogInformation("Обновление количества продукта");
                         tmpListProductFromJson = SetInventoryFromDatabase(tmpListProductFromJson.ToList());
                         listProducts.AddRange(tmpListProductFromJson);
                     }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using AutoMapper;
 using Coravel;
+using Coravel.Scheduling.Schedule.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,13 +30,14 @@ namespace YapartMarket.React
     {
         //private readonly ILoggerFactory _loggerFactory;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IServiceProvider serviceProvider)
         {
             //_loggerFactory = loggerFactory;
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
+        public IServiceProvider Services { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -127,10 +129,11 @@ namespace YapartMarket.React
             app.ApplicationServices.UseScheduler(scheduler =>
             {
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
+                scheduler.Schedule<UpdateInventoryAliExpress>().Hourly();
 
                 scheduler.OnWorker("UpdateProductIdFromAliExpress");
                 scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
-            });
+            }).LogScheduledTaskProgress(Services.GetService<ILogger<IScheduler>>());
         }
     }
 }
