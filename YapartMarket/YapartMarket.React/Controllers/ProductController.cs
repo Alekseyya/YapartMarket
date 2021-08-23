@@ -149,7 +149,7 @@ namespace YapartMarket.React.Controllers
                         {
                             var isDelivery = false;
                             var count = 0;
-                            var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku",
+                            var productInDb = await connection.QueryFirstOrDefaultAsync<Core.Models.Azure.Product>("select * from products where sku = @sku",
                                 new { sku = cartItemDto.OfferId});
                             if (productInDb != null)
                             {
@@ -182,14 +182,12 @@ namespace YapartMarket.React.Controllers
         {
             if (itemsDto != null)
             {
-                //using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                //{
                 try
                 {
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
                         connection.Open();
-                        var productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
+                        var productsInDb = connection.Query<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
                         var updateProducts = itemsDto.Products.Where(x => productsInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
                         var insertProducts = itemsDto.Products.Where(x => productsInDb.All(t => t.Sku != x.Sku));
                         if (updateProducts.Any())
@@ -221,14 +219,11 @@ namespace YapartMarket.React.Controllers
                         }
 
                     }
-                    //transaction.Complete();
                 }
                 catch (Exception e)
                 {
-                    //transaction.Dispose();
                     return BadRequest(e.Message);
                 }
-                //}
                 return Ok();
             }
             return BadRequest();
@@ -245,7 +240,7 @@ namespace YapartMarket.React.Controllers
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 connection.Open();
-                var productsFromDb = connection.Query<Product>("select * from dbo.products").ToList();
+                var productsFromDb = connection.Query<Core.Models.Azure.Product>("select * from dbo.products").ToList();
                 foreach (var productFromDb in productsFromDb.Where(x=> stockDto.Skus.Any(t=> x.Sku.Equals(t))))
                 {
                     listSkuInfo.Add(new SkuInfoDto
@@ -275,24 +270,6 @@ namespace YapartMarket.React.Controllers
         {
             return _mapper.Map<ProductViewModel>(_products.FirstOrDefault(x => x.Id == id));
         }
-    }
-
-    public class Product
-    {
-        [Column("id")]
-        public int Id { get; set; }
-        [Column("sku")]
-        [Display(Name = "Артикул")]
-        public string Sku { get; set; }
-        [Column("type")]
-        [Display(Name = "Тип товара")]
-        public string Type { get; set; }
-        [Column("count")]
-        [Display(Name = "Количество")]
-        public int Count { get; set; }
-        [Column("updatedAt")]
-        [Display(Name = "Время обновления записи")]
-        public string UpdatedAt { get; set; }
     }
 
     public class ItemsDto

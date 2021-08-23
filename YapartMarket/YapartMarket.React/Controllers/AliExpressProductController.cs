@@ -1,9 +1,7 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Top.Api;
-using Top.Api.Request;
-using Top.Api.Response;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 
@@ -31,12 +29,12 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                var productsJson = _aliExpressProductService.GetProducts();
-                return Ok(productsJson);
+                var products = _aliExpressProductService.GetProductsAliExpress();
+                return Ok(products);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return BadRequest(e.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -49,8 +47,8 @@ namespace YapartMarket.React.Controllers
             {
                 if (productId == 0)
                     return BadRequest("Не указан productId");
-                var productInfoJson =_aliExpressProductService.GetProduct(productId);
-                return Ok(productInfoJson);
+                var productInfo =_aliExpressProductService.GetProduct(productId);
+                return Ok(productInfo);
             }
             catch (Exception e)
             {

@@ -1,6 +1,9 @@
+using System;
 using System.IO;
 using System.Text.Json;
 using AutoMapper;
+using Coravel;
+using Coravel.Scheduling.Schedule.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -17,6 +20,7 @@ using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation;
+using YapartMarket.React.Invocables;
 using YapartMarket.React.Options;
 
 
@@ -26,13 +30,14 @@ namespace YapartMarket.React
     {
         //private readonly ILoggerFactory _loggerFactory;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IServiceProvider serviceProvider)
         {
             //_loggerFactory = loggerFactory;
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
+        public IServiceProvider Services { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -77,6 +82,8 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressProductService, AliExpressProductService>();
             #endregion
 
+            services.AddScheduler();
+
             services.AddMediatR(typeof(Startup));
 
             services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
@@ -119,6 +126,14 @@ namespace YapartMarket.React
             {
                 endpoints.MapControllers();
             });
+            app.ApplicationServices.UseScheduler(scheduler =>
+            {
+                scheduler.OnWorker("UpdateInventoryProductInAliExpress");
+                scheduler.Schedule<UpdateInventoryAliExpress>().Hourly();
+
+                scheduler.OnWorker("UpdateProductIdFromAliExpress");
+                scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
+            }).LogScheduledTaskProgress(Services.GetService<ILogger<IScheduler>>());
         }
     }
 }
