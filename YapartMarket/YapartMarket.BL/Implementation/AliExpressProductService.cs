@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -168,8 +169,23 @@ namespace YapartMarket.BL.Implementation
                     }
                 }
             }
-            intersectProducts = products.Where(x => x.SkuCode != null).ToList();
+            intersectProducts = products.Where(x => x.SkuCode != null).ToList(); //todo в отдельные generic функции - Вместе с подключением к бд!!
             exceptProducts = products.Where(prod => productsInDb.All(prodDb => prodDb.AliExpressProductId != prod.ProductId)).ToList();
+        }
+
+        public async Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products)
+        {
+            if (products.Any())
+            {
+                IEnumerable<Product> productsInDb;
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                {
+                    connection.Open();
+                    productsInDb = await connection.QueryAsync<Product>("select * from products where aliExpressProductId IN @aliExpressProductIds", new { aliExpressProductIds = products.Select(x => x.ProductId) });
+                }
+                return products.Where(prod => productsInDb.All(prodDb => prodDb.AliExpressProductId != prod.ProductId));
+            }
+            return null;
         }
 
         public List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts)
