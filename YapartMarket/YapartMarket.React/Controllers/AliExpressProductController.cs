@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using YapartMarket.Core.BL;
@@ -26,6 +27,41 @@ namespace YapartMarket.React.Controllers
         [Route("productsInfo")]
         [Produces("application/json")]
         public IActionResult GetProductsInfo()
+        {
+            try
+            {
+                var products = _aliExpressProductService.GetProductsAliExpress();
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet]
+        [Route("productsExcept")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetProductsExceptFromDatabase()
+        {
+            try
+            {
+                var products = _aliExpressProductService.GetProductsAliExpress();
+                await _aliExpressProductService.ExceptProductsFromDataBase(products);
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpPatch]
+        [Route("processUpdateProductsId")]
+        [Produces("application/json")]
+        public IActionResult ProcessUpdateProductsId()
         {
             try
             {

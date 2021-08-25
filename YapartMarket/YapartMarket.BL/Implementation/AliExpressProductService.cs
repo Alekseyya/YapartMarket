@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -84,10 +85,10 @@ namespace YapartMarket.BL.Implementation
             long currentPage = 1;
             try
             {
+                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
                 do
                 {
                     _logger.LogInformation($"Запрос. Страница {currentPage}");
-                    ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
                     var req = new AliexpressSolutionProductListGetRequest();
                     var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
                     {
@@ -105,7 +106,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         //обновление коллекции полем SKUCode
                         _logger.LogInformation("Обновление информации о SKU");
-                        tmpListProductFromJson = UpdateSkuFromAliExpress(tmpListProductFromJson, client);
+                        tmpListProductFromJson = UpdateSkuFromAliExpress(tmpListProductFromJson);
                         _logger.LogInformation("Обновление количества продукта");
                         tmpListProductFromJson = SetInventoryFromDatabase(tmpListProductFromJson.ToList());
                         listProducts.AddRange(tmpListProductFromJson);
@@ -125,11 +126,12 @@ namespace YapartMarket.BL.Implementation
             }
         }
 
-        private IEnumerable<T> UpdateSkuFromAliExpress<T>(IEnumerable<T> products, ITopClient client) where T : AliExpressProductDTO
+        private IEnumerable<T> UpdateSkuFromAliExpress<T>(IEnumerable<T> products) where T : AliExpressProductDTO
         {
             if (products.Any())
             {
                 ReturnProductNotFoundDatabase(products, out IEnumerable<T> intersectProducts, out IEnumerable<T> exceptProducts);
+                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
                 foreach (var expressProduct in exceptProducts)
                 {
                     var reqInfoProduct = new AliexpressSolutionProductInfoGetRequest
@@ -170,6 +172,21 @@ namespace YapartMarket.BL.Implementation
             }
             intersectProducts = products.Where(x => x.SkuCode != null).ToList();
             exceptProducts = products.Where(prod => productsInDb.All(prodDb => prodDb.AliExpressProductId != prod.ProductId)).ToList();
+        }
+
+        public async Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products)
+        {
+            if (products.Any())
+            {
+                IEnumerable<Product> productsInDb;
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                {
+                    connection.Open();
+                    productsInDb = await connection.QueryAsync<Product>("select * from products where aliExpressProductId IN @aliExpressProductIds", new { aliExpressProductIds = products.Select(x => x.ProductId) });
+                }
+                return products.Where(prod => productsInDb.All(prodDb => prodDb.Sku != prod.SkuCode));
+            }
+            return null;
         }
 
         public List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts)
