@@ -18,8 +18,10 @@ using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
+using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation;
+using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.React.Invocables;
 using YapartMarket.React.Options;
 
@@ -30,14 +32,13 @@ namespace YapartMarket.React
     {
         //private readonly ILoggerFactory _loggerFactory;
 
-        public Startup(IConfiguration configuration, IServiceProvider serviceProvider)
+        public Startup(IConfiguration configuration)
         {
             //_loggerFactory = loggerFactory;
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
-        public IServiceProvider Services { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -80,7 +81,10 @@ namespace YapartMarket.React
             services.AddTransient<ISectionService, SectionService>();
             services.AddTransient<IAliExpressTokenService, AliExpressTokenService>();
             services.AddTransient<IAliExpressProductService, AliExpressProductService>();
+
             #endregion
+
+            services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddScheduler();
 
@@ -133,7 +137,7 @@ namespace YapartMarket.React
 
                 scheduler.OnWorker("UpdateProductIdFromAliExpress");
                 scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
-            }).LogScheduledTaskProgress(Services.GetService<ILogger<IScheduler>>());
+            });
         }
     }
 }

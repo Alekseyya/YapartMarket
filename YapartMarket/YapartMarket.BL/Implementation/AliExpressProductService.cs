@@ -16,20 +16,23 @@ using Top.Api.Request;
 using Top.Api.Response;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
+using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
 {
-    public class AliExpressProductService : IAliExpressProductService
+    public class AliExpressProductService : IAliExpressProductService // todo разбить интерфейс на части
     {
+        private readonly IAzureProductRepository _azureProductRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AliExpressProductService> _logger;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressProductService(IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
+        public AliExpressProductService(IAzureProductRepository azureProductRepository, IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
         {
+            _azureProductRepository = azureProductRepository;
             _configuration = configuration;
             _logger = logger;
             _aliExpressOptions = options.Value;
@@ -85,7 +88,9 @@ namespace YapartMarket.BL.Implementation
             long currentPage = 1;
             try
             {
-                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+                //todo в отдельный сервис - ProductInfoALiExpress
+                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey,
+                    _aliExpressOptions.AppSecret, "Json");
                 do
                 {
                     _logger.LogInformation($"Запрос. Страница {currentPage}");
@@ -108,18 +113,26 @@ namespace YapartMarket.BL.Implementation
                         _logger.LogInformation("Обновление информации о SKU");
                         tmpListProductFromJson = UpdateSkuFromAliExpress(tmpListProductFromJson);
                         _logger.LogInformation("Обновление количества продукта");
-                        tmpListProductFromJson = SetInventoryFromDatabase(tmpListProductFromJson.ToList());
+                        tmpListProductFromJson =
+                            SetInventoryFromDatabase(tmpListProductFromJson
+                                .ToList()); //todo по сути Обновление полей у AliExpressProductDTO
                         listProducts.AddRange(tmpListProductFromJson);
                     }
+
                     currentPage++;
                 } while (haveElement);
 
                 if (conditionFunction != null)
                     return listProducts.AsQueryable().Where(conditionFunction).AsEnumerable();
-                return listProducts.AsEnumerable(); 
+                return listProducts.AsEnumerable();
             }
-            catch (Exception)
+            catch (AggregateException)
             {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex.Message);
                 if (conditionFunction != null)
                    return listProducts.AsQueryable().Where(conditionFunction).AsEnumerable();
                 return listProducts.AsEnumerable();
@@ -154,11 +167,8 @@ namespace YapartMarket.BL.Implementation
             IEnumerable<Product> productsInDb = null;
             if (products.Any())
             {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-                {
-                    connection.Open();
-                    productsInDb = connection.Query<Product>("select * from products where aliExpressProductId IN @aliExpressProductIds", new { aliExpressProductIds = products.Select(x => x.ProductId) });
-                }
+                //todo нужен будет Await!!!
+                productsInDb = Task.Run(() => _azureProductRepository.GetInAsync(nameof(Product.AliExpressProductId), new { AliExpressProductId = products.Select(x => x.ProductId) })).GetAwaiter().GetResult();
                 if (productsInDb.Any())
                 {
                     //проставить sku в aliExpressProducts
@@ -178,6 +188,7 @@ namespace YapartMarket.BL.Implementation
         {
             if (products.Any())
             {
+                //todo в отдельный 
                 IEnumerable<Product> productsInDb;
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
@@ -221,6 +232,7 @@ namespace YapartMarket.BL.Implementation
         {
             if (aliExpressProducts.Any())
             {
+                //в отдельный
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     connection.Open();
@@ -260,6 +272,7 @@ namespace YapartMarket.BL.Implementation
             return ProductStringToDTO(rsp.Body);
         }
 
+        //todo А если придется читать не json -а XML - разбить на отдельный классы/command/Queryes!!!
         private IEnumerable<AliExpressProductDTO> GetProductFromJson(string json)
         {
             var jsonObject = JObject.Parse(json);
