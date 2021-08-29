@@ -25,13 +25,15 @@ namespace YapartMarket.BL.Implementation
 {
     public class AliExpressProductService : IAliExpressProductService // todo разбить интерфейс на части
     {
+        private readonly IAzureAliExpressProductRepository _azureAliExpressProductRepository;
         private readonly IAzureProductRepository _azureProductRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AliExpressProductService> _logger;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressProductService(IAzureProductRepository azureProductRepository, IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
+        public AliExpressProductService(IAzureAliExpressProductRepository azureAliExpressProductRepository, IAzureProductRepository azureProductRepository, IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
         {
+            _azureAliExpressProductRepository = azureAliExpressProductRepository;
             _azureProductRepository = azureProductRepository;
             _configuration = configuration;
             _logger = logger;
@@ -80,7 +82,111 @@ namespace YapartMarket.BL.Implementation
                 throw;
             }
         }
+        
+        public async Task ProcessDataFromAliExpress()
+        {
+            bool haveElement = true;
+            long currentPage = 1;
+            var newProducts = new List<AliExpressProductDTO>();
+            try
+            {
+                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+                do
+                {
+                    _logger.LogInformation($"Запрос. Страница {currentPage}");
+                    var req = new AliexpressSolutionProductListGetRequest();
+                    var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
+                    {
+                        CurrentPage = currentPage,
+                        ProductStatusType = "onSelling",
+                        PageSize = 99
+                    };
+                    req.AeopAEProductListQuery_ = obj1;
+                    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
+                    _logger.LogInformation($"Страница {currentPage} Десериализация json продуктов");
+                    var listProducts = GetProductFromJson(rsp.Body);
+                    if (!listProducts.IsAny())
+                        haveElement = false;
+                    else
+                    {
+                        //Добавлени новых товаров
+                        var tmpNewProducts = await AddNewProducts(listProducts);
+                        if (tmpNewProducts != null && tmpNewProducts.Any())
+                            newProducts.AddRange(tmpNewProducts);
+                    }
+                    currentPage++;
+                } while (haveElement);
 
+                var productsInDbEmptySku = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts where sku is null");
+                //обновить у них SKU
+                if (productsInDbEmptySku.IsAny())
+                {
+                    ITopClient getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+                    foreach (var product in productsInDbEmptySku)
+                    {
+                        var requestProductInfo = new AliexpressSolutionProductInfoGetRequest
+                        {
+                            ProductId = product.ProductId
+                        };
+                        var productInfoResponse = getClient.Execute(requestProductInfo, _aliExpressOptions.AccessToken);
+                        var productInfo = ProductStringToDTO(productInfoResponse.Body); //read Json
+                        if (productInfo != null)
+                        {
+                            product.SKU = productInfo.SkuCode;
+                            product.Inventory = productInfo.Inventory;
+                        }
+                    }
+
+                    foreach (var product in productsInDbEmptySku)
+                    {
+                        await _azureAliExpressProductRepository.Update(
+                            "update aliExpressProducts set sku = @sku, inventory = @inventory, updatedAt = @updatedAt where productId = @productId",
+                            new
+                            {
+                                sku = product.SKU,
+                                inventory = product.Inventory,
+                                updateAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                productId = product.ProductId
+                            });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<AliExpressProductDTO>> AddNewProducts(IEnumerable<AliExpressProductDTO> products)
+        {
+            var productsInDb = await _azureAliExpressProductRepository.GetInAsync(nameof(AliExpressProduct.ProductId), new {ProductId = products.Select(x=>x.ProductId)});
+            //новые записи
+            try
+            {
+                var newProducts = products.Where(prod => productsInDb.All(prodDb => prodDb.ProductId == 0 || prodDb.ProductId != prod.ProductId));
+                if (newProducts.IsAny())
+                {
+                    var commands = new List<object>();
+                    foreach (var newProduct in newProducts)
+                    {
+                        commands.Add(new
+                        {
+                            productId = newProduct.ProductId,
+                            created = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                        });
+                    }
+                    await _azureAliExpressProductRepository.InsertAsync("insert into dbo.aliExpressProducts(productId, created) values(@productId, @created)", commands);
+                    return newProducts;
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return null;
+        }
+
+        //Подрефакторить
         public IEnumerable<AliExpressProductDTO> GetProductsAliExpress(Expression<Func<AliExpressProductDTO, bool>> conditionFunction = null)
         {
             var listProducts = new List<AliExpressProductDTO>();
@@ -113,9 +219,7 @@ namespace YapartMarket.BL.Implementation
                         _logger.LogInformation("Обновление информации о SKU");
                         tmpListProductFromJson = UpdateSkuFromAliExpress(tmpListProductFromJson);
                         _logger.LogInformation("Обновление количества продукта");
-                        tmpListProductFromJson =
-                            SetInventoryFromDatabase(tmpListProductFromJson
-                                .ToList()); //todo по сути Обновление полей у AliExpressProductDTO
+                        tmpListProductFromJson = SetInventoryFromDatabase(tmpListProductFromJson.ToList()); //todo по сути Обновление полей у AliExpressProductDTO
                         listProducts.AddRange(tmpListProductFromJson);
                     }
 

@@ -57,6 +57,22 @@ namespace YapartMarket.React.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("processDataFromAliExpress")]
+        [Produces("application/json")]
+        public async Task<IActionResult> ProcessDataFromAliExpress()
+        {
+            try
+            {
+                await _aliExpressProductService.ProcessDataFromAliExpress();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         [HttpPatch]
         [Route("processUpdateProductsId")]

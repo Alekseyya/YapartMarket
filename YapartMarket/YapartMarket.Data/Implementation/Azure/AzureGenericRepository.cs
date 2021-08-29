@@ -22,7 +22,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 return await connection.QueryAsync<T>($"select * from {_tableName}");
             }
         }
@@ -31,7 +31,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 return await connection.QueryAsync<T>($"select * from {_tableName} where {field} IN @{field}", action);
             }
         }
@@ -45,7 +45,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 return await connection.QueryAsync<T>(sql);
             }
         }
@@ -55,20 +55,40 @@ namespace YapartMarket.Data.Implementation.Azure
             throw new NotImplementedException();
         }
 
-        public async Task InsertAsync(string sql, Action<object> action)
+        public async Task InsertAsync(string sql, object action)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 await connection.ExecuteAsync(sql, action);
             }
         }
 
-        public async Task Update(string sql, Action<object> action)
+        public async Task InsertAsync(string sql, IEnumerable<object> inserts)
+        {
+            try
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    foreach (var insert in inserts)
+                    {
+                        await connection.ExecuteAsync(sql, insert);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            
+        }
+
+        public async Task Update(string sql, object action)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 await connection.ExecuteAsync(sql, action);
             }
         }

@@ -8,6 +8,7 @@ namespace YapartMarket.Core.BL
 {
     public interface IAliExpressProductService
     {
+        Task ProcessDataFromAliExpress();
         void UpdateInventoryProducts(IEnumerable<AliExpressProductDTO> aliExpressProducts);
         Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products);
         IEnumerable<AliExpressProductDTO> GetProductsAliExpress(Expression<Func<AliExpressProductDTO, bool>> conditionFunction = null);
