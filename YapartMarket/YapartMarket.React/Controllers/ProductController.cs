@@ -248,16 +248,16 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("stocks")]
         [Produces("application/json")]
-        public IActionResult Stocks([FromBody] StockDto stockDto)
+        public async Task<IActionResult> Stocks([FromBody] StockDto stockDto)
         {
             if (stockDto == null)
                 return BadRequest();
             var listSkuInfo = new List<SkuInfoDto>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                connection.Open();
-                var productsFromDb = connection.Query<Core.Models.Azure.Product>("select * from dbo.products").ToList();
-                foreach (var productFromDb in productsFromDb.Where(x=> stockDto.Skus.Any(t=> x.Sku.Equals(t))))
+                await connection.OpenAsync();
+                var productsFromDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from dbo.products where sku IN @sku", new {sku = stockDto.Skus.Select(x=>x)});
+                foreach (var productFromDb in productsFromDb)
                 {
                     listSkuInfo.Add(new SkuInfoDto
                     {
@@ -265,8 +265,12 @@ namespace YapartMarket.React.Controllers
                         WarehouseId = stockDto.WarehouseId,
                         Items = new List<ProductDto>
                         {
-                            new ProductDto {Type = nameof(ProductType.FIT),
-                                Count = productFromDb.Count, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
+                            new()
+                            {
+                                Type = nameof(ProductType.FIT),
+                                Count = productFromDb.Count,
+                                UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                            }
                         }
                     });
                 }
