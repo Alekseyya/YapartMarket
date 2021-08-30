@@ -137,32 +137,48 @@ namespace YapartMarket.React.Controllers
                 {
                     var cartViewModel = new CartViewModel()
                     {
-                       Cart = new CartInfoViewModel()
-                       {
-                           CartItems = new List<CartItemViewModel>()
-                       }
-                    };
-                    await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-                    {
-                        connection.Open();
-                        foreach (var cartItemDto in cartDto.Cart.CartItems)
+                        Cart = new CartInfoViewModel()
                         {
-                            var isDelivery = false;
-                            var count = 0;
-                            var productInDb = await connection.QueryFirstOrDefaultAsync<Core.Models.Azure.Product>("select * from products where sku = @sku",
-                                new { sku = cartItemDto.OfferId});
-                            if (productInDb != null)
-                            {
-                                isDelivery = true;
-                                count = productInDb.Count >= cartItemDto.Count ? cartItemDto.Count : productInDb.Count;
-                            }
+                            CartItems = new List<CartItemViewModel>()
+                        }
+                    };
 
+                    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                    {
+                        await connection.OpenAsync();
+                        var productsInDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @sku",
+                            new { sku = cartDto.Cart.CartItems.Select(x => x.OfferId) });
+
+                        //Найденные
+                        var cartItemsDto = cartDto.Cart.CartItems.Join(productsInDb, c => c.OfferId, p => p.Sku,
+                            (c, p) => new
+                            {
+                                CartDtoFeedId = c.FeedId,
+                                CartDtoOfferId = c.OfferId,
+                                CartDtoCount = c.Count,
+                                ProductCount = p.Count
+                            });
+
+                        foreach (var cartItemDto in cartItemsDto)
+                        {
                             cartViewModel.Cart.CartItems.Add(new CartItemViewModel()
                             {
-                                FeedId = cartItemDto.FeedId,
-                                OfferId = cartItemDto.OfferId,
-                                Count =  count,
-                                Delivery = isDelivery
+                                FeedId = cartItemDto.CartDtoFeedId,
+                                OfferId = cartItemDto.CartDtoOfferId,
+                                Count = cartItemDto.ProductCount >= cartItemDto.CartDtoCount ? cartItemDto.CartDtoCount : cartItemDto.ProductCount,
+                                Delivery = true
+                            });
+                        }
+                        //те, которые не были найдены delivery = false - count = 0
+                        var cartItemsExcept = cartDto.Cart.CartItems.Where(cartDto => cartItemsDto.All(cartItem => cartItem.CartDtoFeedId != cartDto.FeedId));
+                        foreach (var cartItemExcept in cartItemsExcept)
+                        {
+                            cartViewModel.Cart.CartItems.Add(new CartItemViewModel()
+                            {
+                                FeedId = cartItemExcept.FeedId,
+                                OfferId = cartItemExcept.OfferId,
+                                Count = 0,
+                                Delivery = false
                             });
                         }
                     }
