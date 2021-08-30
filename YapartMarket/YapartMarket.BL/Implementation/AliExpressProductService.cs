@@ -90,64 +90,73 @@ namespace YapartMarket.BL.Implementation
             var newProducts = new List<AliExpressProductDTO>();
             try
             {
-                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-                do
-                {
-                    _logger.LogInformation($"Запрос. Страница {currentPage}");
-                    var req = new AliexpressSolutionProductListGetRequest();
-                    var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
-                    {
-                        CurrentPage = currentPage,
-                        ProductStatusType = "onSelling",
-                        PageSize = 99
-                    };
-                    req.AeopAEProductListQuery_ = obj1;
-                    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-                    _logger.LogInformation($"Страница {currentPage} Десериализация json продуктов");
-                    var listProducts = GetProductFromJson(rsp.Body);
-                    if (!listProducts.IsAny())
-                        haveElement = false;
-                    else
-                    {
-                        //Добавлени новых товаров
-                        var tmpNewProducts = await AddNewProducts(listProducts);
-                        if (tmpNewProducts != null && tmpNewProducts.Any())
-                            newProducts.AddRange(tmpNewProducts);
-                    }
-                    currentPage++;
-                } while (haveElement);
+                //ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+                //do
+                //{
+                //    _logger.LogInformation($"Запрос. Страница {currentPage}");
+                //    var req = new AliexpressSolutionProductListGetRequest();
+                //    var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
+                //    {
+                //        CurrentPage = currentPage,
+                //        ProductStatusType = "onSelling",
+                //        PageSize = 99
+                //    };
+                //    req.AeopAEProductListQuery_ = obj1;
+                //    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
+                //    _logger.LogInformation($"Страница {currentPage} Десериализация json продуктов");
+                //    var listProducts = GetProductFromJson(rsp.Body);
+                //    if (!listProducts.IsAny())
+                //        haveElement = false;
+                //    else
+                //    {
+                //        //Добавлени новых товаров
+                //        var tmpNewProducts = await AddNewProducts(listProducts);
+                //        if (tmpNewProducts != null && tmpNewProducts.Any())
+                //            newProducts.AddRange(tmpNewProducts);
+                //    }
+                //    currentPage++;
+                //} while (haveElement);
 
                 var productsInDbEmptySku = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts where sku is null");
                 //обновить у них SKU
                 if (productsInDbEmptySku.IsAny())
                 {
                     ITopClient getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-                    foreach (var product in productsInDbEmptySku)
+
+                    var countUpdateData = 0;
+                    var skipRows = 0;
+                    for (int i = 0; i < productsInDbEmptySku.Count(); i++)
                     {
+                        var productInDb = productsInDbEmptySku.ElementAt(i);
                         var requestProductInfo = new AliexpressSolutionProductInfoGetRequest
                         {
-                            ProductId = product.ProductId
+                            ProductId = productInDb.ProductId
                         };
                         var productInfoResponse = getClient.Execute(requestProductInfo, _aliExpressOptions.AccessToken);
                         var productInfo = ProductStringToDTO(productInfoResponse.Body); //read Json
                         if (productInfo != null)
                         {
-                            product.SKU = productInfo.SkuCode;
-                            product.Inventory = productInfo.Inventory;
+                            productInDb.SKU = productInfo.SkuCode;
+                            productInDb.Inventory = productInfo.SkuStock;
                         }
-                    }
-
-                    foreach (var product in productsInDbEmptySku)
-                    {
-                        await _azureAliExpressProductRepository.Update(
-                            "update aliExpressProducts set sku = @sku, inventory = @inventory, updatedAt = @updatedAt where productId = @productId",
-                            new
+                        countUpdateData++;
+                        if (countUpdateData == 100 || i == productsInDbEmptySku.Count() -1)
+                        {
+                            foreach (var product in productsInDbEmptySku.Skip(skipRows).Take(countUpdateData))
                             {
-                                sku = product.SKU,
-                                inventory = product.Inventory,
-                                updateAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                productId = product.ProductId
-                            });
+                                await _azureAliExpressProductRepository.Update(
+                                    "update aliExpressProducts set sku = @sku, inventory = @inventory, updatedAt = @updatedAt where productId = @productId",
+                                    new
+                                    {
+                                        sku = product.SKU,
+                                        inventory = product.Inventory,
+                                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                        productId = product.ProductId
+                                    });
+                            }
+                            skipRows += countUpdateData;
+                            countUpdateData = 0;
+                        }
                     }
                 }
             }
