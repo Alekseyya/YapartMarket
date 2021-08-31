@@ -40,15 +40,15 @@ namespace YapartMarket.BL.Implementation
             _logger = logger;
             _aliExpressOptions = options.Value;
         }
-        public void UpdateInventoryProducts(IEnumerable<AliExpressProductDTO> aliExpressProducts)
+        public void UpdateInventoryProducts(IEnumerable<Product> products)
         {
             try
             {
                 ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
                 AliexpressSolutionBatchProductInventoryUpdateRequest req = new AliexpressSolutionBatchProductInventoryUpdateRequest();
-                for (int i = 0; i < aliExpressProducts.Count(); i += 20)
+                for (int i = 0; i < products.Count(); i += 20)
                 {
-                    var takeProducts = aliExpressProducts.Skip(i).Take(20);
+                    var takeProducts = products.Skip(i).Take(20);
                     if (takeProducts.Any())
                     {
                         var reqMultipleProductUpdateList = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain>();
@@ -56,12 +56,12 @@ namespace YapartMarket.BL.Implementation
                         {
                             var objectProductId = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain();
                             reqMultipleProductUpdateList.Add(objectProductId);
-                            objectProductId.ProductId = takeProduct.ProductId;
+                            objectProductId.ProductId = takeProduct.AliExpressProductId;
                             var synchronizeSkuRequestDtoDomains = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain>();
                             var synchronizeSkuRequestDtoDomain = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain();
                             synchronizeSkuRequestDtoDomains.Add(synchronizeSkuRequestDtoDomain);
-                            synchronizeSkuRequestDtoDomain.SkuCode = takeProduct.SkuCode;
-                            synchronizeSkuRequestDtoDomain.Inventory = takeProduct.Inventory;
+                            synchronizeSkuRequestDtoDomain.SkuCode = takeProduct.Sku;
+                            synchronizeSkuRequestDtoDomain.Inventory = takeProduct.Count;
                             objectProductId.MultipleSkuUpdateList = synchronizeSkuRequestDtoDomains;
                         }
 
@@ -233,9 +233,24 @@ namespace YapartMarket.BL.Implementation
             }
         }
 
-        
+        public async Task<IEnumerable<Product>> ListProductsForUpdateInventory()
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
+                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku WHERE p.aliExpressProductId is NULL",
+                    (product, aliExpressProduct) =>
+                    {
+                        product.AliExpressProduct = aliExpressProduct;
+                        product.AliExpressProductId = aliExpressProduct.ProductId;
+                        return product;
+                    }, splitOn: "sku");
+                return productsInDb.GroupBy(x => x.Sku).Select(y => y.First());
+            }
+        }
 
-        //Подрефакторить
+        //убрать!!!!
         public IEnumerable<AliExpressProductDTO> GetProductsAliExpress(Expression<Func<AliExpressProductDTO, bool>> conditionFunction = null)
         {
             var listProducts = new List<AliExpressProductDTO>();
