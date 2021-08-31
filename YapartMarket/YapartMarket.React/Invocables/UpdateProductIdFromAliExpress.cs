@@ -15,13 +15,12 @@ namespace YapartMarket.React.Invocables
             _aliExpressProductService = aliExpressProductService;
             _logger = logger;
         }
-        public Task Invoke()
+        public async Task Invoke()
         {
             _logger.LogInformation("Получение данных о продуктах с AliExpress");
-            _aliExpressProductService.ProcessDataFromAliExpress();
+            await _aliExpressProductService.ProcessDataFromAliExpress();
             _logger.LogInformation("Обновление productAliExpressId в таблице Product");
-            _aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
-            return Task.CompletedTask;
+            await _aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
         }
     }
 }
