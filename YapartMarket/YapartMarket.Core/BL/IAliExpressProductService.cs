@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.Core.BL
 {
@@ -16,6 +17,7 @@ namespace YapartMarket.Core.BL
         void UpdatePriceProduct(List<long> productIds);
         AliExpressProductDTO ProductStringToDTO(string json);
         List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts);
-        void ProcessUpdateDatabaseAliExpressProductId(IEnumerable<AliExpressProductDTO> aliExpressProducts);
+        Task ProcessUpdateDatabaseAliExpressProductId();
+        Task<IEnumerable<Product>> GetProductWhereAliExpressProductIdIsNull();
     }
 }

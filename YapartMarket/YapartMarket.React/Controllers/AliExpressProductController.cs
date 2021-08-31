@@ -65,6 +65,7 @@ namespace YapartMarket.React.Controllers
             try
             {
                 await _aliExpressProductService.ProcessDataFromAliExpress();
+                await _aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
                 return Ok();
             }
             catch (Exception ex)

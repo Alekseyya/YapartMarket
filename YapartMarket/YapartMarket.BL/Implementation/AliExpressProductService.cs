@@ -381,36 +381,50 @@ namespace YapartMarket.BL.Implementation
             return null;
         }
 
-        public void ProcessUpdateDatabaseAliExpressProductId(IEnumerable<AliExpressProductDTO> aliExpressProducts)
+        public async Task ProcessUpdateDatabaseAliExpressProductId()
         {
-            if (aliExpressProducts.Any())
+            var updateProducts = await GetProductWhereAliExpressProductIdIsNull();
+            if (updateProducts.Any())
+               await UpdateAliExpressProductId(updateProducts);
+
+        }
+
+        public async Task<IEnumerable<Product>> GetProductWhereAliExpressProductIdIsNull()
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                //в отдельный
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-                {
-                    connection.Open();
-                    var productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) });
-                    var updateProducts = aliExpressProducts.Where(x => productsInDb.Any(t => t.Sku.Equals(x.SkuCode)
-                        && (!t.AliExpressProductId.HasValue || t.AliExpressProductId != x.ProductId)
-                    ));
-                    if (updateProducts.Any())
-                        UpdateAliExpressProductId(connection, updateProducts);
-                }
+                await connection.OpenAsync();
+                _logger.LogInformation("Связывание таблиц AliExpressProduct с Product");
+                var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
+                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku WHERE p.aliExpressProductId is NULL",
+                    (product, aliExpressProduct) =>
+                    {
+                        product.AliExpressProduct = aliExpressProduct;
+                        product.AliExpressProductId = aliExpressProduct.ProductId;
+                        return product;
+                    }, splitOn: "sku");
+                var result = productsInDb.GroupBy(x => x.Sku).Select(y => y.First());
+                _logger.LogInformation($"Количество записей, которые стоит обновить {result.Count()}");
+                return result;
             }
         }
 
-        private void UpdateAliExpressProductId(SqlConnection connection, IEnumerable<AliExpressProductDTO> updateProducts)
+        private async Task UpdateAliExpressProductId(IEnumerable<Product> updateProducts)
         {
-            foreach (var updateProduct in updateProducts)
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                connection.Execute(
-                    "update products set aliExpressProductId = @aliExpressProductId, updatedAt = @updatedAt where sku = @sku",
-                    new
-                    {
-                        aliExpressProductId = updateProduct.ProductId,
-                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                        sku = updateProduct.SkuCode
-                    });
+                await connection.OpenAsync();
+                foreach (var updateProduct in updateProducts)
+                {
+                    await connection.ExecuteAsync(
+                        "update products set aliExpressProductId = @aliExpressProductId, updatedAt = @updatedAt where sku = @sku",
+                        new
+                        {
+                            aliExpressProductId = updateProduct.AliExpressProductId,
+                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                            sku = updateProduct.Sku
+                        });
+                }
             }
         }
 

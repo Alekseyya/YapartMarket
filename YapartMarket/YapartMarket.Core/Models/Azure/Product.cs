@@ -21,5 +21,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("updatedAt")]
         [Display(Name = "Время обновления записи")]
         public string UpdatedAt { get; set; }
+
+        public AliExpressProduct AliExpressProduct { get; set; }
     }
 }

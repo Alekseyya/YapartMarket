@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -92,7 +93,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
                 }
             };
             //arrange
-            aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId(aliExpressProduct);
+            aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
             Product productsInDb = null;
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
@@ -443,6 +444,33 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             Assert.NotNull(aliExpressProducts);
             Assert.True(aliExpressProducts.Count > 0);
             Assert.Equal(1, aliExpressProducts.First().Inventory);
+        }
+
+
+        [Fact]
+        public async Task TestAliExpressService_GetProductWhereAliExpressProductIdIsNull_CheckNullAliProductId()
+        {
+            //arrange
+            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _aliExpressOption, _configuration, _mockLogger.Object);
+            //act
+            var aliExpressProducts = await aliExpressProductService.GetProductWhereAliExpressProductIdIsNull();
+            //assert
+            Assert.NotNull(aliExpressProducts);
+            Assert.True(aliExpressProducts.Any());
+            Assert.NotNull(aliExpressProducts.First().AliExpressProductId);
+        }
+
+        [Fact]
+        public async Task TestAliExpressService_GetProductWhereAliExpressProductIdIsNull_NotDuplicateElements()
+        {
+            //arrange
+            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _aliExpressOption, _configuration, _mockLogger.Object);
+            //act
+            var aliExpressProducts = await aliExpressProductService.GetProductWhereAliExpressProductIdIsNull();
+            //assert
+            Assert.NotNull(aliExpressProducts);
+            Assert.True(aliExpressProducts.Any());
+            Assert.True(!aliExpressProducts.GroupBy(x=>x.Sku).Where(x=>x.Count() > 1).Any());
         }
     }
 }
