@@ -26,40 +26,6 @@ namespace YapartMarket.React.Controllers
             _option = option.Value;
         }
 
-        [HttpGet]
-        [Route("productsInfo")]
-        [Produces("application/json")]
-        public IActionResult GetProductsInfo()
-        {
-            try
-            {
-                var products = _aliExpressProductService.GetProductsAliExpress();
-                return Ok(products);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-
-        [HttpGet]
-        [Route("productsExcept")]
-        [Produces("application/json")]
-        public async Task<IActionResult> GetProductsExceptFromDatabase()
-        {
-            try
-            {
-                var products = _aliExpressProductService.GetProductsAliExpress();
-                await _aliExpressProductService.ExceptProductsFromDataBase(products);
-                return Ok(products);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
         [HttpPost]
         [Route("processDataFromAliExpress")]
         [Produces("application/json")]
@@ -70,23 +36,6 @@ namespace YapartMarket.React.Controllers
                 await _aliExpressProductService.ProcessDataFromAliExpress();
                 await _aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
                 return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-
-        [HttpPatch]
-        [Route("processUpdateProductsId")]
-        [Produces("application/json")]
-        public IActionResult ProcessUpdateProductsId()
-        {
-            try
-            {
-                var products = _aliExpressProductService.GetProductsAliExpress();
-                return Ok(products);
             }
             catch (Exception ex)
             {

@@ -416,17 +416,6 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         }
 
         [Fact]
-        public void TestAliExpressService_GetProducts_CountDefferentFifty()
-        {
-            //act
-            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _aliExpressOption, _configuration, _mockLogger.Object);
-            //arrange
-            var aliExpressProducts = aliExpressProductService.GetProductsAliExpress();
-            //assert
-            Assert.True(aliExpressProducts.Count() > 50);
-        }
-        
-        [Fact]
         public void TestAliExpressService_SetInventoryFromDatabase_SetInventoryValue()
         {
             //act
