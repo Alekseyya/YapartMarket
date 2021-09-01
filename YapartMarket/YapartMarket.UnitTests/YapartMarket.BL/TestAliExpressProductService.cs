@@ -512,5 +512,29 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             Assert.True(aliExpressProducts.Any());
             Assert.False(aliExpressProducts.Any(x=>x.AliExpressProductId == null));
         }
+
+
+        [Fact]
+        public void TestAliExpressService_UpdateInventoryProducts_Test()
+        {
+            //arrange
+            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _aliExpressOption, _configuration, _mockLogger.Object);
+            var aliExpressProductId = 1005003028580861;
+            var products = new List<Product>
+            {
+                new()
+                {
+                    Sku = "KVR01.041.052.01200k",
+                    Count = 0,
+                    AliExpressProductId = aliExpressProductId
+                }
+            };
+            //act
+            aliExpressProductService.UpdateInventoryProducts(products);
+            var resultAliExpressResponseInventory = aliExpressProductService.GetProduct(aliExpressProductId);
+            //assert
+            Assert.NotNull(resultAliExpressResponseInventory);
+            Assert.Equal(0, resultAliExpressResponseInventory.SkuStock);
+        }
     }
 }

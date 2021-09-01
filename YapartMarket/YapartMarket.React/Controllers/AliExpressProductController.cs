@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
+using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.React.Controllers
 {
@@ -101,6 +104,37 @@ namespace YapartMarket.React.Controllers
                 if (productId == 0)
                     return BadRequest("Не указан productId");
                 var productInfo =_aliExpressProductService.GetProduct(productId);
+                return Ok(productInfo);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPut]
+        [Route("updateProductInventory")]
+        [Produces("application/json")]
+        public IActionResult UpdateProductInventory(long productId, string sku, int inventory)
+        {
+            try
+            {
+                if (productId == 0)
+                    return BadRequest("Не указан productId");
+                if(string.IsNullOrEmpty(sku))
+                    return BadRequest("Не указан sku");
+
+                var products = new List<Product>
+                {
+                    new()
+                    {
+                        Sku = sku,
+                        Count = inventory,
+                        AliExpressProductId = productId
+                    }
+                };
+                _aliExpressProductService.UpdateInventoryProducts(products);
+                var productInfo = _aliExpressProductService.GetProduct(productId);
                 return Ok(productInfo);
             }
             catch (Exception e)
