@@ -239,14 +239,13 @@ namespace YapartMarket.BL.Implementation
             {
                 await connection.OpenAsync();
                 var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
-                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku WHERE p.aliExpressProductId is NULL",
+                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku",
                     (product, aliExpressProduct) =>
                     {
                         product.AliExpressProduct = aliExpressProduct;
-                        product.AliExpressProductId = aliExpressProduct.ProductId;
                         return product;
                     }, splitOn: "sku");
-                return productsInDb.GroupBy(x => x.Sku).Select(y => y.First());
+                return productsInDb;
             }
         }
 

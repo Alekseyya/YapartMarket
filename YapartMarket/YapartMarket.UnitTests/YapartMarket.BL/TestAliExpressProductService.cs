@@ -472,5 +472,45 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             Assert.True(aliExpressProducts.Any());
             Assert.True(!aliExpressProducts.GroupBy(x=>x.Sku).Where(x=>x.Count() > 1).Any());
         }
+
+        [Fact]
+        public async Task TestAliExpressService_ListProductsForUpdateInventory_NotDuplicateElements()
+        {
+            //arrange
+            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _aliExpressOption, _configuration, _mockLogger.Object);
+            //act
+            var aliExpressProducts = await aliExpressProductService.ListProductsForUpdateInventory();
+            //assert
+            Assert.NotNull(aliExpressProducts);
+            Assert.True(aliExpressProducts.Any());
+            Assert.True(!aliExpressProducts.GroupBy(x => x.Sku).Where(x => x.Count() > 1).Any());
+        }
+
+
+        [Fact]
+        public async Task TestAliExpressService_ListProductsForUpdateInventory_CountElements()
+        {
+            //arrange
+            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _aliExpressOption, _configuration, _mockLogger.Object);
+            //act
+            var aliExpressProducts = await aliExpressProductService.ListProductsForUpdateInventory();
+            //assert
+            Assert.NotNull(aliExpressProducts);
+            Assert.True(aliExpressProducts.Any());
+            Assert.Equal(6822, aliExpressProducts.Count());
+        }
+
+        [Fact]
+        public async Task TestAliExpressService_ListProductsForUpdateInventory_AliExpressProductsIdNotNull()
+        {
+            //arrange
+            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _aliExpressOption, _configuration, _mockLogger.Object);
+            //act
+            var aliExpressProducts = await aliExpressProductService.ListProductsForUpdateInventory();
+            //assert
+            Assert.NotNull(aliExpressProducts);
+            Assert.True(aliExpressProducts.Any());
+            Assert.False(aliExpressProducts.Any(x=>x.AliExpressProductId == null));
+        }
     }
 }
