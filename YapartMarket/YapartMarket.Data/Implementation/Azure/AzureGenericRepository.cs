@@ -50,9 +50,13 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public Task<T> GetById(int id)
+        public async Task<T> GetById(int id)
         {
-            throw new NotImplementedException();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                return await connection.QueryFirstAsync<T>($"select * from {_tableName} where id = {id}");
+            }
         }
 
         public async Task InsertAsync(string sql, object action)

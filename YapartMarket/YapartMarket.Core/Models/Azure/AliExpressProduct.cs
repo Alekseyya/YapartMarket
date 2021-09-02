@@ -5,7 +5,7 @@ namespace YapartMarket.Core.Models.Azure
      public class AliExpressProduct
     {
         [Column("productId")]
-        public long ProductId { get; set; }
+        public long? ProductId { get; set; }
         [Column("sku")]
         public string SKU { get; set; }
         [Column("inventory")]

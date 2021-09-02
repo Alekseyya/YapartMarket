@@ -17,6 +17,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appSettings.json", optional: false, reloadOnChange: true).Build();
         }
+
         [Fact]
         public void TestAzureGenericRepository_Update()
         {

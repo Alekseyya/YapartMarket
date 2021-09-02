@@ -244,7 +244,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         product.AliExpressProduct = aliExpressProduct;
                         return product;
-                    }, splitOn: "sku");
+                    }, splitOn: "productId");
                 return productsInDb;
             }
         }
@@ -307,17 +307,17 @@ namespace YapartMarket.BL.Implementation
             {
                 await connection.OpenAsync();
                 _logger.LogInformation("Связывание таблиц AliExpressProduct с Product");
+                var lookup = new Dictionary<int, Product>();
                 var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
-                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku WHERE p.aliExpressProductId is NULL",
-                    (product, aliExpressProduct) =>
+                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku",
+                    (p, a) =>
                     {
-                        product.AliExpressProduct = aliExpressProduct;
-                        product.AliExpressProductId = aliExpressProduct.ProductId;
-                        return product;
-                    }, splitOn: "sku");
-                var result = productsInDb.GroupBy(x => x.Sku).Select(y => y.First());
-                _logger.LogInformation($"Количество записей, которые стоит обновить {result.Count()}");
-                return result;
+                        p.AliExpressProduct = a;
+                        p.AliExpressProductId = a.ProductId;
+                        return p;
+                    }, splitOn: "productId");
+                _logger.LogInformation($"Количество записей, которые стоит обновить {productsInDb.Count()}");
+                return productsInDb;
             }
         }
 
