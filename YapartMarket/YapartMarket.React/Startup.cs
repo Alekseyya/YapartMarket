@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using AutoMapper;
 using Coravel;
 using Coravel.Scheduling.Schedule.Interfaces;
@@ -84,10 +85,16 @@ namespace YapartMarket.React
 
             #endregion
 
+            
+
             services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressProductRepository>(m => new AzureAliExpressProductRepository("aliExpressProducts", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddScheduler();
+
+            services.AddTransient<UpdateInventoryAliExpressInvocable>();
+            services.AddTransient<UpdateProductIdFromAliExpressInvocable>();
+            services.AddTransient<DoSomethingInvocable>();
 
             services.AddMediatR(typeof(Startup));
 
@@ -133,11 +140,21 @@ namespace YapartMarket.React
             });
             app.ApplicationServices.UseScheduler(scheduler =>
             {
+                //scheduler.Schedule(() =>
+                //{
+                //    Console.Write("Doing expensive calculation for 5 sec...");
+                //    Console.Write("Expensive calculation done.");
+                //}).EverySeconds(3);
+                //scheduler.Schedule<DoSomethingInvocable>();
+
+                //scheduler.OnWorker("EmailTasks");
+                //scheduler.Schedule(() => Console.WriteLine("Hourly on Mondays.")).EverySeconds(3);
+
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
-                scheduler.Schedule<UpdateInventoryAliExpress>().Hourly();
+                scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();
 
                 scheduler.OnWorker("UpdateProductIdFromAliExpress");
-                scheduler.Schedule<UpdateProductIdFromAliExpress>().DailyAt(20, 00);
+                scheduler.Schedule<UpdateProductIdFromAliExpressInvocable>().DailyAt(20, 00);
             });
         }
     }

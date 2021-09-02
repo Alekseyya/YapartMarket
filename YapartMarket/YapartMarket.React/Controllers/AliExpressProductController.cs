@@ -92,5 +92,21 @@ namespace YapartMarket.React.Controllers
             }
         }
 
+        [HttpPatch]
+        [Route("updateProductsInventory")]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateProductsInventory()
+        {
+            try
+            {
+               var products = await _aliExpressProductService.ListProductsForUpdateInventory();
+               _aliExpressProductService.UpdateInventoryProducts(products);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }

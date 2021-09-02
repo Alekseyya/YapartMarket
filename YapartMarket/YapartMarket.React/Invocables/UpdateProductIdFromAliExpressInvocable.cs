@@ -5,12 +5,12 @@ using YapartMarket.Core.BL;
 
 namespace YapartMarket.React.Invocables
 {
-    public class UpdateProductIdFromAliExpress : IInvocable
+    public class UpdateProductIdFromAliExpressInvocable : IInvocable
     {
         private readonly IAliExpressProductService _aliExpressProductService;
-        private readonly ILogger<UpdateProductIdFromAliExpress> _logger;
+        private readonly ILogger<UpdateProductIdFromAliExpressInvocable> _logger;
 
-        public UpdateProductIdFromAliExpress(IAliExpressProductService aliExpressProductService, ILogger<UpdateProductIdFromAliExpress> logger)
+        public UpdateProductIdFromAliExpressInvocable(IAliExpressProductService aliExpressProductService, ILogger<UpdateProductIdFromAliExpressInvocable> logger)
         {
             _aliExpressProductService = aliExpressProductService;
             _logger = logger;
