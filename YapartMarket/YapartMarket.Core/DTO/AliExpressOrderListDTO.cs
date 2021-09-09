@@ -66,7 +66,6 @@ namespace YapartMarket.Core.DTO
         public OrderStatus ShowStatus { get; set; }
         [JsonProperty("goods_prepare_time")] 
         public int GoodsPrepareTime { get; set; }
-        [JsonProperty("total_product_amount")]
         public double TotalProductAmount { get; set; }
     }
 }

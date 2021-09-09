@@ -239,5 +239,17 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             Assert.NotNull(aliExpressOrder);
             Assert.Equal(1.01, aliExpressOrder.AliExpressOrderProducts.First().ProductUnitPrice);
         }
+        [Fact]
+        public void TestDeserializeDTO_AliExpressOrder_Deserialize_Product_Total_Amount()
+        {
+            //arrange
+            var json = _jsonOrderExpample;
+            //act
+            var jsonObject = JObject.Parse(json);
+            var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            Assert.NotNull(aliExpressOrder);
+            Assert.Equal(1.01, aliExpressOrder.AliExpressOrderProducts.First().TotalProductAmount);
+        }
     }
 }

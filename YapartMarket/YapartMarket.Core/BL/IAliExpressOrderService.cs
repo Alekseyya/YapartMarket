@@ -7,6 +7,6 @@ namespace YapartMarket.Core.BL
 {
     public interface IAliExpressOrderService : IAliExpressOrderQueries
     {
-        List<AliExpressOrderListDTO> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null)
+        List<AliExpressOrderListDTO> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null);
     }
 }
