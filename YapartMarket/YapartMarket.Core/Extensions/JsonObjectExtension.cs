@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using YapartMarket.Core.DTO;
 
 namespace YapartMarket.Core.Extensions
 {
@@ -14,6 +18,22 @@ namespace YapartMarket.Core.Extensions
             };
             result = JsonConvert.DeserializeObject<T>(@this, settings);
             return success;
+        }
+
+        public static T FillProperties<T>(this T entity, JObject jObject) where T : class
+        {
+            var aliExpressOrderProductDto = new AliExpressOrderProductDTO();
+            foreach (var property in jObject.Properties())
+            {
+                foreach (var fieldProperty in aliExpressOrderProductDto.GetType().GetProperties())
+                {
+                    if (fieldProperty.GetCustomAttributes(true).Cast<JsonPropertyAttribute>().FirstOrDefault()?.PropertyName == property.Name)
+                    {
+                        fieldProperty.SetValue(aliExpressOrderProductDto, Convert.ChangeType(property.Value, fieldProperty.PropertyType), null);
+                    }
+                }
+            }
+            return entity;
         }
     }
 }

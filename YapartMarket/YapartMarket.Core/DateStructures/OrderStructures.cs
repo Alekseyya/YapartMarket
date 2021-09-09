@@ -47,4 +47,33 @@
         /// </summary>
         FINISH
     }
+    /// <summary>
+    /// Статус заморозки товара
+    /// </summary>
+    public enum FrozenStatus
+    {
+        NO_FROZEN,
+        IN_FROZEN
+    }
+    /// <summary>
+    /// Статус проблемы заказа
+    /// </summary>
+    public enum IssueStatus
+    {
+        NO_ISSUE,
+        IN_ISSUE,
+        END_ISSUE
+    }
+
+    public enum ShipperType
+    {
+        /// <summary>
+        /// Доставка от продавца
+        /// </summary>
+        SELLER_SEND_GOODS,
+        /// <summary>
+        /// Доставка со склада
+        /// </summary>
+        WAREHOUSE_SEND_GOODS
+    }
 }

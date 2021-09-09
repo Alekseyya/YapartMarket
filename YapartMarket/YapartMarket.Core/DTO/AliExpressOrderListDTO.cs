@@ -2,35 +2,37 @@
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
+using YapartMarket.Core.DateStructures;
+using YapartMarket.Core.JsonConverters;
 
 namespace YapartMarket.Core.DTO
 {
-    public class AliExpressOrderDetailDTO
+    [JsonConverter(typeof(AliExpressOrderDetailConverter))]
+    public class AliExpressOrderListDTO
     {
         [JsonProperty("seller_signer_fullname")]
         public string SellerSignerFullName { get; set; }
         [JsonProperty("seller_login_id")]
         public string SellerLoginId { get; set; }
-        [JsonProperty("product_list.order_product_dto")]
-        public List<AliExpressOrderProduct> AliExpressOrderProducts { get; set; }
+        public List<AliExpressOrderProductDTO> AliExpressOrderProducts { get; set; }
         [JsonProperty("pay_amount.amount")]
         public int PayAmount { get; set; }
         [JsonProperty("order_status")]
-        public string OrderStatus { get; set; }
+        public OrderStatus OrderStatus { get; set; }
         [JsonProperty("order_id")]
         public long OrderId { get; set; }
         [JsonProperty("logistics_status")]
         public string LogisticsStatus { get; set; }
-        [JsonProperty("logistics_status")]
-        public string GmtUpdate { get; set; }
+        [JsonProperty("gmt_update")]
+        public DateTime GmtUpdate { get; set; }
         [JsonProperty("gmt_pay_time")] 
-        public string GmtPayTime { get; set; }
+        public DateTime GmtPayTime { get; set; }
         [JsonProperty("gmt_create")]
-        public string GmtCreate { get; set; }
+        public DateTime GmtCreate { get; set; }
         [JsonProperty("fund_status")]
         public string FundStatus { get; set; }
         [JsonProperty("frozen_status")]
-        public string FrozenStatus { get; set; }
+        public FrozenStatus FrozenStatus { get; set; }
         /// <summary>
         /// Причина завершения заказа
         /// </summary>
@@ -44,21 +46,27 @@ namespace YapartMarket.Core.DTO
         public string BizType { get; set; }
     }
 
-    public class AliExpressOrderProduct
+    [JsonConverter(typeof(AliExpressOrderProductConverter))]
+    public class AliExpressOrderProductDTO
     {
-        [JsonProperty("show_status")]
-        public string ShowStatus { get; set; } // todo сериализацию в enum
-        [JsonProperty("send_goods_time")]
-        public string SendGoodsTime { get; set; }
-        [JsonProperty("product_name")]
-        public string ProductName { get; set; }
-        [JsonProperty("product_id")]
-        public string ProductId { get; set; }
+        [JsonProperty("logistics_service_name")]
+        public string LogisticsServiceName { get; set; }
+        [JsonProperty("order_id")]
+        public long OrderId { get; set; }
         [JsonProperty("product_count")]
         public int ProductCount { get; set; }
-        [JsonProperty("order_id")]
-        public int OrderId { get; set; }
+        [JsonProperty("product_id")]
+        public string ProductId { get; set; }
+        [JsonProperty("product_name")]
+        public string ProductName { get; set; }
+        public double ProductUnitPrice { get; set; }
+        [JsonProperty("send_goods_operator")]
+        public ShipperType SendGoodsOperator { get; set; }
+        [JsonProperty("show_status")]
+        public OrderStatus ShowStatus { get; set; }
         [JsonProperty("goods_prepare_time")] 
         public int GoodsPrepareTime { get; set; }
+        [JsonProperty("total_product_amount")]
+        public double TotalProductAmount { get; set; }
     }
 }
