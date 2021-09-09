@@ -7,6 +7,31 @@ using YapartMarket.Core.JsonConverters;
 
 namespace YapartMarket.Core.DTO
 {
+    public class AliExpressGetOrderRoot
+    {
+        [JsonProperty("aliexpress_solution_order_get_response")]
+        public AliExpressSolutionOrderGetResponseDTO AliExpressSolutionOrderGetResponseDTO { get; set; }
+    }
+    public class AliExpressSolutionOrderGetResponseDTO
+    {
+        [JsonProperty("result")]
+        public AliExpressSolutionOrderGetResponseResultDTO AliExpressSolutionOrderGetResponseResultDto { get; set; }
+        [JsonProperty("request_id")]
+        public string RequestId { get; set; }
+    }
+
+    [JsonConverter(typeof(AliExpressSolutionOrderGetResponseResultConverter))]
+    public class AliExpressSolutionOrderGetResponseResultDTO
+    {
+        [JsonProperty("success")]
+        public bool Success { get; set; }
+        public List<AliExpressOrderListDTO> AliExpressOrderListDTOs { get; set; }
+        [JsonProperty("total_count")]
+        public int TotalCount { get; set; }
+        [JsonProperty("total_page")]
+        public int TotalPage { get; set; }
+    }
+
     [JsonConverter(typeof(AliExpressOrderDetailConverter))]
     public class AliExpressOrderListDTO
     {

@@ -119,10 +119,46 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             ""total_page"":1,
             ""success"":true,
             ""time_stamp"":""1""
-        }
+        },
+        ""request_id"": ""2y0vy8yvq6s2"" 
     }
+   
 }";
         }
+
+        [Fact]
+        public void TestDeserializeDTO_AliExpressOrder_Deserialize_AliExpressSolutionOrderGetResponseDTO_RequestId()
+        {
+            //arrange
+            var json = _jsonOrderExpample;
+            //act
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json);
+            Assert.NotNull(aliExpressOrder);
+            Assert.Equal("2y0vy8yvq6s2", aliExpressOrder.AliExpressSolutionOrderGetResponseDTO.RequestId);
+        }
+
+        [Fact]
+        public void TestDeserializeDTO_AliExpressOrder_Deserialize_AliExpressSolutionOrderGetResponseResultDto_NotNull()
+        {
+            //arrange
+            var json = _jsonOrderExpample;
+            //act
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json);
+            Assert.NotNull(aliExpressOrder);
+            Assert.NotNull(aliExpressOrder.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto);
+        }
+
+        [Fact]
+        public void TestDeserializeDTO_AliExpressOrder_Deserialize_AliExpressOrderListDTOs_NotNull()
+        {
+            //arrange
+            var json = _jsonOrderExpample;
+            //act
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json);
+            Assert.NotNull(aliExpressOrder);
+            Assert.NotNull(aliExpressOrder.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto.AliExpressOrderListDTOs);
+        }
+
         [Fact]
         public void TestDeserializeDTO_AliExpressBatchProductInventoryUpdateResponseDTO()
         {
