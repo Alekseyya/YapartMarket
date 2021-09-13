@@ -82,13 +82,16 @@ namespace YapartMarket.React
             services.AddTransient<ISectionService, SectionService>();
             services.AddTransient<IAliExpressTokenService, AliExpressTokenService>();
             services.AddTransient<IAliExpressProductService, AliExpressProductService>();
-
+            services.AddTransient<IAliExpressOrderService, AliExpressOrderService>();
+            services.AddTransient<IAliExpressOrderDetailService, AliExpressOrderDetailService>();
             #endregion
 
             
 
             services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressProductRepository>(m => new AzureAliExpressProductRepository("aliExpressProducts", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<IAzureAliExpressOrderRepository>(m => new AzureAliExpressOrderRepository("dbo.orders", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<IAzureAliExpressOrderDetailRepository>(m => new AzureAliExpressOrderDetailRepository("dbo.order_details", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddScheduler();
 

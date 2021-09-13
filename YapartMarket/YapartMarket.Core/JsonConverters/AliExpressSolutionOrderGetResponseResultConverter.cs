@@ -19,7 +19,7 @@ namespace YapartMarket.Core.JsonConverters
             JObject jObject = JObject.Load(reader);
             existingValue = new AliExpressSolutionOrderGetResponseResultDTO();
             existingValue.FillProperties(jObject);
-            existingValue.AliExpressOrderListDTOs = jObject.SelectToken("target_list.order_dto").ToObject<List<AliExpressOrderListDTO>>();
+            existingValue.AliExpressOrderListDTOs = jObject.SelectToken("target_list.order_dto")?.ToObject<List<AliExpressOrderListDTO>>();
             return existingValue;
         }
     }

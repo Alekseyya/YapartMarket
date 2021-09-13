@@ -40,8 +40,6 @@ namespace YapartMarket.Core.DTO
         [JsonProperty("seller_login_id")]
         public string SellerLoginId { get; set; }
         public List<AliExpressOrderProductDTO> AliExpressOrderProducts { get; set; }
-        [JsonProperty("pay_amount.amount")]
-        public int PayAmount { get; set; }
         [JsonProperty("order_status")]
         public OrderStatus OrderStatus { get; set; }
         [JsonProperty("order_id")]

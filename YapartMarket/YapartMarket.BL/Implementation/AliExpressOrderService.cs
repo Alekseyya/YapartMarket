@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.EntityFrameworkCore.Internal;
+using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Top.Api;
 using Top.Api.Request;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
+using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO;
-using YapartMarket.Core.JsonConverters;
+using YapartMarket.Core.Models.Azure;
 
 [assembly: InternalsVisibleTo("UnitTests")]
 namespace YapartMarket.BL.Implementation
@@ -22,11 +23,16 @@ namespace YapartMarket.BL.Implementation
     public class AliExpressOrderService : IAliExpressOrderService
     {
         private readonly ILogger<AliExpressOrderService> _logger;
+        private readonly IAzureAliExpressOrderRepository _azureAliExpressOrderRepository;
+        private readonly IAzureAliExpressOrderDetailRepository _orderDetailRepository;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options)
+        public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAzureAliExpressOrderRepository azureAliExpressOrderRepository,
+            IAzureAliExpressOrderDetailRepository orderDetailRepository)
         {
             _logger = logger;
+            _azureAliExpressOrderRepository = azureAliExpressOrderRepository;
+            _orderDetailRepository = orderDetailRepository;
             _aliExpressOptions = options.Value;
         }
         
@@ -54,7 +60,7 @@ namespace YapartMarket.BL.Implementation
                         aliExpressOrderList.AddRange(deserializeAliExpressOrderList);
                     else
                         break;
-                } //todo проверка сообщения
+                } 
                 catch (Exception e)
                 {
                     break;
@@ -62,6 +68,21 @@ namespace YapartMarket.BL.Implementation
                 currentPage++;
             } while (true);
             return aliExpressOrderList;
+        }
+
+        public async Task AddOrders(List<AliExpressOrderListDTO> aliExpressOrderListDtos)
+        {
+            var newAliExpressOrdersList = await ExceptOrders(aliExpressOrderListDtos);
+            if (newAliExpressOrdersList.Any())
+            {
+                await _azureAliExpressOrderRepository.AddOrders(newAliExpressOrdersList); //todo сделать маппер на класс Order и OrderDetail
+            }
+        }
+
+        public async Task<IEnumerable<AliExpressOrderListDTO>> ExceptOrders(List<AliExpressOrderListDTO> aliExpressOrderListDtos)
+        {
+            var orderInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrderListDtos.Select(x => x.OrderId) });
+            return aliExpressOrderListDtos.Where(aliOrder => orderInDb.All(orderDb => orderDb.OrderId != aliOrder.OrderId));
         }
 
         public List<AliExpressOrderListDTO> DeserializeAliExpressOrderList(string json)

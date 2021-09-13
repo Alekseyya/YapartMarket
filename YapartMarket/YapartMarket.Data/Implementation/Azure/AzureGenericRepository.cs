@@ -29,10 +29,21 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public async Task<IEnumerable<T>> GetInAsync(string field, object action)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            if (string.IsNullOrEmpty(field))
+                throw new ArgumentException(field);
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+            try
             {
-                await connection.OpenAsync();
-                return await connection.QueryAsync<T>($"select * from {_tableName} where {field} IN @{field}", action);
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    return await connection.QueryAsync<T>($"select * from {_tableName} where {field} IN @{field}", action);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
@@ -59,6 +70,15 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
+        //public virtual async Task<IEnumerable<int>> InsertAsync(string sql, IEnumerable<object> inserts)
+        //{
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        await connection.OpenAsync();
+        //        return await connection.QueryAsync<int>(sql, inserts);
+        //    }
+        //}
+
         public async Task InsertAsync(string sql, object action)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -68,7 +88,7 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public async Task InsertAsync(string sql, IEnumerable<object> inserts)
+        public virtual async Task InsertAsync(string sql, IEnumerable<object> inserts)
         {
             try
             {
@@ -86,6 +106,15 @@ namespace YapartMarket.Data.Implementation.Azure
                 throw;
             }
             
+        }
+
+        public virtual async Task<IEnumerable<int>> InsertOutputAsync(string sql, IEnumerable<object> inserts)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                return await connection.QueryAsync<int>(sql, inserts);
+            }
         }
 
         public async Task Update(string sql, object action)

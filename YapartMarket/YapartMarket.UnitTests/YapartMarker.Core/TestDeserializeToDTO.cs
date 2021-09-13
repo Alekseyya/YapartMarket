@@ -23,94 +23,62 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             ""target_list"":{
                 ""order_dto"":[
                     {
-                        ""timeout_left_time"":120340569,
-                        ""seller_signer_fullname"":""cn1234"",
-                        ""seller_operator_login_id"":""cn1234"",
-                        ""seller_login_id"":""cn1234"", 
-                        ""product_list"":{
-                            ""order_product_dto"":[
-                                {
-                                    ""total_product_amount"":{
-                                        ""currency_code"":""USD"",
-                                        ""amount"":""1.01""
-                                    },
-                                    ""son_order_status"":""PLACE_ORDER_SUCCESS"",
-                                    ""sku_code"":""12"",
-                                    ""show_status"":""PLACE_ORDER_SUCCESS"",
-                                    ""send_goods_time"":""2017-10-12 12:12:12"",
-                                    ""send_goods_operator"":""WAREHOUSE_SEND_GOODS"",
-                                    ""product_unit_price"":{
-                                        ""currency_code"":""USD"",
-                                        ""amount"":""1.01""
-                                    },
-                                    ""product_unit"":""piece"",
-                                    ""product_standard"":"""",
-                                    ""product_snap_url"":""http:\/\/www.aliexpress.com:1080\/snapshot\/null.html?orderId\\u003d1160045860056286"",
-                                    ""product_name"":""mobile"",
-                                    ""product_img_url"":""http:\/\/g03.a.alicdn.com\/kf\/images\/eng\/no_photo.gif"",
-                                    ""product_id"":2356980,
-                                    ""product_count"":1,
-                                    ""order_id"":5013302654414510,
-                                    ""money_back3x"":false,
-                                    ""memo"":""1"",
-                                    ""logistics_type"":""EMS"",
-                                    ""logistics_service_name"":""EMS"",
-                                    ""logistics_amount"":{
-                                        ""currency_code"":""USD"",
-                                        ""amount"":""1.01""
-                                    },
-                                    ""issue_status"":""END_ISSUE"",
-                                    ""issue_mode"":""w"",
-                                    ""goods_prepare_time"":3,
-                                    ""fund_status"":""WAIT_SELLER_CHECK"",
-                                    ""freight_commit_day"":""27"",
-                                    ""escrow_fee_rate"":""0.01"",
-                                    ""delivery_time"":""5-10"",
-                                    ""child_id"":23457890,
-                                    ""can_submit_issue"":false,
-                                    ""buyer_signer_last_name"":""1"",
-                                    ""buyer_signer_first_name"":""1"",
-                                    ""afflicate_fee_rate"":""0.03""
-                                }
-                            ]
-                        },
-                        ""phone"":false,
-                        ""payment_type"":""ebanx101"",
-                        ""pay_amount"":{
-                            ""currency_code"":""USD"",
-                            ""amount"":""1.01""
-                        },
-                        ""order_status"":""PLACE_ORDER_SUCCESS"",
-                        ""order_id"":1160045860056286,
-                        ""order_detail_url"":""http"",
-                        ""logistics_status"":""NO_LOGISTICS"",
-                        ""logisitcs_escrow_fee_rate"":""1"",
-                        ""loan_amount"":{
-                            ""currency_code"":""USD"",
-                            ""amount"":""1.01""
-                        },
-                        ""left_send_good_min"":""1"",
-                        ""left_send_good_hour"":""1"",
-                        ""left_send_good_day"":""1"",
-                        ""issue_status"":""END_ISSUE"",
-                        ""has_request_loan"":false,
-                        ""gmt_update"":""2017-10-12 12:12:12"",
-                        ""gmt_send_goods_time"":""2017-10-12 12:12:12"",
-                        ""gmt_pay_time"":""2017-10-12 12:12:12"",
-                        ""gmt_create"":""2017-10-12 12:12:12"",
-                        ""fund_status"":""WAIT_SELLER_CHECK"",
-                        ""frozen_status"":""IN_FROZEN"",
-                        ""escrow_fee_rate"":1,
-                        ""escrow_fee"":{
-                            ""currency_code"":""USD"",
-                            ""amount"":""1.01""
-                        },
-                        ""end_reason"":""buyer_confirm_goods"",
-                        ""buyer_signer_fullname"":""test"",
-                        ""buyer_login_id"":""test"",
-                        ""biz_type"":""AE_RECHARGE"",
-                        ""offline_pickup_type"":""RU_OFFLINE_SELF_PICK_UP_EXPRESSION""
-                    }
+    ""biz_type"": ""AE_COMMON"",
+    ""buyer_login_id"": ""ru2943540738mooae"",
+    ""buyer_signer_fullname"": ""4144 user"",
+    ""end_reason"": """",
+    ""frozen_status"": ""NO_FROZEN"",
+    ""fund_status"": ""NOT_PAY"",
+    ""gmt_create"": ""2021-09-12 11:03:37"",
+    ""gmt_update"": ""2021-09-12 11:03:37"",
+    ""has_request_loan"": false,
+    ""issue_status"": ""NO_ISSUE"",
+    ""logisitcs_escrow_fee_rate"": """",
+    ""order_id"": 5013393113256737,
+    ""order_status"": ""PLACE_ORDER_SUCCESS"",
+    ""phone"": false,
+    ""product_list"": {
+        ""order_product_dto"": [
+            {
+                ""can_submit_issue"": false,
+                ""child_id"": 5013393113266737,
+                ""delivery_time"": ""5-5"",
+                ""freight_commit_day"": ""50"",
+                ""goods_prepare_time"": 3,
+                ""issue_status"": ""NO_ISSUE"",
+                ""logistics_amount"": {
+                    ""amount"": ""349.00"",
+                    ""currency_code"": ""RUB""
+                },
+                ""logistics_service_name"": ""AliExpress Курьер в города"",
+                ""logistics_type"": ""AE_RU_MP_COURIER_PH3_CITY"",
+                ""money_back3x"": false,
+                ""order_id"": 5013393113266737,
+                ""product_count"": 1,
+                ""product_id"": 1005002891691638,
+                ""product_img_url"": ""http:\/\/ae01.alicdn.com\/kf\/U2c924593d64a48b395f5269c56acc046I.jpg"",
+                ""product_name"": ""Mud flaps splash guard Fender rear for Chery Tiggo 4, 2018-, 2 PCs (standard) rein 63 23 E13"",
+                ""product_snap_url"": ""\/\/www.aliexpress.com\/snapshot\/null.html?orderId=5013393113266737"",
+                ""product_unit"": ""piece"",
+                ""product_unit_price"": {
+                    ""amount"": ""820.00"",
+                    ""currency_code"": ""RUB""
+                },
+                ""send_goods_operator"": ""SELLER_SEND_GOODS"",
+                ""show_status"": ""PLACE_ORDER_SUCCESS"",
+                ""sku_code"": ""REIN.63.23.E13"",
+                ""son_order_status"": ""PLACE_ORDER_SUCCESS"",
+                ""total_product_amount"": {
+                    ""amount"": ""820.00"",
+                    ""currency_code"": ""RUB""
+                }
+            }
+        ]
+    },
+    ""seller_login_id"": ""ru1404462327cets"",
+    ""seller_operator_login_id"": ""ru1404462327cets"",
+    ""seller_signer_fullname"": ""Yapart Store""
+},
                 ]
             },
             ""page_size"":1,
@@ -237,6 +205,17 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
         }
 
         [Fact]
+        public void TestDeserializeDTO_AliExpressOrder_Deserialize_AliExpressGetOrderRoot_OrderBizType()
+        {
+            //arrange
+            var json = _jsonOrderExpample;
+            //act
+            var aliExpressResponseResult = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json)?.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto;
+            //assert
+            Assert.Equal("AE_COMMON", aliExpressResponseResult.AliExpressOrderListDTOs.First().BizType);
+        }
+
+        [Fact]
         public void TestDeserializeDTO_AliExpressOrder_DeserializeDateType()
         {
             //arrange
@@ -247,6 +226,19 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
             Assert.True(aliExpressOrder.GmtUpdate is DateTime);
+        }
+
+        [Fact]
+        public void TestDeserializeDTO_AliExpressOrder_Deserialize_AliExpressOrderListDTO_BizTypeString()
+        {
+            //arrange
+            var json = _jsonOrderExpample;
+            //act
+            var jsonObject = JObject.Parse(json);
+            var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            Assert.NotNull(aliExpressOrder);
+            Assert.Equal("AE_COMMON", aliExpressOrder.BizType);
         }
 
         [Fact]
@@ -273,7 +265,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
             var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
-            Assert.Equal(1.01, aliExpressOrder.AliExpressOrderProducts.First().ProductUnitPrice);
+            Assert.Equal(820.00, aliExpressOrder.AliExpressOrderProducts.First().ProductUnitPrice);
         }
         [Fact]
         public void TestDeserializeDTO_AliExpressOrder_Deserialize_Product_Total_Amount()
@@ -285,7 +277,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
             var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
-            Assert.Equal(1.01, aliExpressOrder.AliExpressOrderProducts.First().TotalProductAmount);
+            Assert.Equal(820.00, aliExpressOrder.AliExpressOrderProducts.First().TotalProductAmount);
         }
     }
 }
