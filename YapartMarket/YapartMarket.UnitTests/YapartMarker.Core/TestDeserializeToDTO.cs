@@ -168,7 +168,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            var order = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson);
+            var order = JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson);
             //assert
             Assert.NotNull(orderJson);
             Assert.NotEmpty(orderJson);
@@ -183,7 +183,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            var order = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            var order = JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson, new AliExpressOrderDetailConverter());
             //assert
             Assert.NotNull(order);
             Assert.NotNull(order.AliExpressOrderProducts);
@@ -198,7 +198,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            Func<AliExpressOrderListDTO> func = () => JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            Func<AliExpressOrderDTO> func = () => JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson, new AliExpressOrderDetailConverter());
             //assert
             var jsonReaderException = Assert.Throws<JsonReaderException>(func);
             Assert.DoesNotContain("Could not convert to integer", jsonReaderException.Message);
@@ -212,7 +212,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var aliExpressResponseResult = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json)?.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto;
             //assert
-            Assert.Equal("AE_COMMON", aliExpressResponseResult.AliExpressOrderListDTOs.First().BizType);
+            Assert.Equal(BizType.AE_COMMON, aliExpressResponseResult.AliExpressOrderListDTOs.First().BizType);
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
             Assert.True(aliExpressOrder.GmtUpdate is DateTime);
         }
@@ -236,9 +236,9 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
-            Assert.Equal("AE_COMMON", aliExpressOrder.BizType);
+            Assert.Equal(BizType.AE_COMMON, aliExpressOrder.BizType);
         }
 
         [Fact]
@@ -249,7 +249,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
             Assert.True(aliExpressOrder.OrderStatus is OrderStatus.PLACE_ORDER_SUCCESS);
             Assert.True(aliExpressOrder.AliExpressOrderProducts.First().ShowStatus is OrderStatus.PLACE_ORDER_SUCCESS);
@@ -263,9 +263,9 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
-            Assert.Equal(820.00, aliExpressOrder.AliExpressOrderProducts.First().ProductUnitPrice);
+            Assert.Equal((decimal) 820.00, aliExpressOrder.AliExpressOrderProducts.First().ProductUnitPrice);
         }
         [Fact]
         public void TestDeserializeDTO_AliExpressOrder_Deserialize_Product_Total_Amount()
@@ -275,9 +275,9 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var jsonObject = JObject.Parse(json);
             var orderJson = jsonObject.SelectToken("aliexpress_solution_order_get_response.result.target_list.order_dto")?[0]?.ToString();
-            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderListDTO>(orderJson, new AliExpressOrderDetailConverter());
+            var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressOrderDTO>(orderJson, new AliExpressOrderDetailConverter());
             Assert.NotNull(aliExpressOrder);
-            Assert.Equal(820.00, aliExpressOrder.AliExpressOrderProducts.First().TotalProductAmount);
+            Assert.Equal((decimal)820.00, aliExpressOrder.AliExpressOrderProducts.First().TotalProductAmount);
         }
     }
 }

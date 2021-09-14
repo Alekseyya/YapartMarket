@@ -18,8 +18,8 @@ namespace YapartMarket.Core.JsonConverters
             JObject jObject = JObject.Load(reader);
             existingValue = new AliExpressOrderProductDTO();
             existingValue.FillProperties(jObject);
-            existingValue.ProductUnitPrice = (double)jObject.SelectToken("product_unit_price.amount");
-            existingValue.TotalProductAmount = (double)jObject.SelectToken("total_product_amount.amount");
+            existingValue.ProductUnitPrice = (decimal)jObject.SelectToken("product_unit_price.amount");
+            existingValue.TotalProductAmount = (decimal)jObject.SelectToken("total_product_amount.amount");
             return existingValue;
         }
     }

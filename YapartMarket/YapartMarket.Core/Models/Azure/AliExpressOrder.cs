@@ -1,35 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using Dapper.Contrib.Extensions;
+using YapartMarket.Core.DateStructures;
 
 namespace YapartMarket.Core.Models.Azure
 {
     public class AliExpressOrder
     {
-        [Column("productId")]
+        [Key]
+        [Column("id")]
         public int Id { get; set; }
         [Column("seller_signer_fullname")]
-        public string SellerSignerFullname { get; set; }
-        [Column("seller_login_in")]
-        public string SellerLoginIn { get; set; }
+        public string SellerSignerFullName { get; set; }
+        [Column("seller_login_id")]
+        public string SellerLoginId { get; set; }
         [Column("order_id")]
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
+        [Column("logistics_status")]
+        public LogisticsStatus LogisticsStatus { get; set; }
+        [Column("biz_type")]
+        public BizType BizType { get; set; }
+        [Column("gmt_pay_time")]
+        public DateTime? GmtPayTime { get; set; }
+        [Column("end_reason")]
+        public string EndReason { get; set; }
         [Column("time_stamp")]
         public DateTime TimeStamp { get; set; }
         [Column("total_product_count")]
-        public int TotalCount { get; set; }
+        public int TotalProductCount { get; set; }
         [Column("total_pay_amount")]
-        public int TotalPayAmount { get; set; }
+        public decimal TotalPayAmount { get; set; }
         [Column("order_status")]
-        public string OrderStatus { get; set; }
+        public OrderStatus OrderStatus { get; set; }
         [Column("gmt_update")]
-        public DateTime GmtUpdate { get; set; }
+        public DateTime? GmtUpdate { get; set; }
         [Column("gmt_create")]
-        public DateTime GmtCreate { get; set; }
-        [Column("found_status")]
-        public string FoundStatus { get; set; }
+        public DateTime? GmtCreate { get; set; }
+        [Column("fund_status")]
+        public FundStatus FundStatus { get; set; }
         [Column("frozen_status")]
-        public string FrozenStatus { get; set; }
+        public FrozenStatus FrozenStatus { get; set; }
         public virtual ICollection<AliExpressOrderDetail> AliExpressOrderDetails { get; set; }
     }
 }

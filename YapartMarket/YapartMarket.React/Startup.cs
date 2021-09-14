@@ -20,6 +20,7 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
 using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.Mapper;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation;
 using YapartMarket.Data.Implementation.Azure;
@@ -56,7 +57,8 @@ namespace YapartMarket.React
             services.AddControllers();
             services.AddMvc(option => option.EnableEndpointRouting = false).AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null);
 
-            services.AddAutoMapper(typeof(Startup));
+            //services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(typeof(Startup), typeof(AliExpressOrderProfile));
             services.AddControllers();
 
             //Регистрация сервисов

@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using YapartMarket.Core.BL;
+using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
+using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.React.Controllers
 {
@@ -10,19 +15,22 @@ namespace YapartMarket.React.Controllers
     public class AliExpressOrderController : Controller
     {
         private readonly IAliExpressOrderService _aliExpressOrderService;
+        private readonly IMapper _mapper;
 
-        public AliExpressOrderController(IAliExpressOrderService aliExpressOrderService)
+        public AliExpressOrderController(IAliExpressOrderService aliExpressOrderService, IMapper mapper)
         {
             _aliExpressOrderService = aliExpressOrderService;
+            _mapper = mapper;
         }
         [HttpPost]
         [Route("downloadNewOrders")]
-        public IActionResult DownloadNewOrders()
+        public async Task<IActionResult> DownloadNewOrders()
         {
             try
             {
-                var orders = _aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 09, 01).StartOfDay(), DateTime.Today.EndOfDay());
-                _aliExpressOrderService.AddOrders(orders);
+                var aliExpressOrderDTO = _aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 09, 01).StartOfDay(), DateTime.Today.EndOfDay());
+                var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(aliExpressOrderDTO);
+                await _aliExpressOrderService.AddOrders(aliExpressOrders);
             }
             catch (Exception e)
             {

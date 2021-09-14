@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -22,6 +23,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         private Mock<ILogger<AliExpressOrderService>> _mockLogger;
         private Mock<IAzureAliExpressOrderRepository> _mockAzureAliExpressOrderRepository;
         private Mock<IAzureAliExpressOrderDetailRepository> _mockAzureAliExpressOrderDetailRepository;
+        private Mock<IMapper> _mockMapper;
 
         public TestAliExpressOrderService()
         {
@@ -38,13 +40,14 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             _mockLogger = new Mock<ILogger<AliExpressOrderService>>();
             _mockAzureAliExpressOrderRepository = new Mock<IAzureAliExpressOrderRepository>();
             _mockAzureAliExpressOrderDetailRepository = new Mock<IAzureAliExpressOrderDetailRepository>(); //todo можно заменить на базовый интерфейс!!!
+            _mockMapper = new Mock<IMapper>(); //todo можно заменить на базовый интерфейс!!!
         }
 
         [Fact]
         public void TestAliExpressOrderService_QueryOrderDetail_Deserialize()
         {
             //arrange
-            var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object);
+            var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
             //act
             var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 09,01).StartOfDay(), DateTime.Today.EndOfDay());
             //assert
@@ -55,29 +58,29 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         public void TestAliExpressOrderService_QueryOrderDetail_ReturnEmptyOrder()
         {
             //arrange
-            var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object);
+            var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
             //act
             var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 01, 01).StartOfDay(), new DateTime(2021, 01, 01).EndOfDay());
             //assert
             Assert.Null(aliExpressOrderList);
         }
 
-        [Fact]
-        public async Task TestAliExpressOrderService_QueryOrderDetail_CreateNewOrders()
-        {
-            //arrange
-            var aliExpressOrderService = (IAliExpressOrderService)new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object);
-            //act
-            var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 09, 01).StartOfDay(), DateTime.Today.EndOfDay());
-            Assert.NotNull(aliExpressOrderList);
-            await aliExpressOrderService.AddOrders(aliExpressOrderList);
-            //assert
+        //[Fact]
+        //public async Task TestAliExpressOrderService_QueryOrderDetail_CreateNewOrders()
+        //{
+        //    //arrange
+        //    var aliExpressOrderService = (IAliExpressOrderService)new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
+        //    //act
+        //    var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 09, 01).StartOfDay(), DateTime.Today.EndOfDay());
+        //    Assert.NotNull(aliExpressOrderList);
+        //    await aliExpressOrderService.AddOrders(aliExpressOrderList);
+        //    //assert
 
-            Action action = () => aliExpressOrderService.AddOrders(aliExpressOrderList);
-            //assert
-            var jsonReaderException = Assert.Throws<Exception>(action);
-            Assert.DoesNotContain("Could not convert to integer", jsonReaderException.Message);
+        //    Action action = () => aliExpressOrderService.AddOrders(aliExpressOrderList);
+        //    //assert
+        //    var jsonReaderException = Assert.Throws<Exception>(action);
+        //    Assert.Empty(jsonReaderException.Message);
 
-        }
+        //}
     }
 }

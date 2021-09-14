@@ -9,18 +9,18 @@ using YapartMarket.Core.Extensions;
 
 namespace YapartMarket.Core.JsonConverters
 {
-    public class AliExpressOrderDetailConverter : JsonConverter<AliExpressOrderListDTO>
+    public class AliExpressOrderDetailConverter : JsonConverter<AliExpressOrderDTO>
     {
-        public override void WriteJson(JsonWriter writer, AliExpressOrderListDTO value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, AliExpressOrderDTO value, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
-        public override AliExpressOrderListDTO ReadJson(JsonReader reader, Type objectType, AliExpressOrderListDTO existingValue,
+        public override AliExpressOrderDTO ReadJson(JsonReader reader, Type objectType, AliExpressOrderDTO existingValue,
             bool hasExistingValue, JsonSerializer serializer)
         {
             JObject jObject = JObject.Load(reader);
-            existingValue = new AliExpressOrderListDTO();
+            existingValue = new AliExpressOrderDTO();
             existingValue.FillProperties(jObject);
             existingValue.AliExpressOrderProducts = jObject.SelectToken("product_list.order_product_dto").ToObject<List<AliExpressOrderProductDTO>>();
             return existingValue;

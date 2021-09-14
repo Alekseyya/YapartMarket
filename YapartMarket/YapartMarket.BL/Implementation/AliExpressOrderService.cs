@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,22 +26,24 @@ namespace YapartMarket.BL.Implementation
         private readonly ILogger<AliExpressOrderService> _logger;
         private readonly IAzureAliExpressOrderRepository _azureAliExpressOrderRepository;
         private readonly IAzureAliExpressOrderDetailRepository _orderDetailRepository;
+        private readonly IMapper _mapper;
         private readonly AliExpressOptions _aliExpressOptions;
 
         public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAzureAliExpressOrderRepository azureAliExpressOrderRepository,
-            IAzureAliExpressOrderDetailRepository orderDetailRepository)
+            IAzureAliExpressOrderDetailRepository orderDetailRepository, IMapper mapper)
         {
             _logger = logger;
             _azureAliExpressOrderRepository = azureAliExpressOrderRepository;
             _orderDetailRepository = orderDetailRepository;
+            _mapper = mapper;
             _aliExpressOptions = options.Value;
         }
         
-        public List<AliExpressOrderListDTO> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
+        public List<AliExpressOrderDTO> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
         {
             var currentPage = 1;
             ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-            var aliExpressOrderList = new List<AliExpressOrderListDTO>();
+            var aliExpressOrderList = new List<AliExpressOrderDTO>();
             do
             {
                 try
@@ -70,22 +73,22 @@ namespace YapartMarket.BL.Implementation
             return aliExpressOrderList;
         }
 
-        public async Task AddOrders(List<AliExpressOrderListDTO> aliExpressOrderListDtos)
+        public async Task AddOrders(List<AliExpressOrder> aliExpressOrders)
         {
-            var newAliExpressOrdersList = await ExceptOrders(aliExpressOrderListDtos);
-            if (newAliExpressOrdersList.Any())
+            var newAliExpressOrders = await ExceptOrders(aliExpressOrders);
+            if (newAliExpressOrders.Any())
             {
-                await _azureAliExpressOrderRepository.AddOrders(newAliExpressOrdersList); //todo сделать маппер на класс Order и OrderDetail
+                await _azureAliExpressOrderRepository.AddOrders(newAliExpressOrders); //todo сделать маппер на класс Order и OrderDetail
             }
         }
 
-        public async Task<IEnumerable<AliExpressOrderListDTO>> ExceptOrders(List<AliExpressOrderListDTO> aliExpressOrderListDtos)
+        public async Task<IEnumerable<AliExpressOrder>> ExceptOrders(List<AliExpressOrder> aliExpressOrderList)
         {
-            var orderInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrderListDtos.Select(x => x.OrderId) });
-            return aliExpressOrderListDtos.Where(aliOrder => orderInDb.All(orderDb => orderDb.OrderId != aliOrder.OrderId));
+            var orderInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
+            return aliExpressOrderList.Where(aliOrder => orderInDb.All(orderDb => orderDb.OrderId != aliOrder.OrderId));
         }
 
-        public List<AliExpressOrderListDTO> DeserializeAliExpressOrderList(string json)
+        public List<AliExpressOrderDTO> DeserializeAliExpressOrderList(string json)
         {
             var aliExpressResponseResult = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json)?.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto;
             if (!aliExpressResponseResult.AliExpressOrderListDTOs.Any() && aliExpressResponseResult.TotalCount == 0)

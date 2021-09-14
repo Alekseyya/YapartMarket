@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
+using Dapper.Contrib.Extensions;
 using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.DateStructures;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
@@ -45,6 +51,25 @@ namespace YapartMarket.Data.Implementation.Azure
             {
                 throw;
             }
+        }
+
+        private IList<string> GetSqlsInBatches(IList<string> userNames)
+        {
+            var insertSql = "INSERT INTO [Users] (Name, LastUpdatedAt) VALUES ";
+            var valuesSql = "('{0}', getdate())";
+            var batchSize = 1000;
+
+            var sqlsToExecute = new List<string>();
+            var numberOfBatches = (int)Math.Ceiling((double)userNames.Count / batchSize);
+
+            for (int i = 0; i < numberOfBatches; i++)
+            {
+                var userToInsert = userNames.Skip(i * batchSize).Take(batchSize);
+                var valuesToInsert = userToInsert.Select(u => string.Format(valuesSql, u));
+                sqlsToExecute.Add(insertSql + string.Join(',', valuesToInsert));
+            }
+
+            return sqlsToExecute;
         }
 
         /// <summary>

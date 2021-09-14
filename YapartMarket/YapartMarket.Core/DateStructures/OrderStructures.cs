@@ -76,4 +76,27 @@
         /// </summary>
         WAREHOUSE_SEND_GOODS
     }
+
+    public enum FundStatus
+    {
+        NOT_PAY,
+        PAY_SUCCESS,
+        WAIT_SELLER_CHECK
+    }
+    
+    public enum LogisticsStatus
+    {
+        WAIT_SELLER_SEND_GOODS,
+        SELLER_SEND_PART_GOODS,
+        SELLER_SEND_GOODS,
+        BUYER_ACCEPT_GOODS,
+        NO_LOGISTICS
+    }
+
+    public enum BizType
+    {
+        AE_COMMON,
+        AE_TRIAL,
+        AE_RECHARGE
+    }
 }

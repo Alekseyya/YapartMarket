@@ -25,7 +25,7 @@ namespace YapartMarket.Core.DTO
     {
         [JsonProperty("success")]
         public bool Success { get; set; }
-        public List<AliExpressOrderListDTO> AliExpressOrderListDTOs { get; set; }
+        public List<AliExpressOrderDTO> AliExpressOrderListDTOs { get; set; }
         [JsonProperty("total_count")]
         public int TotalCount { get; set; }
         [JsonProperty("total_page")]
@@ -33,7 +33,7 @@ namespace YapartMarket.Core.DTO
     }
 
     [JsonConverter(typeof(AliExpressOrderDetailConverter))]
-    public class AliExpressOrderListDTO
+    public class AliExpressOrderDTO
     {
         [JsonProperty("seller_signer_fullname")]
         public string SellerSignerFullName { get; set; }
@@ -45,13 +45,13 @@ namespace YapartMarket.Core.DTO
         [JsonProperty("order_id")]
         public long OrderId { get; set; }
         [JsonProperty("logistics_status")]
-        public string LogisticsStatus { get; set; }
-        [JsonProperty("gmt_update")]
-        public DateTime GmtUpdate { get; set; }
-        [JsonProperty("gmt_pay_time")] 
-        public DateTime GmtPayTime { get; set; }
-        [JsonProperty("gmt_create")]
-        public DateTime GmtCreate { get; set; }
+        public LogisticsStatus LogisticsStatus { get; set; }
+        [JsonProperty("gmt_update", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? GmtUpdate { get; set; }
+        [JsonProperty("gmt_pay_time", NullValueHandling = NullValueHandling.Ignore)] 
+        public DateTime? GmtPayTime { get; set; }
+        [JsonProperty("gmt_create", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? GmtCreate { get; set; }
         [JsonProperty("fund_status")]
         public string FundStatus { get; set; }
         [JsonProperty("frozen_status")]
@@ -66,7 +66,7 @@ namespace YapartMarket.Core.DTO
         [JsonProperty("buyer_login_id")] 
         public string BuyerLoginId { get; set; }
         [JsonProperty("biz_type")]
-        public string BizType { get; set; }
+        public BizType BizType { get; set; }
     }
 
     [JsonConverter(typeof(AliExpressOrderProductConverter))]
@@ -79,16 +79,16 @@ namespace YapartMarket.Core.DTO
         [JsonProperty("product_count")]
         public int ProductCount { get; set; }
         [JsonProperty("product_id")]
-        public string ProductId { get; set; }
+        public long ProductId { get; set; }
         [JsonProperty("product_name")]
         public string ProductName { get; set; }
-        public double ProductUnitPrice { get; set; }
+        public decimal ProductUnitPrice { get; set; }
         [JsonProperty("send_goods_operator")]
         public ShipperType SendGoodsOperator { get; set; }
         [JsonProperty("show_status")]
         public OrderStatus ShowStatus { get; set; }
         [JsonProperty("goods_prepare_time")] 
         public int GoodsPrepareTime { get; set; }
-        public double TotalProductAmount { get; set; }
+        public decimal TotalProductAmount { get; set; }
     }
 }
