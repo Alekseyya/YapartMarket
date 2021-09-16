@@ -100,6 +100,7 @@ namespace YapartMarket.React
             services.AddTransient<UpdateInventoryAliExpressInvocable>();
             services.AddTransient<UpdateProductIdFromAliExpressInvocable>();
             services.AddTransient<DoSomethingInvocable>();
+            services.AddTransient<UpdateOrdersFromAliExpressInvocable>();
 
             services.AddMediatR(typeof(Startup));
 
@@ -160,7 +161,10 @@ namespace YapartMarket.React
 
                 scheduler.OnWorker("UpdateProductIdFromAliExpress");
                 scheduler.Schedule<UpdateProductIdFromAliExpressInvocable>().DailyAt(20, 00);
-            });
+
+                scheduler.OnWorker("UpdateOrdersFromAliExpress");
+                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().Hourly();
+            }); 
         }
     }
 }
