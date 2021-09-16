@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Extensions;
+using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL
 {
@@ -63,6 +65,63 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 01, 01).StartOfDay(), new DateTime(2021, 01, 01).EndOfDay());
             //assert
             Assert.Null(aliExpressOrderList);
+        }
+
+        [Fact]
+        public void Test()
+        {
+            var orderUpdates = new List<AliExpressOrderDetail>()
+            {
+                new()
+                {
+                    Id = 89,
+                    OrderId = 1
+                },
+                new()
+                {
+                Id = 79,
+                OrderId = 1
+                },
+                new()
+                {
+                    Id = 69,
+                    OrderId = 1
+                },
+                new()
+                {
+                    Id = 55,
+                    OrderId = 2
+                },
+                new()
+                {
+                    Id = 79,
+                    OrderId = 2
+                }
+            };
+
+            var orderDetailUpdates = new List<AliExpressOrderDetail>()
+            {
+                new()
+                {
+                    Id = 79,
+                    OrderId = 1
+                },
+                new()
+                {
+                    Id = 69,
+                    OrderId = 1
+                },
+                new()
+                {
+                    Id = 79,
+                    OrderId = 2
+                }
+            };
+
+            
+            var expected = orderUpdates.Where(x=> !orderDetailUpdates.Any(t=>t.OrderId == x.OrderId && t.Id == x.Id)).ToList();
+
+            Assert.True(true);
         }
 
         //[Fact]

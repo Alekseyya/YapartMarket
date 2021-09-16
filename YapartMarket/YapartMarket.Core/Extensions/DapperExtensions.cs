@@ -18,7 +18,7 @@ namespace YapartMarket.Core.Extensions
             return sql;
         }
 
-        public static string Update<T>(this T obj, string tableName)
+        public static string UpdateString<T>(this T obj, string tableName)
         {
             var propertyContainer = ParseProperties(obj);
             var sqlIdPairs = GetSqlPairs(propertyContainer.IdNames);

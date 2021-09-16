@@ -53,7 +53,7 @@ namespace YapartMarket.Core.DTO
         [JsonProperty("gmt_create", NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? GmtCreate { get; set; }
         [JsonProperty("fund_status")]
-        public string FundStatus { get; set; }
+        public FundStatus FundStatus { get; set; }
         [JsonProperty("frozen_status")]
         public FrozenStatus FrozenStatus { get; set; }
         /// <summary>

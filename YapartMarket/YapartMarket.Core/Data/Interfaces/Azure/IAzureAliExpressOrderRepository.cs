@@ -7,6 +7,7 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
 {
     public interface IAzureAliExpressOrderRepository : IAzureQueriesGenericRepository<AliExpressOrder>, IAzureCommandGenericRepository<AliExpressOrder>
     {
-        Task AddOrders(IEnumerable<AliExpressOrder> aliExpressOrders);
+        Task AddOrdersWitchOrderDetails(IEnumerable<AliExpressOrder> aliExpressOrders);
+        Task Update(IEnumerable<AliExpressOrder> aliExpressOrders);
     }
 }

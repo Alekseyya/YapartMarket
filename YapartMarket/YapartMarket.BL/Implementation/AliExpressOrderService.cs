@@ -15,6 +15,7 @@ using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
 [assembly: InternalsVisibleTo("UnitTests")]
@@ -24,16 +25,16 @@ namespace YapartMarket.BL.Implementation
     public class AliExpressOrderService : IAliExpressOrderService
     {
         private readonly ILogger<AliExpressOrderService> _logger;
-        private readonly IAzureAliExpressOrderRepository _azureAliExpressOrderRepository;
+        private readonly IAzureAliExpressOrderRepository _orderRepository;
         private readonly IAzureAliExpressOrderDetailRepository _orderDetailRepository;
         private readonly IMapper _mapper;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAzureAliExpressOrderRepository azureAliExpressOrderRepository,
+        public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAzureAliExpressOrderRepository orderRepository,
             IAzureAliExpressOrderDetailRepository orderDetailRepository, IMapper mapper)
         {
             _logger = logger;
-            _azureAliExpressOrderRepository = azureAliExpressOrderRepository;
+            _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
             _mapper = mapper;
             _aliExpressOptions = options.Value;
@@ -78,14 +79,56 @@ namespace YapartMarket.BL.Implementation
             var newAliExpressOrders = await ExceptOrders(aliExpressOrders);
             if (newAliExpressOrders.Any())
             {
-                await _azureAliExpressOrderRepository.AddOrders(newAliExpressOrders); //todo сделать маппер на класс Order и OrderDetail
+                await _orderRepository.AddOrdersWitchOrderDetails(newAliExpressOrders);
+            }
+            var updatedOrders = await IntersectOrder(aliExpressOrders);
+            if (updatedOrders.IsAny())
+            {
+                await _orderRepository.Update(updatedOrders);
+                //список товаров в заказах из бд, новые в списке orderUpdates не учитываются
+                var orderDetailUpdatesDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = updatedOrders.Select(x => x.OrderId) });
+
+                var orderDetailUpdates = updatedOrders.SelectMany(x => x.AliExpressOrderDetails);
+                //поучить те записи которые изменились
+                var modifyOrderDetails = orderDetailUpdatesDb.Where(x => orderDetailUpdates.Any(t =>
+                    t.OrderId == x.OrderId
+                    && t.ProductCount != x.ProductCount && t.ProductUnitPrice != x.ProductUnitPrice && t.SendGoodsOperator != x.SendGoodsOperator
+                    && t.ShowStatus != x.ShowStatus && t.TotalProductAmount != x.TotalProductAmount));
+                await _orderDetailRepository.Update(modifyOrderDetails);
+                //новые записи
+                var newOrderDetails = orderDetailUpdates.Where(x => orderDetailUpdatesDb.Any(t => t.OrderId == x.OrderId && t.ProductId != x.ProductCount));
+                await _orderDetailRepository.Add(newOrderDetails);
+
             }
         }
-
+        /// <summary>
+        /// Получить только новые заказы
+        /// </summary>
+        /// <param name="aliExpressOrderList"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<AliExpressOrder>> ExceptOrders(List<AliExpressOrder> aliExpressOrderList)
         {
-            var orderInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
+            var orderInDb = await _orderRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
             return aliExpressOrderList.Where(aliOrder => orderInDb.All(orderDb => orderDb.OrderId != aliOrder.OrderId));
+        }
+        /// <summary>
+        /// Получить заказы которые надо обновить
+        /// </summary>
+        /// <param name="aliExpressOrderList"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<AliExpressOrder>> IntersectOrder(List<AliExpressOrder> aliExpressOrderList)
+        {
+            var orderInDb = await _orderRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
+            //значит что-то поменялось в заказе, количество товара, цена мб
+            var orderUpdates = aliExpressOrderList.Where(x => orderInDb.Any(orderDb =>
+                orderDb.LogisticsStatus != x.LogisticsStatus &&
+                orderDb.BizType != x.BizType &&
+                orderDb.TotalProductCount != x.TotalProductCount &&
+                orderDb.TotalPayAmount != x.TotalPayAmount &&
+                orderDb.OrderStatus != x.OrderStatus && 
+                orderDb.FundStatus != x.FundStatus &&
+                orderDb.FrozenStatus != x.FrozenStatus));
+            return orderUpdates;
         }
 
         public List<AliExpressOrderDTO> DeserializeAliExpressOrderList(string json)

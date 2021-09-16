@@ -1,5 +1,8 @@
-﻿using YapartMarket.Core.BL;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using YapartMarket.Core.BL;
 using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
 {
@@ -11,7 +14,5 @@ namespace YapartMarket.BL.Implementation
         {
             _azureAliExpressOrderRepository = azureAliExpressOrderRepository;
         }
-
-
     }
 }
