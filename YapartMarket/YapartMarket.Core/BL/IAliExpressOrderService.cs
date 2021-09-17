@@ -12,5 +12,6 @@ namespace YapartMarket.Core.BL
     {
         List<AliExpressOrderDTO> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null);
         Task AddOrders(List<AliExpressOrder> aliExpressOrders);
+        Task<IEnumerable<AliExpressOrder>> GetOrders(DateTime start, DateTime end);
     }
 }

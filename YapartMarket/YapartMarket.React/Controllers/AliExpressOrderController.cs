@@ -7,6 +7,7 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
+using YapartMarket.React.ViewModels;
 
 namespace YapartMarket.React.Controllers
 {
@@ -22,6 +23,18 @@ namespace YapartMarket.React.Controllers
             _aliExpressOrderService = aliExpressOrderService;
             _mapper = mapper;
         }
+
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<IActionResult> Get()
+        {
+            var dateTimeNow = DateTime.Now.AddDays(-1);
+            var ordersByDay = await _aliExpressOrderService.GetOrders(dateTimeNow.StartOfDay(), dateTimeNow.EndOfDay());
+            if (ordersByDay.IsAny())
+                return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<AliExpressOrderViewModel>>(ordersByDay));
+            return Ok();
+        }
+
         [HttpPost]
         [Route("downloadNewOrders")]
         public async Task<IActionResult> DownloadNewOrders()

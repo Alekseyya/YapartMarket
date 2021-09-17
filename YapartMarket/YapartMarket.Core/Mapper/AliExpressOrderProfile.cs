@@ -49,8 +49,6 @@ namespace YapartMarket.Core.Mapper
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.GmtPayTime))
                 .ForMember(aliExpressOrder => aliExpressOrder.EndReason,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.EndReason))
-                .ForMember(aliExpressOrder => aliExpressOrder.TimeStamp,
-                    aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => DateTime.UtcNow))
                 .ForMember(aliExpressOrder => aliExpressOrder.TotalProductCount,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.AliExpressOrderProducts.Select(t => t.ProductCount).Aggregate((a, b) => a + b)))
                 .ForMember(aliExpressOrder => aliExpressOrder.TotalPayAmount,

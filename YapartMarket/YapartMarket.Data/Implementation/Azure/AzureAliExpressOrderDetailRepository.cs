@@ -38,7 +38,8 @@ namespace YapartMarket.Data.Implementation.Azure
                         product_unit_price = orderDetail.ProductUnitPrice,
                         send_goods_operator = orderDetail.SendGoodsOperator,
                         show_status = orderDetail.ShowStatus,
-                        total_count_product_amount = orderDetail.TotalProductAmount
+                        total_count_product_amount = orderDetail.TotalProductAmount,
+                        updated = DateTime.UtcNow
                     });
                     await connection.ExecuteAsync(updateOrderDetailString, orderDetailsAnom);
                 }
@@ -69,8 +70,9 @@ namespace YapartMarket.Data.Implementation.Azure
                         product_unit_price = orderDetail.ProductUnitPrice,
                         send_goods_operator = orderDetail.SendGoodsOperator,
                         show_status = orderDetail.ShowStatus,
-                        goods_prepare_time = DateTime.UtcNow,
-                        total_count_product_amount = orderDetail.TotalProductAmount
+                        goods_prepare_time = orderDetail.GoodsPrepareTime,
+                        total_count_product_amount = orderDetail.TotalProductAmount,
+                        created = DateTime.UtcNow
                     });
                     await connection.ExecuteAsync(insertOrderDetailString, orderDetailsAnom);
                 }

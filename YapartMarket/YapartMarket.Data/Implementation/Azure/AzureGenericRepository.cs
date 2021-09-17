@@ -86,6 +86,24 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
+        public async Task<IEnumerable<T>> GetAsync(string sql, DynamicParameters dynamicParameters)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                return await connection.QueryAsync<T>(sql, dynamicParameters);
+            }
+        }
+
+        public async Task<IEnumerable<T>> GetAsync(string sql, object action)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                return await connection.QueryAsync<T>(sql, action);
+            }
+        }
+
         public async Task<T> GetById(int id)
         {
             using (var connection = new SqlConnection(_connectionString))

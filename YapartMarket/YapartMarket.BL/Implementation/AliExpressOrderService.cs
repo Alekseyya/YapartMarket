@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AutoMapper;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -72,6 +74,26 @@ namespace YapartMarket.BL.Implementation
                 currentPage++;
             } while (true);
             return aliExpressOrderList;
+        }
+        /// <summary>
+        /// Получение заказа по статусу "Ожидает отправки товара"
+        /// </summary>
+        /// <param name="start">Дата начала обновления заказа</param>
+        /// <param name="end">Дата окончания обновления заказа</param>
+        public async Task<IEnumerable<AliExpressOrder>> GetOrders(DateTime start, DateTime end)
+        {
+            //var select = $"select * from dbo.orders where gmt_update >= '{start.ToString("yyyy-MM-dd HH:mm:ss")}' and gmt_update <= '{end.ToString("yyyy-MM-dd HH:mm:ss")}' and order_status = {OrderStatus.WAIT_BUYER_ACCEPT_GOODS}";
+            //var orders = await _orderRepository.GetAsync(select);
+            
+            //var parameters = new DynamicParameters();
+            //parameters.Add("@gmt_update_start", start, DbType.DateTime);
+            //parameters.Add("@gmt_update_end", end, DbType.DateTime);
+            //parameters.Add("@order_status", (int)OrderStatus.WAIT_BUYER_ACCEPT_GOODS, DbType.Int16);
+            //SqlMapper.AddTypeMap(typeof(DateTime), DbType.DateTime2);
+            //var orders = await _orderRepository.GetAsync("select * from dbo.orders where gmt_update >= '@gmt_update_start' and gmt_update <= '@gmt_update_end' and order_status = @order_status", parameters);
+            var orders = await _orderRepository.GetAsync("select * from dbo.orders where gmt_update >= '2021-09-16 00:00:00' and gmt_update <= '2021-09-16 23:59:59' and order_status = 2");
+            return orders;
+
         }
 
         public async Task AddOrders(List<AliExpressOrder> aliExpressOrders)

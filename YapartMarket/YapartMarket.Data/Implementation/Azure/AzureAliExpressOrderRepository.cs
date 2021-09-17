@@ -39,7 +39,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         biz_type = aliExpressOrder.BizType,
                         gmt_pay_time = aliExpressOrder.GmtPayTime,
                         end_reason = aliExpressOrder.EndReason,
-                        time_stamp = DateTime.UtcNow,
+                        updated = DateTime.UtcNow,
                         total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                         total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
                         order_status = aliExpressOrder.OrderStatus,
@@ -77,7 +77,7 @@ namespace YapartMarket.Data.Implementation.Azure
                             biz_type = aliExpressOrder.BizType,
                             gmt_pay_time = aliExpressOrder.GmtPayTime,
                             end_reason = aliExpressOrder.EndReason,
-                            time_stamp = DateTime.UtcNow,
+                            created = DateTime.UtcNow,
                             total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                             total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
                             order_status = aliExpressOrder.OrderStatus,
@@ -100,7 +100,8 @@ namespace YapartMarket.Data.Implementation.Azure
                                 send_goods_operator = aliExpressOrderProductDto.SendGoodsOperator,
                                 show_status = aliExpressOrderProductDto.ShowStatus,
                                 goods_prepare_time = aliExpressOrderProductDto.GoodsPrepareTime,
-                                total_count_product_amount = aliExpressOrderProductDto.TotalProductAmount
+                                total_count_product_amount = aliExpressOrderProductDto.TotalProductAmount,
+                                created = DateTime.UtcNow
                             });
                     }
                 }

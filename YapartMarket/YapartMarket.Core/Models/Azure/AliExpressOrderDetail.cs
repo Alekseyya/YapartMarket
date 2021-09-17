@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using YapartMarket.Core.DateStructures;
 
 namespace YapartMarket.Core.Models.Azure
@@ -29,6 +30,11 @@ namespace YapartMarket.Core.Models.Azure
         public int GoodsPrepareTime { get; set; }
         [Column("total_count_product_amount")]
         public decimal TotalProductAmount { get; set; }
+        [Column("created")]
+        public DateTime Created { get; set; }
+        [Column("updated")]
+        public DateTime Updated { get; set; }
         public AliExpressOrder AliExpressOrder { get; set; }
+        public AliExpressProduct AliExpressProduct { get; set; }
     }
 }

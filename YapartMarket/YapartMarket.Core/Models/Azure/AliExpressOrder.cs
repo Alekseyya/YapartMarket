@@ -25,8 +25,6 @@ namespace YapartMarket.Core.Models.Azure
         public DateTime? GmtPayTime { get; set; }
         [Column("end_reason")]
         public string EndReason { get; set; }
-        [Column("time_stamp")]
-        public DateTime TimeStamp { get; set; }
         [Column("total_product_count")]
         public int TotalProductCount { get; set; }
         [Column("total_pay_amount")]
@@ -41,6 +39,10 @@ namespace YapartMarket.Core.Models.Azure
         public FundStatus FundStatus { get; set; }
         [Column("frozen_status")]
         public FrozenStatus FrozenStatus { get; set; }
+        [Column("created")]
+        public DateTime Created { get; set; }
+        [Column("updated")]
+        public DateTime Updated { get; set; }
         public virtual ICollection<AliExpressOrderDetail> AliExpressOrderDetails { get; set; }
     }
 }
