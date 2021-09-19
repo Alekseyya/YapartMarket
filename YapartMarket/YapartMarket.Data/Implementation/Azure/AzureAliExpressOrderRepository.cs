@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO;
@@ -64,13 +66,11 @@ namespace YapartMarket.Data.Implementation.Azure
             {
                 await connection.OpenAsync();
                 var orderDictionary = new Dictionary<int, AliExpressOrder>();
-                var orderDetailDictionary = new Dictionary<long, AliExpressOrderDetail>();
-                var orderInDb = await connection.QueryAsync<AliExpressOrder, AliExpressOrderDetail, Product, AliExpressOrder>(
+                var orderInDb = await connection.QueryAsync<AliExpressOrder, AliExpressOrderDetail, AliExpressOrder>(
                     @"select * FROM dbo.orders o 
 inner join dbo.order_details od on o.id = od.order_id 
-inner join dbo.products p on p.aliExpressProductId = od.product_id 
 where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and order_status = @order_status",
-                    (order, orderDetail, product) =>
+                    (order, orderDetail) =>
                     {
                         AliExpressOrder orderEntry;
                         if (!orderDictionary.TryGetValue(order.Id, out orderEntry))
@@ -79,18 +79,22 @@ where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and orde
                             orderEntry.AliExpressOrderDetails = new List<AliExpressOrderDetail>();
                             orderDictionary.Add(orderEntry.Id, orderEntry);
                         }
-                        AliExpressOrderDetail orderDetailEntry;
-                        if (!orderDetailDictionary.TryGetValue(orderDetail.ProductId, out orderDetailEntry))
-                        {
-                            orderDetailEntry = orderDetail;
-                            orderDetailEntry.Product = product;
-                            orderDetailDictionary.Add(orderDetail.OrderId, orderDetailEntry);
-                        }
-                        orderEntry.AliExpressOrderDetails.Add(orderDetailEntry);
+                        orderEntry.AliExpressOrderDetails.Add(orderDetail);
                         return orderEntry;
                     }, 
                     new { gmt_update_start = start, gmt_update_end = end, order_status = (int)OrderStatus.WAIT_SELLER_SEND_GOODS },
-                    splitOn: "order_id, product_id");
+                    splitOn: "order_id"); //, product_id
+
+                foreach (var order in orderInDb)
+                {
+                    foreach (var aliExpressOrder in order.AliExpressOrderDetails)
+                    {
+                        aliExpressOrder.Product =  await connection.QueryFirstAsync<Product>("select * from dbo.products where aliExpressProductId = @aliExpressProductId", new
+                        {
+                            aliExpressProductId = aliExpressOrder.ProductId
+                        });
+                    }
+                }
                 return orderInDb;
             }
         }

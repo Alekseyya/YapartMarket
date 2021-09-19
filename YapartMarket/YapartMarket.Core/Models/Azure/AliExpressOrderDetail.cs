@@ -1,11 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using Dapper.Contrib.Extensions;
 using YapartMarket.Core.DateStructures;
 
 namespace YapartMarket.Core.Models.Azure
 {
     public class AliExpressOrderDetail
     {
+        [Key]
         [Column("id")]
         public int Id { get; set; }
         [Column("logistics_service_name")]
@@ -34,7 +36,9 @@ namespace YapartMarket.Core.Models.Azure
         public DateTime Created { get; set; }
         [Column("updated")]
         public DateTime Updated { get; set; }
+        [Computed]
         public AliExpressOrder AliExpressOrder { get; set; }
+        [Computed]
         public Product Product { get; set; }
     }
 }

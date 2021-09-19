@@ -105,6 +105,7 @@ namespace YapartMarket.React
             services.AddMediatR(typeof(Startup));
             //CustomMapper для Dapper
             TypeMapper.Initialize("YapartMarket.Core.Models.Azure");
+            //Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
             services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
             services.ConfigureWritable<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
