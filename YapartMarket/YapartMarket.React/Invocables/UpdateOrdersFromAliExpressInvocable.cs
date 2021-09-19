@@ -6,6 +6,7 @@ using Coravel.Invocable;
 using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.React.Invocables
@@ -27,7 +28,7 @@ namespace YapartMarket.React.Invocables
         {
             _logger.LogInformation("Запуск процедуры обновления заказов");
             var dateTimeNow = DateTime.UtcNow;
-            var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddHours(-1), dateTimeNow);
+            var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.StartOfDay(), dateTimeNow.EndOfDay());
             _logger.LogInformation("Получены заказы");
             var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(ordersDTO);
             _logger.LogInformation("Сохранение новых заказов");
