@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -61,8 +61,8 @@ namespace YapartMarket.React
             services.AddAutoMapper(typeof(Startup), typeof(AliExpressOrderProfile));
             services.AddControllers();
 
-            //Регистрация сервисов
-            #region Регистраци сервисов
+            //ГђГҐГЈГЁГ±ГІГ°Г Г¶ГЁГї Г±ГҐГ°ГўГЁГ±Г®Гў
+            #region ГђГҐГЈГЁГ±ГІГ°Г Г¶ГЁ Г±ГҐГ°ГўГЁГ±Г®Гў
 
             services.AddScoped<IYapartDbAccessor, YapartSingletonDbAccessor>();
             services.AddScoped<IRepositoryFactory, YapartRepositoryFactory>();
@@ -103,12 +103,14 @@ namespace YapartMarket.React
             services.AddTransient<UpdateOrdersFromAliExpressInvocable>();
 
             services.AddMediatR(typeof(Startup));
+            //CustomMapper РґР»СЏ Dapper
+            TypeMapper.Initialize("YapartMarket.Core.Models.Azure");
 
             services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
             services.ConfigureWritable<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
             
-            //TODO вот это оставить под вопросом надо ли вообще!!
-            //TODO Перелодить позже в папку другую!!
+            //TODO ГўГ®ГІ ГЅГІГ® Г®Г±ГІГ ГўГЁГІГј ГЇГ®Г¤ ГўГ®ГЇГ°Г®Г±Г®Г¬ Г­Г Г¤Г® Г«ГЁ ГўГ®Г®ГЎГ№ГҐ!!
+            //TODO ГЏГҐГ°ГҐГ«Г®Г¤ГЁГІГј ГЇГ®Г§Г¦ГҐ Гў ГЇГ ГЇГЄГі Г¤Г°ГіГЈГіГѕ!!
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "yapartclient/build";
@@ -136,7 +138,7 @@ namespace YapartMarket.React
 
                 if (env.IsDevelopment())
                 {
-                    //Запускает сборку React приложения
+                    //Г‡Г ГЇГіГ±ГЄГ ГҐГІ Г±ГЎГ®Г°ГЄГі React ГЇГ°ГЁГ«Г®Г¦ГҐГ­ГЁГї
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });

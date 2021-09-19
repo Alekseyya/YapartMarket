@@ -35,6 +35,6 @@ namespace YapartMarket.Core.Models.Azure
         [Column("updated")]
         public DateTime Updated { get; set; }
         public AliExpressOrder AliExpressOrder { get; set; }
-        public AliExpressProduct AliExpressProduct { get; set; }
+        public Product Product { get; set; }
     }
 }

@@ -25,11 +25,23 @@ namespace YapartMarket.React.Controllers
         }
 
         [HttpGet]
+        [Route("CurrentDay")]
         [Produces("application/json")]
         public async Task<IActionResult> Get()
         {
-            var dateTimeNow = DateTime.Now.AddDays(-1);
+            var dateTimeNow = DateTime.Now;
             var ordersByDay = await _aliExpressOrderService.GetOrders(dateTimeNow.StartOfDay(), dateTimeNow.EndOfDay());
+            if (ordersByDay.IsAny())
+                return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<AliExpressOrderViewModel>>(ordersByDay));
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("Day")]
+        [Produces("application/json")]
+        public async Task<IActionResult> Get(DateTime day)
+        {
+            var ordersByDay = await _aliExpressOrderService.GetOrders(day.StartOfDay(), day.EndOfDay());
             if (ordersByDay.IsAny())
                 return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<AliExpressOrderViewModel>>(ordersByDay));
             return Ok();
@@ -41,7 +53,7 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                var aliExpressOrderDTO = _aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 09, 01).StartOfDay(), DateTime.Today.EndOfDay());
+                var aliExpressOrderDTO = _aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 01, 01).StartOfDay(), DateTime.Today.EndOfDay());
                 var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(aliExpressOrderDTO);
                 await _aliExpressOrderService.AddOrders(aliExpressOrders);
             }

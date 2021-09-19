@@ -11,7 +11,10 @@ namespace YapartMarket.React.Mapper
             CreateMap<AliExpressOrderDetail, AliExpressOrderDetailViewModel>()
                 .ForMember(x => x.LogisticsServiceName, y => y.MapFrom(t => t.LogisticsServiceName))
                 .ForMember(x => x.SendGoodsOperator, y => y.MapFrom(t => nameof(t.SendGoodsOperator)))
-                .ForMember(x => x.ShowStatus, y => y.MapFrom(t => nameof(t.ShowStatus)));
+                .ForMember(x => x.ShowStatus, y => y.MapFrom(t => nameof(t.ShowStatus)))
+                .ForMember(x => x.ShowStatus, y => y.MapFrom(t => nameof(t.ShowStatus)))
+                .ForMember(x => x.ProductId, y => y.MapFrom(t => t.ProductId))
+                .ForMember(x => x.Sku, y => y.MapFrom(t => t.Product.Sku));
             CreateMap<AliExpressOrder, AliExpressOrderViewModel>()
                 .ForMember(x => x.LogisticsStatus, y => y.MapFrom(t => nameof(t.LogisticsStatus)))
                 .ForMember(x => x.BizType, y => y.MapFrom(t => nameof(t.BizType)))

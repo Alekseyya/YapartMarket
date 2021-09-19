@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Dapper;
+//using Dapper;
 
 namespace YapartMarket.Core.Data.Interfaces.Azure
 {
@@ -11,7 +11,7 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
         Task<IEnumerable<T>> GetInAsync(string field, object action);
         Task<IEnumerable<T>> GetAsync(string sql);
         Task<IEnumerable<T>> GetAsync(string sql, object action);
-        Task<IEnumerable<T>> GetAsync(string sql, DynamicParameters dynamicParameters);
+        //Task<IEnumerable<T>> GetAsync(string sql, DynamicParameters dynamicParameters);
         Task<T> GetById(int id);
     }
 }

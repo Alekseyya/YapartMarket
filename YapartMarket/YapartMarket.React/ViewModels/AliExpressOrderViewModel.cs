@@ -28,6 +28,7 @@ namespace YapartMarket.React.ViewModels
         public long OrderId { get; set; }
         public int ProductCount { get; set; }
         public long ProductId { get; set; }
+        public string Sku { get; set; }
         public string ProductName { get; set; }
         public decimal ProductUnitPrice { get; set; }
         public string SendGoodsOperator { get; set; }

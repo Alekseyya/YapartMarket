@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.Models.Azure;
@@ -9,5 +10,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
     {
         Task AddOrdersWitchOrderDetails(IEnumerable<AliExpressOrder> aliExpressOrders);
         Task Update(IEnumerable<AliExpressOrder> aliExpressOrders);
+        Task<IEnumerable<AliExpressOrder>> GetOrdersByWaitSellerSendGoods(DateTime start, DateTime end);
     }
 }
