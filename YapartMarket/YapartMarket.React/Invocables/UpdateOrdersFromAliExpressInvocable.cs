@@ -28,7 +28,7 @@ namespace YapartMarket.React.Invocables
         {
             _logger.LogInformation("Запуск процедуры обновления заказов");
             var dateTimeNow = DateTime.UtcNow;
-            var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.StartOfDay(), dateTimeNow.EndOfDay());
+            var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
             _logger.LogInformation("Получены заказы");
             var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(ordersDTO);
             _logger.LogInformation("Сохранение новых заказов");
