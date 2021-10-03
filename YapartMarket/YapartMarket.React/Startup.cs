@@ -86,6 +86,7 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressProductService, AliExpressProductService>();
             services.AddTransient<IAliExpressOrderService, AliExpressOrderService>();
             services.AddTransient<IAliExpressOrderDetailService, AliExpressOrderDetailService>();
+            services.AddTransient<IAliExpressOrderReceiptInfoService, AliExpressOrderReceiptInfoService>();
             #endregion
 
             
@@ -109,7 +110,9 @@ namespace YapartMarket.React
 
             services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
             services.ConfigureWritable<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
-            
+
+            //DefaultTopLogger.FilePath = "c:/tmp/topsdk.log";
+
             //TODO âîò ýòî îñòàâèòü ïîä âîïðîñîì íàäî ëè âîîáùå!!
             //TODO Ïåðåëîäèòü ïîçæå â ïàïêó äðóãóþ!!
             services.AddSpaStaticFiles(configuration =>

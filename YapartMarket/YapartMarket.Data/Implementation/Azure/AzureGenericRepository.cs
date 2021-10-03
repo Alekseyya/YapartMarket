@@ -10,6 +10,7 @@ using Dapper;
 using Dapper.Contrib.Extensions;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DateStructures;
+using YapartMarket.Core.Extensions;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
@@ -121,16 +122,7 @@ namespace YapartMarket.Data.Implementation.Azure
         //        return await connection.QueryAsync<int>(sql, inserts);
         //    }
         //}
-
-        public async Task InsertAsync(string sql, object action)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-                await connection.ExecuteAsync(sql, action);
-            }
-        }
-
+        
         public virtual async Task InsertAsync(string sql, IEnumerable<object> inserts)
         {
             try
