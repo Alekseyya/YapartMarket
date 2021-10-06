@@ -15,8 +15,14 @@ namespace YapartMarket.Core.Models.Azure
         public string SellerSignerFullName { get; set; }
         [Column("seller_login_id")]
         public string SellerLoginId { get; set; }
+        /// <summary>
+        /// Номер заказа AliExpress
+        /// </summary>
         [Column("order_id")]
         public long OrderId { get; set; }
+        /// <summary>
+        /// Логистический статус
+        /// </summary>
         [Column("logistics_status")]
         public LogisticsStatus LogisticsStatus { get; set; }
         [Column("biz_type")]

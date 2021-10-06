@@ -16,16 +16,14 @@ namespace YapartMarket.BL.Implementation
 {
     public class AliExpressOrderReceiptInfoService : IAliExpressOrderReceiptInfoService
     {
-        private readonly Logger<AliExpressOrderReceiptInfoService> _logger;
         private readonly IAzureAliExpressOrderReceiptInfoRepository _orderReceiptInfoRepository;
         private readonly IMapper _mapper;
         private readonly AliExpressOptions _options;
         private readonly ITopClient _client;
-        public AliExpressOrderReceiptInfoService(Logger<AliExpressOrderReceiptInfoService> logger, IOptions<AliExpressOptions> options,
+        public AliExpressOrderReceiptInfoService(IOptions<AliExpressOptions> options,
             IAzureAliExpressOrderReceiptInfoRepository orderReceiptInfoRepository, IMapper mapper)
         {
              _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
-            _logger = logger;
             _orderReceiptInfoRepository = orderReceiptInfoRepository;
             _mapper = mapper;
             _options = options.Value;
