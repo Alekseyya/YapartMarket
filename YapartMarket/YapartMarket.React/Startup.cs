@@ -95,6 +95,7 @@ namespace YapartMarket.React
             services.AddTransient<IAzureAliExpressProductRepository>(m => new AzureAliExpressProductRepository("aliExpressProducts", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressOrderRepository>(m => new AzureAliExpressOrderRepository("dbo.orders", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressOrderDetailRepository>(m => new AzureAliExpressOrderDetailRepository("dbo.order_details", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<IAzureAliExpressOrderReceiptInfoRepository>(m => new AzureAliExpressOrderReceiptInfoRepository("dbo.order_receipt_infos", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddScheduler();
 
