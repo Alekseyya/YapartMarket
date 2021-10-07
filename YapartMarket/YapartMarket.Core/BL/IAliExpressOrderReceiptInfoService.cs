@@ -6,6 +6,6 @@ namespace YapartMarket.Core.BL
     public interface IAliExpressOrderReceiptInfoService
     {
         AliExpressOrderReceiptInfoDTO GetReceiptInfo(long orderId);
-        Task InsertOrderReceipt(AliExpressOrderReceiptInfoDTO orderInfoDto);
+        Task InsertOrderReceipt(long orderId, AliExpressOrderReceiptInfoDTO orderInfoDto);
     }
 }

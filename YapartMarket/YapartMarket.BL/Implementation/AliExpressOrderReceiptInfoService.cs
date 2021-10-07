@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -40,10 +41,15 @@ namespace YapartMarket.BL.Implementation
             return aliExpressReceiptRoot?.AliExpressReceiptInfoResult.AliExpressOrderReceiptInfoDto;
         }
 
-        public async Task InsertOrderReceipt(AliExpressOrderReceiptInfoDTO orderInfoDto)
+        public async Task InsertOrderReceipt(long orderId, AliExpressOrderReceiptInfoDTO orderInfoDto)
         {
-            var aliExpressOrderReceiptInfo = _mapper.Map<AliExpressOrderReceiptInfoDTO, AliExpressOrderReceiptInfo>(orderInfoDto);
-            await _orderReceiptInfoRepository.InsertAsync(aliExpressOrderReceiptInfo);
+            var orderReceiptInDb = await _orderReceiptInfoRepository.GetAsync("select * from dbo.order_receipt_infos where order_id = @order_id", new { order_id = orderId });
+            if (!orderReceiptInDb.Any())
+            {
+                var aliExpressOrderReceiptInfo = _mapper.Map<AliExpressOrderReceiptInfoDTO, AliExpressOrderReceiptInfo>(orderInfoDto);
+                aliExpressOrderReceiptInfo.OrderId = orderId;
+                await _orderReceiptInfoRepository.InsertAsync(aliExpressOrderReceiptInfo);
+            }
         }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Coravel.Invocable;
 using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Exceptions;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
@@ -34,17 +37,32 @@ namespace YapartMarket.React.Invocables
         {
             _logger.LogInformation("Запуск процедуры обновления заказов");
             var dateTimeNow = DateTime.UtcNow;
-            var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
-            _logger.LogInformation("Получены заказы");
-            var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(ordersDTO);
-            _logger.LogInformation("Сохранение новых заказов");
-            await _aliExpressOrderService.AddOrders(aliExpressOrders);
-            _logger.LogInformation("Запись адреса получателя");
-            foreach (var aliExpressOrder in aliExpressOrders)
+            try
             {
-                var orderReceiptDto = _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
-                _logger.LogInformation($"OrderId : {aliExpressOrder.OrderId}");
-                await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(orderReceiptDto);
+                var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay()); //todo потом поставить 1 день
+                if (ordersDTO.Any())
+                {
+                    _logger.LogInformation("Получены заказы");
+                    Debug.WriteLine("Получены заказы");
+                    var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(ordersDTO);
+                    _logger.LogInformation("Сохранение новых заказов");
+                    await _aliExpressOrderService.AddOrders(aliExpressOrders);
+                    if (aliExpressOrders.Any())
+                    {
+                        _logger.LogInformation("Запись адреса получателя");
+                        foreach (var aliExpressOrder in aliExpressOrders)
+                        {
+                            var orderReceiptDto = _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
+                            _logger.LogInformation($"OrderId : {aliExpressOrder.OrderId}");
+                            await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(aliExpressOrder.OrderId, orderReceiptDto);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e.Message);
+                throw new UpdateOrdersFromAliExpressException($"Message : {e.Message} \n StackTrace : {e.StackTrace}");
             }
         }
     }

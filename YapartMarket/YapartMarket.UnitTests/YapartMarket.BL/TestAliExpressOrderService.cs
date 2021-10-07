@@ -13,7 +13,9 @@ using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
+using YapartMarket.Core.Mapper;
 using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL
@@ -26,6 +28,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         private Mock<IAzureAliExpressOrderRepository> _mockAzureAliExpressOrderRepository;
         private Mock<IAzureAliExpressOrderDetailRepository> _mockAzureAliExpressOrderDetailRepository;
         private Mock<IMapper> _mockMapper;
+        private IMapper _mapper;
 
         public TestAliExpressOrderService()
         {
@@ -43,6 +46,12 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             _mockAzureAliExpressOrderRepository = new Mock<IAzureAliExpressOrderRepository>();
             _mockAzureAliExpressOrderDetailRepository = new Mock<IAzureAliExpressOrderDetailRepository>(); //todo можно заменить на базовый интерфейс!!!
             _mockMapper = new Mock<IMapper>(); //todo можно заменить на базовый интерфейс!!!
+
+            var mockMapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new AliExpressOrderProfile());
+            });
+            _mapper = mockMapper.CreateMapper();
         }
 
         [Fact]
@@ -65,6 +74,18 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 01, 01).StartOfDay(), new DateTime(2021, 01, 01).EndOfDay());
             //assert
             Assert.Null(aliExpressOrderList);
+        }
+
+        [Fact]
+        public void TestAliExpressOrderService_QueryOrderDetail_ReturnNotNull()
+        {
+            //arrange
+            var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
+            var dateTimeNow = DateTime.UtcNow;
+            //act
+            var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
+            //assert
+            Assert.True(aliExpressOrderList.Count > 0);
         }
 
         [Fact]
@@ -122,6 +143,21 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             var expected = orderUpdates.Where(x=> !orderDetailUpdates.Any(t=>t.OrderId == x.OrderId && t.Id == x.Id)).ToList();
 
             Assert.True(true);
+        }
+
+        [Fact]
+        public async Task TestAliExpressOrderService_AddCurrentOrderWithError()
+        {
+            //arrange
+            var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
+            var dateTimeNow = DateTime.UtcNow;
+            var orderFromAli = aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay()).Where(x=>x.OrderId == 5013832858011459).ToList();
+            var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(orderFromAli);
+            //act
+            await aliExpressOrderService.AddOrders(aliExpressOrders);
+            Func<Task> actionAsync = async () => await aliExpressOrderService.AddOrders(aliExpressOrders);
+            //assert
+            await Assert.ThrowsAsync<Exception>(actionAsync);
         }
 
         //[Fact]

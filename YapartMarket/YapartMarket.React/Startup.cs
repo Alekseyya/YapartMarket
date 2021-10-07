@@ -93,9 +93,9 @@ namespace YapartMarket.React
 
             services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressProductRepository>(m => new AzureAliExpressProductRepository("aliExpressProducts", Configuration.GetConnectionString("SQLServerConnectionString")));
-            services.AddTransient<IAzureAliExpressOrderRepository>(m => new AzureAliExpressOrderRepository("dbo.orders", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<IAzureAliExpressOrderRepository>(m => new AzureAliExpressOrderRepository(new Logger<AzureAliExpressOrderRepository>(new LoggerFactory()),"dbo.orders", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressOrderDetailRepository>(m => new AzureAliExpressOrderDetailRepository("dbo.order_details", Configuration.GetConnectionString("SQLServerConnectionString")));
-            services.AddTransient<IAzureAliExpressOrderReceiptInfoRepository>(m => new AzureAliExpressOrderReceiptInfoRepository("dbo.order_receipt_infos", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<IAzureAliExpressOrderReceiptInfoRepository>(m => new AzureAliExpressOrderReceiptInfoRepository(new Logger<AzureAliExpressOrderReceiptInfoRepository>(new LoggerFactory()), "dbo.order_receipt_infos", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddScheduler();
 
@@ -164,7 +164,7 @@ namespace YapartMarket.React
                 //scheduler.Schedule(() => Console.WriteLine("Hourly on Mondays.")).EverySeconds(3);
 
                 scheduler.OnWorker("UpdateOrdersFromAliExpress");
-                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryMinute();
+                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryTenMinutes();
 
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
                 scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using YapartMarket.Core.Config;
+using Microsoft.Extensions.Logging;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DateStructures;
-using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
@@ -16,11 +14,13 @@ namespace YapartMarket.Data.Implementation.Azure
 {
     public class AzureAliExpressOrderRepository : AzureGenericRepository<AliExpressOrder>, IAzureAliExpressOrderRepository
     {
+        private readonly ILogger<AzureAliExpressOrderRepository> _azureAliExpressOrderLogger;
         private readonly string _tableName;
         private readonly string _connectionString;
 
-        public AzureAliExpressOrderRepository(string tableName, string connectionString) : base(tableName, connectionString)
+        public AzureAliExpressOrderRepository(ILogger<AzureAliExpressOrderRepository> azureAliExpressOrderLogger, string tableName, string connectionString) : base(tableName, connectionString)
         {
+            _azureAliExpressOrderLogger = azureAliExpressOrderLogger;
             _tableName = tableName;
             _connectionString = connectionString;
         }
@@ -98,17 +98,17 @@ where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and orde
                 return orderInDb;
             }
         }
-        
+
         public async Task AddOrdersWitchOrderDetails(IEnumerable<AliExpressOrder> aliExpressOrders)
         {
             var insertOrder = new AliExpressOrder().InsertString(_tableName);
             var insertOrderDetail = new AliExpressOrderDetail().InsertString("dbo.order_details");
-            try
+            using (var connection = new SqlConnection(_connectionString))
             {
-                using (var connection = new SqlConnection(_connectionString))
+                await connection.OpenAsync();
+                foreach (var aliExpressOrder in aliExpressOrders)
                 {
-                    await connection.OpenAsync();
-                    foreach (var aliExpressOrder in aliExpressOrders)
+                    try
                     {
                         var newOrderId = await connection.QuerySingleAsync<int>(insertOrder, new
                         {
@@ -147,13 +147,18 @@ where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and orde
                                 created = DateTime.UtcNow,
                                 updated = (DateTime?)null,
                             });
+
+                    }
+                    catch (Exception ex)
+                    {
+                        _azureAliExpressOrderLogger.LogInformation($"OrderId : {aliExpressOrder.OrderId} OrderDetails: {string.Join(',', aliExpressOrder.AliExpressOrderDetails.Select(x => $" OrderId :{x.OrderId} AliOrderId: {x.AliOrderId}"))} \n");
+                        _azureAliExpressOrderLogger.LogWarning(ex.Message);
+                        _azureAliExpressOrderLogger.LogWarning(ex.StackTrace);
+                        throw;
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+
         }
     }
 }

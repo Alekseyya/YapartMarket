@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
@@ -12,11 +13,13 @@ namespace YapartMarket.Data.Implementation.Azure
 {
     public class AzureAliExpressOrderReceiptInfoRepository : AzureGenericRepository<AliExpressOrderReceiptInfo>, IAzureAliExpressOrderReceiptInfoRepository
     {
+        private readonly ILogger<AzureAliExpressOrderReceiptInfoRepository> _logger;
         private readonly string _tableName;
         private readonly string _connectionString;
 
-        public AzureAliExpressOrderReceiptInfoRepository(string tableName, string connectionString) : base(tableName, connectionString)
+        public AzureAliExpressOrderReceiptInfoRepository(ILogger<AzureAliExpressOrderReceiptInfoRepository> logger, string tableName, string connectionString) : base(tableName, connectionString)
         {
+            _logger = logger;
             _tableName = tableName;
             _connectionString = connectionString;
         }
@@ -54,31 +57,41 @@ namespace YapartMarket.Data.Implementation.Azure
         public async Task InsertAsync(AliExpressOrderReceiptInfo aliExpressOrderReceiptInfo)
         {
             var insertSql = new AliExpressOrderReceiptInfo().InsertString(_tableName);
-            using (var connection = new SqlConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync();
-                await connection.ExecuteAsync(insertSql, new
+                using (var connection = new SqlConnection(_connectionString))
                 {
-                    order_id = aliExpressOrderReceiptInfo.OrderId,
-                    country_name = aliExpressOrderReceiptInfo.CountryName,
-                    mobile_no = aliExpressOrderReceiptInfo.Mobile,
-                    contact_person = aliExpressOrderReceiptInfo.ContractPerson,
-                    phone_country = aliExpressOrderReceiptInfo.PhoneCountry,
-                    phone_area = aliExpressOrderReceiptInfo.PhoneArea,
-                    province = aliExpressOrderReceiptInfo.Province,
-                    address = aliExpressOrderReceiptInfo.Address,
-                    phone_number = aliExpressOrderReceiptInfo.PhoneNumber,
-                    fax_number = aliExpressOrderReceiptInfo.FaxNumber,
-                    detail_address = aliExpressOrderReceiptInfo.DetailAddress,
-                    city = aliExpressOrderReceiptInfo.City,
-                    country = aliExpressOrderReceiptInfo.Country,
-                    address2 = aliExpressOrderReceiptInfo.Address2,
-                    fax_country = aliExpressOrderReceiptInfo.FaxCountry,
-                    zip = aliExpressOrderReceiptInfo.Zip,
-                    fax_area = aliExpressOrderReceiptInfo.FaxArea,
-                    localized_address = aliExpressOrderReceiptInfo.LocalizedAddress
-                });
+                    await connection.OpenAsync();
+                    await connection.ExecuteAsync(insertSql, new
+                    {
+                        order_id = aliExpressOrderReceiptInfo.OrderId,
+                        country_name = aliExpressOrderReceiptInfo.CountryName,
+                        mobile_no = aliExpressOrderReceiptInfo.Mobile,
+                        contact_person = aliExpressOrderReceiptInfo.ContractPerson,
+                        phone_country = aliExpressOrderReceiptInfo.PhoneCountry,
+                        phone_area = aliExpressOrderReceiptInfo.PhoneArea,
+                        province = aliExpressOrderReceiptInfo.Province,
+                        address = aliExpressOrderReceiptInfo.Address,
+                        phone_number = aliExpressOrderReceiptInfo.PhoneNumber,
+                        fax_number = aliExpressOrderReceiptInfo.FaxNumber,
+                        detail_address = aliExpressOrderReceiptInfo.DetailAddress,
+                        city = aliExpressOrderReceiptInfo.City,
+                        country = aliExpressOrderReceiptInfo.Country,
+                        address2 = aliExpressOrderReceiptInfo.Address2,
+                        fax_country = aliExpressOrderReceiptInfo.FaxCountry,
+                        zip = aliExpressOrderReceiptInfo.Zip,
+                        fax_area = aliExpressOrderReceiptInfo.FaxArea,
+                        localized_address = aliExpressOrderReceiptInfo.LocalizedAddress
+                    });
+                }
             }
+            catch (Exception e)
+            {
+                _logger.LogInformation($"OrderId {aliExpressOrderReceiptInfo.OrderId} error");
+                _logger.LogWarning(e.Message);
+                throw;
+            }
+            
         }
     }
 }

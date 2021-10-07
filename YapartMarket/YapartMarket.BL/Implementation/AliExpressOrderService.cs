@@ -24,7 +24,6 @@ using YapartMarket.Core.Models.Azure;
 [assembly: InternalsVisibleTo("UnitTests")]
 namespace YapartMarket.BL.Implementation
 {
-
     public class AliExpressOrderService : IAliExpressOrderService
     {
         private readonly ILogger<AliExpressOrderService> _logger;
