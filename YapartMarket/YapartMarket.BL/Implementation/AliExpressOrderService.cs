@@ -130,16 +130,27 @@ namespace YapartMarket.BL.Implementation
         /// <returns></returns>
         public async Task<IEnumerable<AliExpressOrder>> IntersectOrder(List<AliExpressOrder> aliExpressOrderList)
         {
-            var orderInDb = await _orderRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
+            var ordersInDb = await _orderRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
             //значит что-то поменялось в заказе, количество товара, цена мб
-            var orderUpdates = aliExpressOrderList.Where(x => orderInDb.Any(orderDb =>
-                orderDb.LogisticsStatus != x.LogisticsStatus &&
-                orderDb.BizType != x.BizType &&
-                orderDb.TotalProductCount != x.TotalProductCount &&
-                orderDb.TotalPayAmount != x.TotalPayAmount &&
-                orderDb.OrderStatus != x.OrderStatus && 
-                orderDb.FundStatus != x.FundStatus &&
-                orderDb.FrozenStatus != x.FrozenStatus));
+            var orderUpdates = aliExpressOrderList.Where(x => ordersInDb.Any(orderDb =>
+                    orderDb.OrderId == x.OrderId &&
+                    (orderDb.OrderStatus != x.OrderStatus ||
+                    orderDb.LogisticsStatus != x.LogisticsStatus ||
+                    orderDb.BizType != x.BizType ||
+                    orderDb.TotalProductCount != x.TotalProductCount ||
+                    orderDb.TotalPayAmount != x.TotalPayAmount ||
+                    orderDb.FundStatus != x.FundStatus ||
+                    orderDb.FrozenStatus != x.FrozenStatus)
+            )).ToList();
+            foreach (var orderInDb in ordersInDb)
+            {
+                if (orderUpdates.Any(x => x.OrderId == orderInDb.OrderId))
+                {
+                    var orderUpdate = orderUpdates.FirstOrDefault(x=>x.OrderId == orderInDb.OrderId);
+                    orderUpdate.Id = orderInDb.Id;
+                }
+            }
+
             return orderUpdates;
         }
 

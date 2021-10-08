@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Extensions;
@@ -34,7 +35,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
                 Address = "Pushln 4",
                 CountryName = "SPB"
             };
-            var aliExpressOrderRecInfo = new AzureAliExpressOrderReceiptInfoRepository("dbo.order_receipt_infos", _configuration.GetConnectionString("SQLServerConnectionString"));
+            var aliExpressOrderRecInfo = new AzureAliExpressOrderReceiptInfoRepository( new Logger<AzureAliExpressOrderReceiptInfoRepository>(new LoggerFactory()),"dbo.order_receipt_infos", _configuration.GetConnectionString("SQLServerConnectionString"));
             //act
             await aliExpressOrderRecInfo.InsertAsync(aliExPressOrderReceipt);
             var result = await aliExpressOrderRecInfo.GetAsync("select * from dbo.order_receipt_infos where order_id = @order_id", new {order_id = aliExPressOrderReceipt.OrderId});

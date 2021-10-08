@@ -41,7 +41,7 @@ namespace YapartMarket.Core.Extensions
             var propertyContainer = new PropertyContainer();
 
             //var typeName = typeof(T).Name;
-            var validKeyNames = new[] { "id" }; //string.Format("{0}Id", typeName), string.Format("{0}_Id", typeName) 
+            var validKeyNames = new[] { "id", "Id" }; //string.Format("{0}Id", typeName), string.Format("{0}_Id", typeName) 
 
             var properties = typeof(T).GetProperties();
             foreach (var property in properties)

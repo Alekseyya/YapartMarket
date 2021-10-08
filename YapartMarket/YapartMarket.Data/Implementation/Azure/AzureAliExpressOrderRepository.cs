@@ -43,13 +43,15 @@ namespace YapartMarket.Data.Implementation.Azure
                         gmt_pay_time = aliExpressOrder.GmtPayTime,
                         end_reason = aliExpressOrder.EndReason,
                         updated = DateTime.UtcNow,
+                        created = (string)null,
                         total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                         total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
                         order_status = aliExpressOrder.OrderStatus,
                         gmt_create = aliExpressOrder.GmtCreate,
                         gmt_update = aliExpressOrder.GmtUpdate,
                         fund_status = aliExpressOrder.FundStatus,
-                        frozen_status = aliExpressOrder.FrozenStatus
+                        frozen_status = aliExpressOrder.FrozenStatus,
+                        id = aliExpressOrder.Id
                     });
                     await connection.ExecuteAsync(updateOrder, orders);
                 }

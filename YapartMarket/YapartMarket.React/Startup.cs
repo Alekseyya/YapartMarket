@@ -164,7 +164,7 @@ namespace YapartMarket.React
                 //scheduler.Schedule(() => Console.WriteLine("Hourly on Mondays.")).EverySeconds(3);
 
                 scheduler.OnWorker("UpdateOrdersFromAliExpress");
-                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryTenMinutes();
+                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryMinute();
 
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
                 scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();
