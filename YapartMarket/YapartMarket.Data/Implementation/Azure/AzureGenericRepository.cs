@@ -143,6 +143,26 @@ namespace YapartMarket.Data.Implementation.Azure
             
         }
 
+        public virtual async Task<IEnumerable<int>> InsertAsync(IEnumerable<object> listObjects)
+        {
+            var insertSql = Activator.CreateInstance<T>().InsertString(_tableName);
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                return await connection.QueryAsync<int>(insertSql, listObjects);
+            }
+        }
+
+        public virtual async Task InsertAsync(object @object)
+        {
+            var insertSql = Activator.CreateInstance<T>().InsertString(_tableName);
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                await connection.QueryAsync(insertSql, @object);
+            }
+        }
+
         public virtual async Task<IEnumerable<int>> InsertOutputAsync(string sql, IEnumerable<object> inserts)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -152,12 +172,22 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public async Task Update(string sql, object action)
+        public virtual async Task Update(string sql, object action)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
                 await connection.ExecuteAsync(sql, action);
+            }
+        }
+
+        public virtual async Task Update(object action)
+        {
+            var updateSQL = Activator.CreateInstance<T>().UpdateString(_tableName);
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                await connection.ExecuteAsync(updateSQL, action);
             }
         }
     }
