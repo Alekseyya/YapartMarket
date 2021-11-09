@@ -72,7 +72,7 @@ namespace YapartMarket.Data.Implementation.Azure
                 var orderInDb = await connection.QueryAsync<AliExpressOrder, AliExpressOrderDetail, AliExpressOrder>(
                     @"select * FROM dbo.orders o 
 inner join dbo.order_details od on o.id = od.order_id 
-where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and order_status = @order_status",
+where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and order_status = @order_status",
                     (order, orderDetail) =>
                     {
                         AliExpressOrder orderEntry;
@@ -85,7 +85,7 @@ where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and orde
                         orderEntry.AliExpressOrderDetails.Add(orderDetail);
                         return orderEntry;
                     }, 
-                    new { gmt_update_start = start, gmt_update_end = end, order_status = (int)OrderStatus.WAIT_SELLER_SEND_GOODS },
+                    new { gmt_create_start = start, gmt_create_end = end, order_status = (int)OrderStatus.WAIT_SELLER_SEND_GOODS },
                     splitOn: "order_id"); //, product_id
 
                 foreach (var order in orderInDb)
