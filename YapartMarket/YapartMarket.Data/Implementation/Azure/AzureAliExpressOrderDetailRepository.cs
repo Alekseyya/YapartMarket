@@ -25,6 +25,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             try
             {
+                var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
                 var updateOrderDetailString = new AliExpressOrderDetail().UpdateString(_tableName);
                 using (var connection = new SqlConnection(_connectionString))
                 {
@@ -39,7 +40,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         send_goods_operator = orderDetail.SendGoodsOperator,
                         show_status = orderDetail.ShowStatus,
                         total_count_product_amount = orderDetail.TotalProductAmount,
-                        updated = DateTime.UtcNow
+                        updated = dateTimeNow
                     });
                     await connection.ExecuteAsync(updateOrderDetailString, orderDetailsAnom);
                 }
@@ -55,6 +56,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             try
             {
+                var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
                 var insertOrderDetailString = new AliExpressOrderDetail().InsertString(_tableName);
                 using (var connection = new SqlConnection(_connectionString))
                 {
@@ -72,7 +74,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         show_status = orderDetail.ShowStatus,
                         goods_prepare_time = orderDetail.GoodsPrepareTime,
                         total_count_product_amount = orderDetail.TotalProductAmount,
-                        created = DateTime.UtcNow
+                        created = dateTimeNow
                     });
                     await connection.ExecuteAsync(insertOrderDetailString, orderDetailsAnom);
                 }

@@ -53,8 +53,8 @@ namespace YapartMarket.BL.Implementation
                 {
                     AliexpressSolutionOrderGetRequest req = new AliexpressSolutionOrderGetRequest();
                     AliexpressSolutionOrderGetRequest.OrderQueryDomain obj1 = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
-                    obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd hh:mm:ss");
-                    obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd hh:mm:ss");
+                    obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
+                    obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
                     if(orderStatusList != null)
                         obj1.OrderStatusList = new List<string>{ OrderStatus.SELLER_PART_SEND_GOODS.ToString() };
                     obj1.PageSize = 20;

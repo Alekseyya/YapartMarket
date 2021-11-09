@@ -27,6 +27,7 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public async Task Update(IEnumerable<AliExpressOrder> aliExpressOrders)
         {
+            var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
             var updateOrder = new AliExpressOrder().UpdateString(_tableName);
             try
             {
@@ -42,7 +43,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         biz_type = aliExpressOrder.BizType,
                         gmt_pay_time = aliExpressOrder.GmtPayTime,
                         end_reason = aliExpressOrder.EndReason,
-                        updated = DateTime.UtcNow,
+                        updated = dateTimeNow,
                         created = (string)null,
                         total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                         total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
@@ -103,6 +104,7 @@ where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and orde
 
         public async Task AddOrdersWitchOrderDetails(IEnumerable<AliExpressOrder> aliExpressOrders)
         {
+            var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
             var insertOrder = new AliExpressOrder().InsertString(_tableName);
             var insertOrderDetail = new AliExpressOrderDetail().InsertString("dbo.order_details");
             using (var connection = new SqlConnection(_connectionString))
@@ -121,7 +123,7 @@ where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and orde
                             biz_type = aliExpressOrder.BizType,
                             gmt_pay_time = aliExpressOrder.GmtPayTime,
                             end_reason = aliExpressOrder.EndReason,
-                            created = DateTime.UtcNow,
+                            created = dateTimeNow,
                             updated = (DateTime?)null,
                             total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                             total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
@@ -146,7 +148,7 @@ where gmt_update >= @gmt_update_start and gmt_update <= @gmt_update_end and orde
                                 show_status = aliExpressOrderProductDto.ShowStatus,
                                 goods_prepare_time = aliExpressOrderProductDto.GoodsPrepareTime,
                                 total_count_product_amount = aliExpressOrderProductDto.TotalProductAmount,
-                                created = DateTime.UtcNow,
+                                created = dateTimeNow,
                                 updated = (DateTime?)null,
                             });
 

@@ -39,7 +39,9 @@ namespace YapartMarket.React.Invocables
             var dateTimeNow = DateTime.UtcNow;
             try
             {
-                var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay()); //todo потом поставить 1 день
+                var yesterdayDateTime = new DateTimeWithZone(dateTimeNow.AddDays(-1).StartOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
+                var tommorowDateTime = new DateTimeWithZone(dateTimeNow.AddDays(+1).EndOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
+                var ordersDTO = _aliExpressOrderService.QueryOrderDetail(yesterdayDateTime.LocalTime, tommorowDateTime.LocalTime); 
                 if (ordersDTO.Any())
                 {
                     _logger.LogInformation("Получены заказы");
