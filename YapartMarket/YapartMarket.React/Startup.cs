@@ -168,6 +168,10 @@ namespace YapartMarket.React
                 scheduler.OnWorker("UpdateOrdersFromAliExpress");
                 scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryMinute();
 
+
+                scheduler.OnWorker("UpdateLogisticServicesInvocable");
+                scheduler.Schedule<UpdateLogisticServicesInvocable>().Hourly();
+
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
                 scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();
 
