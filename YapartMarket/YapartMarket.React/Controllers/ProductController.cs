@@ -14,6 +14,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using YapartMarket.Core.Data.Interfaces.Access;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models;
 using YapartMarket.React.ViewModels;
 
@@ -104,7 +105,10 @@ namespace YapartMarket.React.Controllers
                         }
                     }
                 }
-                return Ok(isAccepted ? (object) new OrderViewModel() {OrderInfoViewModel = new OrderInfoViewModel() {Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString()}} : new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = "OUT_OF_DATE" });
+                return Ok(isAccepted ? new { order = new { accepted = true, id = orderDto.OrderInfoDto.Id.ToString() } } :
+                   new{order = new { accepted = false, reason = "OUT_OF_DATE" }});
+
+
             }
             return BadRequest();
         }

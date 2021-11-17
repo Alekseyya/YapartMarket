@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace YapartMarket.React.ViewModels
 {
@@ -14,7 +15,7 @@ namespace YapartMarket.React.ViewModels
         public bool Accepted { get; set; }
         [JsonPropertyName("id")]
         public string Id { get; set; }
-        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         [JsonPropertyName("reason")]
         public string Reason { get; set; }
     }
