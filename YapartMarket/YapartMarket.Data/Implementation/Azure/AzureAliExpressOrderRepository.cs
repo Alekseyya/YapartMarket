@@ -123,7 +123,7 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                             biz_type = aliExpressOrder.BizType,
                             gmt_pay_time = aliExpressOrder.GmtPayTime,
                             end_reason = aliExpressOrder.EndReason,
-                            created = dateTimeNow,
+                            created = dateTimeNow.LocalTime,
                             updated = (DateTime?)null,
                             total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                             total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
@@ -148,7 +148,7 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                                 show_status = aliExpressOrderProductDto.ShowStatus,
                                 goods_prepare_time = aliExpressOrderProductDto.GoodsPrepareTime,
                                 total_count_product_amount = aliExpressOrderProductDto.TotalProductAmount,
-                                created = dateTimeNow,
+                                created = dateTimeNow.LocalTime,
                                 updated = (DateTime?)null,
                             });
 
