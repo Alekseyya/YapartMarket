@@ -73,7 +73,7 @@ namespace YapartMarket.React.Controllers
                 {
                     var sql = "select * from dbo.products";
                     connection.Open();
-                    var products = connection.Query<Product>(sql).ToList();
+                    var products = connection.Query<Product>(sql).ToList(); //todo переделать, отдавать полный список продуктов!
                     return Ok(products);
                 }
             }
@@ -133,7 +133,8 @@ namespace YapartMarket.React.Controllers
         {
             if (string.IsNullOrEmpty(_configuration.GetValue<string>("auth-token")))
                 return StatusCode(500);
-            if (string.IsNullOrEmpty(authToken) || (!string.IsNullOrEmpty(_configuration.GetValue<string>("auth-token")) && !string.IsNullOrEmpty(authToken) && _configuration.GetValue<string>("auth-token") != authToken))
+            if (string.IsNullOrEmpty(authToken) || (!string.IsNullOrEmpty(_configuration.GetValue<string>("auth-token")) 
+                                                    && !string.IsNullOrEmpty(authToken) && _configuration.GetValue<string>("auth-token") != authToken))
                 return StatusCode(403);
             if (cartDto != null)
             {
