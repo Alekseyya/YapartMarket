@@ -29,8 +29,8 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> Get()
         {
-            var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-            var ordersByDay = await _aliExpressOrderService.GetOrders(dateTimeNow.LocalTime.StartOfDay(), dateTimeNow.LocalTime.EndOfDay());
+            //var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
+            var ordersByDay = await _aliExpressOrderService.GetOrders(DateTime.Now.StartOfDay(), DateTime.Now.EndOfDay());
             if (ordersByDay.IsAny())
                 return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<AliExpressOrderViewModel>>(ordersByDay));
             return Ok();
@@ -53,9 +53,9 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                var yesterdayDateTime = new DateTimeWithZone(DateTime.Now.AddDays(-1).StartOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-                var tomorrowDateTime = new DateTimeWithZone(DateTime.Now.AddDays(+1).EndOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-                var aliExpressOrderDTO = _aliExpressOrderService.QueryOrderDetail(yesterdayDateTime.LocalTime, tomorrowDateTime.LocalTime);
+                //var yesterdayDateTime = new DateTimeWithZone(DateTime.Now.AddDays(-1).StartOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
+                //var tomorrowDateTime = new DateTimeWithZone(DateTime.Now.AddDays(+1).EndOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
+                var aliExpressOrderDTO = _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.AddDays(+1).EndOfDay());
                 var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(aliExpressOrderDTO);
                 await _aliExpressOrderService.AddOrders(aliExpressOrders);
             }

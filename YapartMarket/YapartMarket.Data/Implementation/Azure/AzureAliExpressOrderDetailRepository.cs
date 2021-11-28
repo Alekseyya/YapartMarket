@@ -25,7 +25,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             try
             {
-                var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
+                //var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
                 var updateOrderDetailString = new AliExpressOrderDetail().UpdateString(_tableName);
                 using (var connection = new SqlConnection(_connectionString))
                 {
@@ -40,7 +40,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         send_goods_operator = orderDetail.SendGoodsOperator,
                         show_status = orderDetail.ShowStatus,
                         total_count_product_amount = orderDetail.TotalProductAmount,
-                        updated = dateTimeNow
+                        updated = DateTime.Now
                     });
                     await connection.ExecuteAsync(updateOrderDetailString, orderDetailsAnom);
                 }
@@ -56,7 +56,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             try
             {
-                var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
+                //var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
                 var insertOrderDetailString = new AliExpressOrderDetail().InsertString(_tableName);
                 using (var connection = new SqlConnection(_connectionString))
                 {
@@ -74,7 +74,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         show_status = orderDetail.ShowStatus,
                         goods_prepare_time = orderDetail.GoodsPrepareTime,
                         total_count_product_amount = orderDetail.TotalProductAmount,
-                        created = dateTimeNow
+                        created = DateTime.Now
                     });
                     await connection.ExecuteAsync(insertOrderDetailString, orderDetailsAnom);
                 }
