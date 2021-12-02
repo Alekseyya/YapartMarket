@@ -30,7 +30,7 @@ namespace YapartMarket.React.Controllers
         public async Task<IActionResult> Get()
         {
             //var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-            var ordersByDay = await _aliExpressOrderService.GetOrders(DateTime.Now.StartOfDay(), DateTime.Now.EndOfDay());
+            var ordersByDay = await _aliExpressOrderService.GetOrders(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.EndOfDay());
             if (ordersByDay.IsAny())
                 return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<AliExpressOrderViewModel>>(ordersByDay));
             return Ok();
