@@ -209,7 +209,7 @@ namespace YapartMarket.React.Controllers
                     {
                         await connection.OpenAsync();
                         var productsInDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
-                        var updateProducts = itemsDto.Products.Where(x => productsInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
+                        var updateProducts = itemsDto.Products.Where(x => productsInDb.Any(t => t.Sku.Equals(x.Sku)));
                         var insertProducts = itemsDto.Products.Where(x => productsInDb.All(t => t.Sku != x.Sku));
                         if (updateProducts.Any())
                         {
@@ -274,7 +274,7 @@ namespace YapartMarket.React.Controllers
                             {
                                 Type = nameof(ProductType.FIT),
                                 Count = productFromDb.Count,
-                                UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                                UpdatedAt = productFromDb.UpdatedAt
                             }
                         }
                     });
