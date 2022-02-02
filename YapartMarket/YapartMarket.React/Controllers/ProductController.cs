@@ -188,7 +188,7 @@ namespace YapartMarket.React.Controllers
                         }
                     }
                     //если в заказе все позиции отсуствуют items = пустым.
-                    if (cartViewModel.Cart.CartItems.All(x => x.Count == 0))
+                    if (cartViewModel.Cart.CartItems.Count >= 2 && cartViewModel.Cart.CartItems.All(x => x.Count == 0))
                         cartViewModel.Cart.CartItems = new List<CartItemViewModel>();
                     return Ok(cartViewModel);
                 }
