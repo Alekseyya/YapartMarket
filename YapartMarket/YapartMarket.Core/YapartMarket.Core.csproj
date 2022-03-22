@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="DTO\Goods\" />
     <Folder Include="Models\Identiry\" />
   </ItemGroup>
 

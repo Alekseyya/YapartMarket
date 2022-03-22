@@ -26,7 +26,8 @@ using YapartMarket.Data.Implementation;
 using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.React.Invocables;
 using YapartMarket.React.Options;
-
+using YapartMarket.React.Services;
+using YapartMarket.React.Services.Interfaces;
 
 namespace YapartMarket.React
 {
@@ -98,6 +99,8 @@ namespace YapartMarket.React
             services.AddTransient<IAzureAliExpressOrderReceiptInfoRepository>(m => new AzureAliExpressOrderReceiptInfoRepository(new Logger<AzureAliExpressOrderReceiptInfoRepository>(new LoggerFactory()), "dbo.order_receipt_infos", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressOrderLogisticRedefiningRepository>(m => new AzureAliExpressOrderLogisticRedefiningRepository("dbo.order_redefining", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAliExpressOrderSizeCargoPlaceRepository>(m => new AliExpressOrderSizeCargoPlaceRepository("dbo.order_size_cargo_places", Configuration.GetConnectionString("SQLServerConnectionString")));
+
+            services.AddTransient<IGoodsService, GoodsService>();
 
             services.AddScheduler();
 
