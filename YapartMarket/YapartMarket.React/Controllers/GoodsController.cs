@@ -29,14 +29,15 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("order/new")]
         [Produces("application/json")]
-        public IActionResult NewOrder([FromBody] OrderNewViewModel order)
+        public async Task<IActionResult> NewOrder([FromBody] OrderNewViewModel order)
         {
             if (order != null)
             {
-                var orderItems = order.OrderNewDataViewModel.Shipments[0].Items;
+                var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
                 _goodsService.GetOrders(order, out List<OrderNewShipmentItem> confirmOrders, out List<OrderNewShipmentItem> rejectOrders);
-                if (confirmOrders.Any() && !rejectOrders.Any())
-                    _goodsService.Confirm(order.OrderNewDataViewModel.Shipments[0].ShipmentId, confirmOrders);
+                var orderId = await _goodsService.SaveOrder(shipmentId, confirmOrders, rejectOrders);
+                if (confirmOrders.Any() && !rejectOrders.Any() && orderId.HasValue)
+                    await _goodsService.Confirm(shipmentId, orderId.Value);
                 return Ok(new SuccessfulResponse()
                 {
                     Success = 1
