@@ -1,13 +1,10 @@
-﻿using Dapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using YapartMarket.React.Services.Interfaces;
 using YapartMarket.React.ViewModels.Goods;
-using Product = YapartMarket.Core.Models.Azure.Product;
 
 namespace YapartMarket.React.Controllers
 {
@@ -24,8 +21,6 @@ namespace YapartMarket.React.Controllers
             _goodsService = goodsService;
         }
 
-
-
         [HttpPost]
         [Route("order/new")]
         [Produces("application/json")]
@@ -36,8 +31,18 @@ namespace YapartMarket.React.Controllers
                 var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
                 _goodsService.GetOrders(order, out List<OrderNewShipmentItem> confirmOrders, out List<OrderNewShipmentItem> rejectOrders);
                 var orderId = await _goodsService.SaveOrder(shipmentId, confirmOrders, rejectOrders);
-                if (confirmOrders.Any() && !rejectOrders.Any() && orderId.HasValue)
-                    await _goodsService.Confirm(shipmentId, orderId.Value);
+                if (orderId != default)
+                {
+                    if (confirmOrders.Any() && !rejectOrders.Any())
+                        await _goodsService.Confirm(shipmentId, orderId);
+                    if (!confirmOrders.Any() && rejectOrders.Any())
+                        await _goodsService.Reject(shipmentId, orderId);
+                    if (confirmOrders.Any() && rejectOrders.Any())
+                    {
+                        await _goodsService.Confirm(shipmentId, orderId);
+                        await _goodsService.Reject(shipmentId, orderId);
+                    }
+                }
                 return Ok(new SuccessfulResponse()
                 {
                     Success = 1

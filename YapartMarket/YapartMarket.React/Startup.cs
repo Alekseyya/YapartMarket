@@ -56,7 +56,11 @@ namespace YapartMarket.React
             });
 
             services.AddControllers();
-            services.AddMvc(option => option.EnableEndpointRouting = false).AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null);
+            services.AddMvc(option => option.EnableEndpointRouting = false).AddJsonOptions(opt => 
+            { 
+                opt.JsonSerializerOptions.PropertyNamingPolicy = null;
+                opt.JsonSerializerOptions.IgnoreNullValues = true;
+            });
 
             //services.AddAutoMapper(typeof(Startup));
             services.AddAutoMapper(typeof(Startup), typeof(AliExpressOrderProfile));
@@ -100,6 +104,8 @@ namespace YapartMarket.React
             services.AddTransient<IAzureAliExpressOrderLogisticRedefiningRepository>(m => new AzureAliExpressOrderLogisticRedefiningRepository("dbo.order_redefining", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAliExpressOrderSizeCargoPlaceRepository>(m => new AliExpressOrderSizeCargoPlaceRepository("dbo.order_size_cargo_places", Configuration.GetConnectionString("SQLServerConnectionString")));
 
+
+            services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.goodsteam.tech"));
             services.AddTransient<IGoodsService, GoodsService>();
 
             services.AddScheduler();

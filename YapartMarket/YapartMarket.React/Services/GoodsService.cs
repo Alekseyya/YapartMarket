@@ -20,10 +20,10 @@ namespace YapartMarket.React.Services
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
 
-        public GoodsService(IConfiguration configuration, HttpClient httpClient)
+        public GoodsService(IConfiguration configuration, IHttpClientFactory factory)
         {
             _configuration = configuration;
-            _httpClient = httpClient;
+            _httpClient = factory.CreateClient("goodsClient");
         }
         public void GetOrders(OrderNewViewModel order, out List<OrderNewShipmentItem> confirmOrders, out List<OrderNewShipmentItem> rejectOrders)
         {
@@ -50,23 +50,25 @@ namespace YapartMarket.React.Services
                 }
             }
         }
-        public async Task<int?> SaveOrder(string shipmentId, List<OrderNewShipmentItem> confirmOrderItems, List<OrderNewShipmentItem> rejectOrderItems)
+        public async Task<int> SaveOrder(string shipmentId, List<OrderNewShipmentItem> confirmOrderItems, List<OrderNewShipmentItem> rejectOrderItems)
         {
-            int? id = null;
+            int id = default;
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
-                var order = connection.QueryFirstOrDefaultAsync<GoodsOrder>("select * from goods_order where shipmentId = @shipmentId", new { shipmentId = shipmentId });
+                var order = await connection.QueryFirstOrDefaultAsync<GoodsOrder>("select * from goods_order where shipmentId = @shipmentId", new { shipmentId = shipmentId });
+                //todo добавить orderItem если есть order 
                 if (order == null)
                 {
-                    id = connection.QuerySingle<int>("insert into goods_order(shipmentId) values(@shipmentId) goods_order;SELECT CAST(SCOPE_IDENTITY() as int)", new { shipmentId = shipmentId });
+                    id = await connection.QuerySingleAsync<int>("insert into goods_order(shipmentId) values(@shipmentId);SELECT CAST(SCOPE_IDENTITY() as int)", new { shipmentId = shipmentId });
                     foreach (var confirmOrder in confirmOrderItems)
                     {
-                        connection.Execute("insert into goods_order_details(offerId, orderId, item_index) values(@offerId, @orderId, @item_index)", new
+                        connection.Execute("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
                         {
                             offerId = confirmOrder.OfferId,
                             orderId = id,
                             item_index = confirmOrder.ItemIndex,
+                            reason_type = (int)ReasonType.Empty
                         });
                     }
                     foreach (var rejectItem in rejectOrderItems)
@@ -83,47 +85,103 @@ namespace YapartMarket.React.Services
             }
             return id;
         }
+
+        public async Task<bool> Reject(string shipmentId, int orderId)
+        {
+            var shipments = await Shipments(shipmentId, orderId, ReasonType.OUT_OF_STOCK);
+            var order = CreateOrderReject(shipments);
+            var isSent = await SendRejectRequest(order);
+            return isSent;
+        }
+
         public async Task<bool> Confirm(string shipmentId, int orderId)
+        {
+            var shipments = await Shipments(shipmentId, orderId, ReasonType.Empty);
+            var order = CreateOrderConfirm(shipments);
+            var isSent = await SendConfirmRequest(order);
+            return isSent;
+        }
+        private async Task<List<OrderShipmentViewModel>> Shipments(string shipmentId, int orderId, ReasonType reasonType)
         {
             var goodsOrderItems = new List<GoodsOrderItem>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
-                goodsOrderItems = (List<GoodsOrderItem>)await connection.QueryAsync<GoodsOrderItem>("select * from goods_order_details where orderId = @orderId and reason_type = null", new { orderId = orderId });
+                goodsOrderItems = (List<GoodsOrderItem>)await connection.QueryAsync<GoodsOrderItem>("select * from goods_order_details where orderId = @orderId and reason_type = @reason_type", new { orderId = orderId, reason_type = (int)reasonType });
             }
-            var orderConfirmItems = new List<OrderConfirmItem>();
+            var orderItems = new List<OrderItemViewModel>();
             foreach (var goodsItem in goodsOrderItems)
             {
-                orderConfirmItems.Add(new()
+                orderItems.Add(new()
                 {
                     ItemIndex = goodsItem.ItemIndex,
                     OfferId = goodsItem.OfferId
                 });
             }
-            var confirmItemsViewModel = new List<OrderConfirmShipment>();
-            confirmItemsViewModel.Add(new()
+            var orderShipments = new List<OrderShipmentViewModel>();
+            orderShipments.Add(new()
             {
                 ShipmentId = shipmentId,
                 OrderCode = orderId.ToString(),
-                Items = orderConfirmItems
+                Items = orderItems
             });
-            
-            var orderConfirm = new OrderConfirmViewModel()
+            return orderShipments;
+        }
+
+        private OrderViewModel CreateOrderConfirm(List<OrderShipmentViewModel> shipments)
+        {
+            var order = new OrderViewModel()
             {
                 Data = new()
                 {
-                    Token = _configuration.GetConnectionString("goodsTestToken"),
-                    Shipments = confirmItemsViewModel
+                    Token = _configuration.GetSection("goodsTestToken").Value,
+                    Shipments = shipments
                 },
                 Meta = new()
-            };//todo отправку запроса в отдельный метод!!
-            var jsonResponse = JsonConvert.SerializeObject(orderConfirm);
-            var content = new StringContent(jsonResponse, Encoding.UTF8, "application/json");
-            _httpClient.BaseAddress = new Uri("https://partner.goodsteam.tech");
-            var result = await _httpClient.PostAsync("/api/market/v1/orderService/order/confirm", content);
+            };
+            return order;
+        }
+        private OrderViewModel CreateOrderReject(List<OrderShipmentViewModel> shipments)
+        {
+            var order = new OrderViewModel()
+            {
+                Data = new()
+                {
+                    Token = _configuration.GetSection("goodsTestToken").Value,
+                    Shipments = shipments
+                },
+                Reason = new()
+                {
+                    Type = Enum.GetName(typeof(ReasonType), ReasonType.OUT_OF_STOCK)
+                },
+                Meta = new()
+            };
+            return order;
+        }
+
+        private async Task<SuccessfulResponse> SendRequest(string url, string body)
+        {
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+            var result = await _httpClient.PostAsync(url, content);
             string resultContent = await result.Content.ReadAsStringAsync();
-            var jsonResponseServer = JsonConvert.DeserializeObject<SuccessfulResponse>(resultContent);
-            if (jsonResponseServer.Success == 1)
+            return JsonConvert.DeserializeObject<SuccessfulResponse>(resultContent);
+        }
+
+        private async Task<bool> SendConfirmRequest(OrderViewModel order)
+        {
+            var body = JsonConvert.SerializeObject(order);
+            var url = "/api/market/v1/orderService/order/confirm";
+            var response = await SendRequest(url, body);
+            if (response.Success == 1)
+                return true;
+            return false;
+        }
+        private async Task<bool> SendRejectRequest(OrderViewModel order)
+        {
+            var body = JsonConvert.SerializeObject(order);
+            var url = "/api/market/v1/orderService/order/reject";
+            var response = await SendRequest(url, body);
+            if (response.Success == 1)
                 return true;
             return false;
         }
