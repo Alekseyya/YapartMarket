@@ -13,6 +13,7 @@
         /// </summary>
         public string AppSecret { get; set; }
 
+        public string RefreshToken { get; set; }
         /// <summary>
         /// Токен доступа
         /// </summary>
@@ -21,6 +22,7 @@
         /// Время истечения срока действия токена
         /// </summary>
         public long ExpireToken { get; set; }
+        public string SP { get; set; }
 
         /// <summary>
         /// Ник пользователя
