@@ -69,7 +69,7 @@ namespace YapartMarket.React.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(e.StackTrace);
             }
             return StatusCode(200);
         }
