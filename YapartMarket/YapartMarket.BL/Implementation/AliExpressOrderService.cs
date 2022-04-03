@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AutoMapper;
-using Dapper;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -49,28 +46,21 @@ namespace YapartMarket.BL.Implementation
             var aliExpressOrderList = new List<AliExpressOrderDTO>();
             do
             {
-                try
-                {
-                    AliexpressSolutionOrderGetRequest req = new AliexpressSolutionOrderGetRequest();
-                    AliexpressSolutionOrderGetRequest.OrderQueryDomain obj1 = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
-                    obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                    obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                    if(orderStatusList != null)
-                        obj1.OrderStatusList = new List<string>{ OrderStatus.SELLER_PART_SEND_GOODS.ToString() };
-                    obj1.PageSize = 20;
-                    obj1.CurrentPage = currentPage;
-                    req.Param0_ = obj1;
-                    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-                    var deserializeAliExpressOrderList = DeserializeAliExpressOrderList(rsp.Body);
-                    if(deserializeAliExpressOrderList.Any())
-                        aliExpressOrderList.AddRange(deserializeAliExpressOrderList);
-                    else
-                        break;
-                } 
-                catch (Exception e)
-                {
+                AliexpressSolutionOrderGetRequest req = new AliexpressSolutionOrderGetRequest();
+                AliexpressSolutionOrderGetRequest.OrderQueryDomain obj1 = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
+                obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
+                obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
+                if (orderStatusList != null)
+                    obj1.OrderStatusList = new List<string> { OrderStatus.SELLER_PART_SEND_GOODS.ToString() };
+                obj1.PageSize = 20;
+                obj1.CurrentPage = currentPage;
+                req.Param0_ = obj1;
+                var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
+                var deserializeAliExpressOrderList = DeserializeAliExpressOrderList(rsp.Body);
+                if (deserializeAliExpressOrderList != null)
+                    aliExpressOrderList.AddRange(deserializeAliExpressOrderList);
+                else
                     break;
-                }
                 currentPage++;
             } while (true);
             return aliExpressOrderList;
@@ -82,7 +72,7 @@ namespace YapartMarket.BL.Implementation
         /// <param name="end">Дата окончания обновления заказа</param>
         public async Task<IEnumerable<AliExpressOrder>> GetOrders(DateTime start, DateTime end)
         {
-            var orders = await _orderRepository.GetOrdersByWaitSellerSendGoods(start, end);
+            var orders = await _orderRepository.GetOrdersByWaitSellerSendGoodsAsync(start, end);
             return orders;
         }
 
@@ -90,9 +80,7 @@ namespace YapartMarket.BL.Implementation
         {
             var newAliExpressOrders = await ExceptOrders(aliExpressOrders);
             if (newAliExpressOrders.Any())
-            {
                 await _orderRepository.AddOrdersWitchOrderDetails(newAliExpressOrders);
-            }
             var updatedOrders = await IntersectOrder(aliExpressOrders);
             if (updatedOrders.IsAny())
             {
@@ -110,7 +98,6 @@ namespace YapartMarket.BL.Implementation
                 //новые записи
                 var newOrderDetails = orderDetailUpdates.Where(x => orderDetailUpdatesDb.Any(t => t.OrderId == x.OrderId && t.ProductId != x.ProductCount));
                 await _orderDetailRepository.Add(newOrderDetails);
-
             }
         }
         /// <summary>
@@ -150,17 +137,14 @@ namespace YapartMarket.BL.Implementation
                     orderUpdate.Id = orderInDb.Id;
                 }
             }
-
             return orderUpdates;
         }
 
         public List<AliExpressOrderDTO> DeserializeAliExpressOrderList(string json)
         {
             var aliExpressResponseResult = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json)?.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto;
-            if (!aliExpressResponseResult.AliExpressOrderListDTOs.Any() && aliExpressResponseResult.TotalCount == 0)
-            {
+            if (aliExpressResponseResult.AliExpressOrderListDTOs == null)
                 return null;
-            }
             return JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json)?.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto.AliExpressOrderListDTOs;
         }
     }

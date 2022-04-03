@@ -10,6 +10,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
     {
         Task AddOrdersWitchOrderDetails(IEnumerable<AliExpressOrder> aliExpressOrders);
         Task Update(IEnumerable<AliExpressOrder> aliExpressOrders);
-        Task<IEnumerable<AliExpressOrder>> GetOrdersByWaitSellerSendGoods(DateTime start, DateTime end);
+        Task<IEnumerable<AliExpressOrder>> GetOrdersByWaitSellerSendGoodsAsync(DateTime start, DateTime end);
     }
 }

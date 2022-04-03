@@ -63,43 +63,51 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public async Task<IEnumerable<AliExpressOrder>> GetOrdersByWaitSellerSendGoods(DateTime start, DateTime end)
+        public async Task<IEnumerable<AliExpressOrder>> GetOrdersByWaitSellerSendGoodsAsync(DateTime start, DateTime end)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync();
-                var orderDictionary = new Dictionary<int, AliExpressOrder>();
-                var orderInDb = await connection.QueryAsync<AliExpressOrder, AliExpressOrderDetail, AliExpressOrder>(
-                    @"select * FROM dbo.orders o 
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    var orderDictionary = new Dictionary<int, AliExpressOrder>();
+                    var orderInDb = await connection.QueryAsync<AliExpressOrder, AliExpressOrderDetail, AliExpressOrder>(
+                        @"select * FROM dbo.orders o 
 inner join dbo.order_details od on o.id = od.order_id 
 where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and order_status = @order_status",
-                    (order, orderDetail) =>
-                    {
-                        AliExpressOrder orderEntry;
-                        if (!orderDictionary.TryGetValue(order.Id, out orderEntry))
+                        (order, orderDetail) =>
                         {
-                            orderEntry = order;
-                            orderEntry.AliExpressOrderDetails = new List<AliExpressOrderDetail>();
-                            orderDictionary.Add(orderEntry.Id, orderEntry);
-                        }
-                        orderEntry.AliExpressOrderDetails.Add(orderDetail);
-                        return orderEntry;
-                    }, 
-                    new { gmt_create_start = start, gmt_create_end = end, order_status = (int)OrderStatus.WAIT_SELLER_SEND_GOODS },
-                    splitOn: "order_id"); //, product_id
+                            AliExpressOrder orderEntry;
+                            if (!orderDictionary.TryGetValue(order.Id, out orderEntry))
+                            {
+                                orderEntry = order;
+                                orderEntry.AliExpressOrderDetails = new List<AliExpressOrderDetail>();
+                                orderDictionary.Add(orderEntry.Id, orderEntry);
+                            }
+                            orderEntry.AliExpressOrderDetails.Add(orderDetail);
+                            return orderEntry;
+                        },
+                        new { gmt_create_start = start, gmt_create_end = end, order_status = (int)OrderStatus.WAIT_SELLER_SEND_GOODS },
+                        splitOn: "order_id"); //, product_id
 
-                foreach (var order in orderInDb)
-                {
-                    foreach (var aliExpressOrder in order.AliExpressOrderDetails)
+                    foreach (var order in orderInDb)
                     {
-                        aliExpressOrder.Product =  await connection.QueryFirstAsync<Product>("select * from dbo.products where aliExpressProductId = @aliExpressProductId", new
+                        foreach (var aliExpressOrder in order.AliExpressOrderDetails)
                         {
-                            aliExpressProductId = aliExpressOrder.ProductId
-                        });
+                            aliExpressOrder.Product = await connection.QueryFirstAsync<Product>("select * from dbo.products where aliExpressProductId = @aliExpressProductId", new
+                            {
+                                aliExpressProductId = aliExpressOrder.ProductId
+                            });
+                        }
                     }
+                    return orderInDb;
                 }
-                return orderInDb;
             }
+            catch (Exception e)
+            {
+                throw e;
+            }
+           
         }
 
         public async Task AddOrdersWitchOrderDetails(IEnumerable<AliExpressOrder> aliExpressOrders)
