@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -32,12 +33,24 @@ namespace YapartMarket.BL.Implementation
 
         public AliExpressOrderReceiptInfoDTO GetReceiptInfo(long orderId)
         {
-            AliexpressSolutionOrderReceiptinfoGetRequest req = new AliexpressSolutionOrderReceiptinfoGetRequest();
-            AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain singleOrderQueryDomain = new AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain();
-            singleOrderQueryDomain.OrderId = orderId;
-            req.Param1_ = singleOrderQueryDomain;
-            AliexpressSolutionOrderReceiptinfoGetResponse rsp = _client.Execute(req, _options.AccessToken);
-            var aliExpressReceiptRoot = JsonConvert.DeserializeObject<AliExpressReceiptRoot>(rsp.Body);
+            AliExpressReceiptRoot aliExpressReceiptRoot = null;
+            do
+            {
+                try
+                {
+                    AliexpressSolutionOrderReceiptinfoGetRequest req = new AliexpressSolutionOrderReceiptinfoGetRequest();
+                    AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain singleOrderQueryDomain = new AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain();
+                    singleOrderQueryDomain.OrderId = orderId;
+                    req.Param1_ = singleOrderQueryDomain;
+                    AliexpressSolutionOrderReceiptinfoGetResponse rsp = _client.Execute(req, _options.AccessToken);
+                    aliExpressReceiptRoot = JsonConvert.DeserializeObject<AliExpressReceiptRoot>(rsp.Body);
+                    break;
+                }
+                catch (Exception e)
+                {
+                    throw;
+                }
+            } while (true);
             return aliExpressReceiptRoot?.AliExpressReceiptInfoResult.AliExpressOrderReceiptInfoDto;
         }
 

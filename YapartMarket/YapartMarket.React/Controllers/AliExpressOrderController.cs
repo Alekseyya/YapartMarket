@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +18,13 @@ namespace YapartMarket.React.Controllers
     public class AliExpressOrderController : Controller
     {
         private readonly IAliExpressOrderService _aliExpressOrderService;
+        private readonly IAliExpressOrderReceiptInfoService _aliExpressOrderReceiptInfoService;
         private readonly IMapper _mapper;
 
-        public AliExpressOrderController(IAliExpressOrderService aliExpressOrderService, IMapper mapper)
+        public AliExpressOrderController(IAliExpressOrderService aliExpressOrderService, IAliExpressOrderReceiptInfoService aliExpressOrderReceiptInfoService,  IMapper mapper)
         {
             _aliExpressOrderService = aliExpressOrderService;
+            _aliExpressOrderReceiptInfoService = aliExpressOrderReceiptInfoService;
             _mapper = mapper;
         }
 
@@ -55,6 +59,37 @@ namespace YapartMarket.React.Controllers
             return Ok();
         }
 
+        [HttpPut]
+        [Route("UpdateOrders")]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateOrders()
+        {
+            try
+            {
+                var dateTimeNow = DateTime.UtcNow;
+                var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
+                if (ordersDTO.Any())
+                {
+                    var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(ordersDTO);
+                    await _aliExpressOrderService.AddOrders(aliExpressOrders);
+                    if (aliExpressOrders.Any())
+                    {
+                        foreach (var aliExpressOrder in aliExpressOrders)
+                        {
+                            var orderReceiptDto = _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
+                            await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(aliExpressOrder.OrderId, orderReceiptDto);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message + "\n" + e.StackTrace);
+            }
+            return Ok();
+        }
+
         [HttpPost]
         [Route("downloadNewOrders")]
         public async Task<IActionResult> DownloadNewOrders()
@@ -69,7 +104,7 @@ namespace YapartMarket.React.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.StackTrace);
+                return BadRequest(e.Message + "\n" + e.StackTrace);
             }
             return StatusCode(200);
         }
