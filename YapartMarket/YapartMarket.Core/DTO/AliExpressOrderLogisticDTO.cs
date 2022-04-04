@@ -26,7 +26,7 @@ namespace YapartMarket.Core.DTO
     public class AliExpressOrderLogisticDTO
     {
         [JsonProperty("recommend_order")]
-        public int RecommendOrder { get; set; }
+        public long RecommendOrder { get; set; }
         [JsonProperty("tracking_no_regex")]
         public string TrackingNoRegex { get; set; }
         [JsonProperty("min_process_day")]

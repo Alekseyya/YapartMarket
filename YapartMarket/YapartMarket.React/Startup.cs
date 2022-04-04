@@ -103,7 +103,7 @@ namespace YapartMarket.React
             services.AddTransient<IAzureAliExpressOrderReceiptInfoRepository>(m => new AzureAliExpressOrderReceiptInfoRepository(new Logger<AzureAliExpressOrderReceiptInfoRepository>(new LoggerFactory()), "dbo.order_receipt_infos", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAzureAliExpressOrderLogisticRedefiningRepository>(m => new AzureAliExpressOrderLogisticRedefiningRepository("dbo.order_redefining", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAliExpressOrderSizeCargoPlaceRepository>(m => new AliExpressOrderSizeCargoPlaceRepository("dbo.order_size_cargo_places", Configuration.GetConnectionString("SQLServerConnectionString")));
-
+            services.AddTransient<IAliExpressLogisticOrderDetailRepository>(m => new AliExpressLogisticOrderDetailRepository("dbo.logistic_order_detail", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.goodsteam.tech"));
             services.AddTransient<IGoodsService, GoodsService>();
@@ -179,7 +179,7 @@ namespace YapartMarket.React
 
 
                 //scheduler.OnWorker("UpdateLogisticServicesInvocable");
-                //scheduler.Schedule<UpdateLogisticServicesInvocable>().Hourly();
+                scheduler.Schedule<UpdateLogisticServicesInvocable>().Hourly();
 
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
                 scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();

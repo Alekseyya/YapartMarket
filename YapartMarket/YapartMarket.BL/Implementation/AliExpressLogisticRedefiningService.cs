@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -52,10 +50,9 @@ namespace YapartMarket.BL.Implementation
             if (newOrderLogistics.Any())
             {
                 //join and select
-                _aliExpressOrderLogisticRedefiningRepository.InsertAsync(newOrderLogistics.Select(x => new
+                await _aliExpressOrderLogisticRedefiningRepository.InsertAsync(newOrderLogistics.Select(x => new
                 {
                     order_id = x.OrderId,
-                    recommend_order = x.RecommendOrder,
                     tracking_no_regex = x.TrackingNoRegex,
                     min_process_day = x.MinProcessDay,
                     logistics_company = x.LogisticCompany,

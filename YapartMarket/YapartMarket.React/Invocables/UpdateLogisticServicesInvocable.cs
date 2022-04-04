@@ -22,9 +22,7 @@ namespace YapartMarket.React.Invocables
             _logger.LogInformation("Получение информации о логистических сервисах.");
            var logisticRedefiningServices = _aliExpressLogisticRedefiningService.LogisticsRedefiningListLogisticsServiceRequest();
            if (logisticRedefiningServices.Any())
-           {
                await _aliExpressLogisticRedefiningService.ProcessLogisticRedefining(logisticRedefiningServices);
-           }
         }
     }
 }
