@@ -92,6 +92,10 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressOrderService, AliExpressOrderService>();
             services.AddTransient<IAliExpressOrderDetailService, AliExpressOrderDetailService>();
             services.AddTransient<IAliExpressOrderReceiptInfoService, AliExpressOrderReceiptInfoService>();
+            services.AddTransient<IAliExpressLogisticRedefiningService, AliExpressLogisticRedefiningService>();
+            services.AddTransient<IAliExpressLogisticOrderDetailService, AliExpressLogisticOrderDetailService>();
+            services.AddTransient<IAliExpressOrderFullfilService, AliExpressOrderFullfilService>();
+
             #endregion
 
             
@@ -174,12 +178,9 @@ namespace YapartMarket.React
                 //scheduler.OnWorker("EmailTasks");
                 //scheduler.Schedule(() => Console.WriteLine("Hourly on Mondays.")).EverySeconds(3);
 
-                scheduler.OnWorker("UpdateOrdersFromAliExpress");
-                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryFiveMinutes();
-
-
-                //scheduler.OnWorker("UpdateLogisticServicesInvocable");
-                scheduler.Schedule<UpdateLogisticServicesInvocable>().Hourly();
+                //scheduler.OnWorker("UpdateOrdersFromAliExpress");
+                //scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryFiveMinutes();
+                
 
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
                 scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();

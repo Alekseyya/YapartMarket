@@ -1,14 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Dapper.Contrib.Extensions;
+using Newtonsoft.Json;
 
 namespace YapartMarket.Core.Models.Azure
 {
-    public class AliExpressOrderLogistic
+    public class AliExpressOrderLogisticRedefining
     {
         [Key]
         public int Id { get; set; }
-        [Column("order_id")]
-        public long OrderId { get; set; }
+        [Column("recommend_order")]
+        public long RecommendOrder { get; set; }
         [Column("tracking_no_regex")]
         public string TrackingNoRegex { get; set; }
         [Column("min_process_day")]

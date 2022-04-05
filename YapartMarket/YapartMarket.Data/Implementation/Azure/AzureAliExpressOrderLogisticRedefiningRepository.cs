@@ -6,7 +6,7 @@ using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
-    public class AzureAliExpressOrderLogisticRedefiningRepository : AzureGenericRepository<AliExpressOrderLogistic>, IAzureAliExpressOrderLogisticRedefiningRepository
+    public class AzureAliExpressOrderLogisticRedefiningRepository : AzureGenericRepository<AliExpressOrderLogisticRedefining>, IAzureAliExpressOrderLogisticRedefiningRepository
     {
         public AzureAliExpressOrderLogisticRedefiningRepository(string tableName, string connectionString) : base(tableName, connectionString)
         {

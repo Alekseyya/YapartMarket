@@ -12,6 +12,7 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
@@ -57,8 +58,7 @@ namespace YapartMarket.BL.Implementation
             var newOrderSizeLogistics = aliExpressOrderSizeCargoPlaces.Except(aliExpressOrderSizeInDb);
             if (newOrderSizeLogistics.Any())
             {
-                //join and select
-                 await _aliExpressOrderSizeCargoPlaceRepository.InsertAsync(newOrderSizeLogistics.Select(x => new
+                await _aliExpressOrderSizeCargoPlaceRepository.InsertAsync(newOrderSizeLogistics.Select(x => new
                 {
                     order_id = x.OrderId,
                     warehouse_name = x.WarehouseName,

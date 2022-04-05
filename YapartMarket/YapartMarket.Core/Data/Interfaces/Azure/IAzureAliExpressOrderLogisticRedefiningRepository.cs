@@ -2,7 +2,7 @@
 
 namespace YapartMarket.Core.Data.Interfaces.Azure
 {
-    public interface IAzureAliExpressOrderLogisticRedefiningRepository : IAzureQueriesGenericRepository<AliExpressOrderLogistic>, IAzureCommandGenericRepository<AliExpressOrderLogistic>
+    public interface IAzureAliExpressOrderLogisticRedefiningRepository : IAzureQueriesGenericRepository<AliExpressOrderLogisticRedefining>, IAzureCommandGenericRepository<AliExpressOrderLogisticRedefining>
     {
     }
 }

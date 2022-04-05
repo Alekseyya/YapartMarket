@@ -23,6 +23,9 @@ namespace YapartMarket.UnitTests.YapartMarket.React.Invocable
         private Mock<IAliExpressOrderService> _mockOrderService;
         private Mock<IMapper> _mockMapper;
         private Mock<ILogger<UpdateOrdersFromAliExpressInvocable>> _mockUpdateOrdersFromAliExpressInvocable;
+        private readonly Mock<IAliExpressLogisticRedefiningService> _mockRedefiningService;
+        private readonly Mock<IAliExpressLogisticOrderDetailService> _mockLogisticOrderDetailService;
+        private readonly Mock<IAliExpressOrderFullfilService> _mockOrderFullfilService;
 
         public TestUpdateOrdersFromAliExpressInvocable()
         {
@@ -38,6 +41,9 @@ namespace YapartMarket.UnitTests.YapartMarket.React.Invocable
             });
             _mockOrderReceiptInfoService = new Mock<IAliExpressOrderReceiptInfoService>();
             _mockOrderService = new Mock<IAliExpressOrderService>();
+            _mockRedefiningService = new Mock<IAliExpressLogisticRedefiningService>();
+            _mockLogisticOrderDetailService = new Mock<IAliExpressLogisticOrderDetailService>();
+            _mockOrderFullfilService = new Mock<IAliExpressOrderFullfilService>();
             _mockUpdateOrdersFromAliExpressInvocable = new Mock<ILogger<UpdateOrdersFromAliExpressInvocable>>();
             _mockMapper = new Mock<IMapper>();
         }
@@ -50,7 +56,7 @@ namespace YapartMarket.UnitTests.YapartMarket.React.Invocable
             _mockOrderService.Setup(s => s.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay(), null));
             _mockOrderService.Verify(s=>s.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay(), null));
             var updateOrdersFromAliExpressInvocable = new UpdateOrdersFromAliExpressInvocable(_mockOrderService.Object,
-                _mockOrderReceiptInfoService.Object, _mockUpdateOrdersFromAliExpressInvocable.Object, _mockMapper.Object);
+                _mockOrderReceiptInfoService.Object, _mockRedefiningService.Object, _mockLogisticOrderDetailService.Object, _mockOrderFullfilService.Object, _mockUpdateOrdersFromAliExpressInvocable.Object, _mockMapper.Object);
             //act
             //assert
             try

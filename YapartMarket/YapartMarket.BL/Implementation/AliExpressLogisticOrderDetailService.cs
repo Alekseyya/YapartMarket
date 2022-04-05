@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Top.Api;
 using Top.Api.Request;
+using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
@@ -14,7 +15,7 @@ using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
 {
-    public sealed class AliExpressLogisticOrderDetailService
+    public sealed class AliExpressLogisticOrderDetailService : IAliExpressLogisticOrderDetailService
     {
         private readonly IOptions<AliExpressOptions> _options;
         private readonly IMapper _mapper;
@@ -31,7 +32,7 @@ namespace YapartMarket.BL.Implementation
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
         }
 
-        public List<AliExpressLogisticsOrderDetailDto> GetLogisticOrderDetail(long orderId)
+        public List<AliExpressLogisticsOrderDetailDto> GetLogisticOrderDetailRequest(long orderId)
         {
             var req = new AliexpressLogisticsQuerylogisticsorderdetailRequest();
             req.TradeOrderId = orderId;
@@ -45,10 +46,9 @@ namespace YapartMarket.BL.Implementation
 
         public async Task ProcessLogisticsOrderDetailAsync(List<AliExpressLogisticsOrderDetailDto> aliExpressLogisticsOrderDetailDtos)
         {
-            var logisticOrderDetails = _mapper.Map<List<AliExpressLogisticsOrderDetailDto>, List<AliExpressLogisticOrderDetail>>(
-                    aliExpressLogisticsOrderDetailDtos);
+            var logisticOrderDetails = _mapper.Map<List<AliExpressLogisticsOrderDetailDto>, List<AliExpressLogisticOrderDetail>>(aliExpressLogisticsOrderDetailDtos);
             var logisticOrderDetailsDb = await aliExpressLogisticOrderDetailRepository.GetInAsync("order_id", new { order_id = logisticOrderDetails.Select(x => x.OrderId) });
-            var newLogisticOrderDetails = logisticOrderDetails.Except(logisticOrderDetailsDb);
+            var newLogisticOrderDetails = logisticOrderDetails.Where(orderLogistic => logisticOrderDetailsDb.All(orderDb => orderDb.OrderId != orderLogistic.OrderId));
             if (newLogisticOrderDetails.Any())
             {
                 await aliExpressLogisticOrderDetailRepository.InsertAsync(newLogisticOrderDetails.Select(x => new
@@ -58,6 +58,11 @@ namespace YapartMarket.BL.Implementation
                     out_order_code = x.OutOrderCode
                 }));
             }
+        }
+        public async Task<AliExpressLogisticOrderDetail> GetDetail(long orderId)
+        {
+            var orderDetail = await aliExpressLogisticOrderDetailRepository.GetAsync("select * from dbo.logistic_order_detail where order_id = @order_id", new { order_id = orderId });
+            return orderDetail.FirstOrDefault();
         }
     }
 }

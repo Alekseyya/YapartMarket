@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
+using YapartMarket.React.Invocables;
 using YapartMarket.React.ViewModels;
 
 namespace YapartMarket.React.Controllers
@@ -16,11 +18,27 @@ namespace YapartMarket.React.Controllers
     public class AliExpressOrderController : Controller
     {
         private readonly IAliExpressOrderService _aliExpressOrderService;
+        private readonly IAliExpressOrderReceiptInfoService _aliExpressOrderReceiptInfoService;
+        private readonly IAliExpressLogisticRedefiningService _aliExpressLogisticRedefiningService;
+        private readonly IAliExpressLogisticOrderDetailService _aliExpressLogisticOrderDetailService;
+        private readonly IAliExpressOrderFullfilService _aliExpressOrderFullfilService;
+        private readonly ILogger<UpdateOrdersFromAliExpressInvocable> _logger;
         private readonly IMapper _mapper;
 
-        public AliExpressOrderController(IAliExpressOrderService aliExpressOrderService, IMapper mapper)
+        public AliExpressOrderController(IAliExpressOrderService aliExpressOrderService,
+            IAliExpressOrderReceiptInfoService aliExpressOrderReceiptInfoService,
+            IAliExpressLogisticRedefiningService aliExpressLogisticRedefiningService,
+            IAliExpressLogisticOrderDetailService aliExpressLogisticOrderDetailService,
+            IAliExpressOrderFullfilService aliExpressOrderFullfilService,
+            ILogger<UpdateOrdersFromAliExpressInvocable> logger,
+            IMapper mapper)
         {
             _aliExpressOrderService = aliExpressOrderService;
+            _aliExpressOrderReceiptInfoService = aliExpressOrderReceiptInfoService;
+            _aliExpressLogisticRedefiningService = aliExpressLogisticRedefiningService;
+            _aliExpressLogisticOrderDetailService = aliExpressLogisticOrderDetailService;
+            _aliExpressOrderFullfilService = aliExpressOrderFullfilService;
+            _logger = logger;
             _mapper = mapper;
         }
 
@@ -52,6 +70,26 @@ namespace YapartMarket.React.Controllers
             var ordersByDay = await _aliExpressOrderService.GetOrders(day.StartOfDay(), day.EndOfDay());
             if (ordersByDay.IsAny())
                 return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<AliExpressOrderViewModel>>(ordersByDay));
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("updateOrders")]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateOrders()
+        {
+            try
+            {
+                var updateOrders = new UpdateOrdersFromAliExpressInvocable(_aliExpressOrderService,
+                    _aliExpressOrderReceiptInfoService, _aliExpressLogisticRedefiningService,
+                    _aliExpressLogisticOrderDetailService, _aliExpressOrderFullfilService, _logger, _mapper);
+                await updateOrders.Invoke();
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Error {e.Message} \n Stacktrace {e.StackTrace}");
+            }
+            
             return Ok();
         }
 

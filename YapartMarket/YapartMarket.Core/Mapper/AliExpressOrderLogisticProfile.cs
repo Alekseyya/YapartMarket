@@ -8,7 +8,7 @@ namespace YapartMarket.Core.Mapper
     {
         public AliExpressOrderLogisticProfile()
         {
-            CreateMap<AliExpressOrderLogisticDTO, AliExpressOrderLogistic>();
+            CreateMap<AliExpressOrderLogisticDTO, AliExpressOrderLogisticRedefining>();
         }
     }
 }
