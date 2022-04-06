@@ -11,6 +11,7 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
@@ -51,7 +52,8 @@ namespace YapartMarket.BL.Implementation
             var newLogisticOrderDetails = logisticOrderDetails.Where(orderLogistic => logisticOrderDetailsDb.All(orderDb => orderDb.OrderId != orderLogistic.OrderId));
             if (newLogisticOrderDetails.Any())
             {
-                await aliExpressLogisticOrderDetailRepository.InsertAsync(newLogisticOrderDetails.Select(x => new
+                var insertOrder = new AliExpressLogisticOrderDetail().InsertString("dbo.logistic_order_detail");
+                await aliExpressLogisticOrderDetailRepository.InsertAsync(insertOrder, newLogisticOrderDetails.Select(x => new
                 {
                     order_id = x.OrderId,
                     logistic_order_id = x.LogisticOrderId,

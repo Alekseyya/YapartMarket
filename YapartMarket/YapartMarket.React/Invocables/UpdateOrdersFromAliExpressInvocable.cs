@@ -21,6 +21,7 @@ namespace YapartMarket.React.Invocables
         private readonly IAliExpressLogisticRedefiningService _aliExpressLogisticRedefiningService;
         private readonly IAliExpressLogisticOrderDetailService _aliExpressLogisticOrderDetailService;
         private readonly IAliExpressOrderFullfilService _aliExpressOrderFullfilService;
+        private readonly ILogisticServiceOrderService _logisticServiceOrderService;
         private readonly ILogger<UpdateOrdersFromAliExpressInvocable> _logger;
         private readonly IMapper _mapper;
 
@@ -30,6 +31,7 @@ namespace YapartMarket.React.Invocables
             IAliExpressLogisticRedefiningService aliExpressLogisticRedefiningService,
             IAliExpressLogisticOrderDetailService aliExpressLogisticOrderDetailService,
             IAliExpressOrderFullfilService aliExpressOrderFullfilService,
+            ILogisticServiceOrderService logisticServiceOrderService,
             ILogger<UpdateOrdersFromAliExpressInvocable> logger,
             IMapper mapper)
         {
@@ -38,6 +40,7 @@ namespace YapartMarket.React.Invocables
             _aliExpressLogisticRedefiningService = aliExpressLogisticRedefiningService;
             _aliExpressLogisticOrderDetailService = aliExpressLogisticOrderDetailService;
             _aliExpressOrderFullfilService = aliExpressOrderFullfilService;
+            _logisticServiceOrderService = logisticServiceOrderService;
             _logger = logger;
             _mapper = mapper;
         }
@@ -60,22 +63,22 @@ namespace YapartMarket.React.Invocables
                     await _aliExpressOrderService.AddOrders(aliExpressOrders);
                     if (aliExpressOrders.Any())
                     {
-                        _logger.LogInformation("Получение информации о логистических сервисах, для всех заказов.");
-                        var logisticRedefiningServices = _aliExpressLogisticRedefiningService.LogisticsRedefiningListLogisticsServiceRequest();
-                        if (logisticRedefiningServices.Any())
-                            await _aliExpressLogisticRedefiningService.ProcessLogisticRedefining(logisticRedefiningServices);
                         _logger.LogInformation("Запись адреса получателя");
                         foreach (var aliExpressOrder in aliExpressOrders)
                         {
                             var orderReceiptDto = _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
                             _logger.LogInformation($"OrderId : {aliExpressOrder.OrderId}");
                             await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(aliExpressOrder.OrderId, orderReceiptDto);
+
                             _logger.LogInformation($"Получение логистического номера заказа {aliExpressOrder.OrderId}");
                             var logisticOrderDetail = _aliExpressLogisticOrderDetailService.GetLogisticOrderDetailRequest(aliExpressOrder.OrderId);
                             await _aliExpressLogisticOrderDetailService.ProcessLogisticsOrderDetailAsync(logisticOrderDetail);
-                            _logger.LogInformation("Подтверждение заказа.");
+                            _logger.LogInformation($"Получение онлайн логистического номера заказа {aliExpressOrder.OrderId}");
+                            //var logisticServiceOrders = _logisticServiceOrderService.GetLogisticServiceOrderRequest(aliExpressOrder.OrderId);
+                            //await _logisticServiceOrderService.ProcessLogisticServiceOrderAsync(aliExpressOrder.OrderId, logisticServiceOrders);
 
-                            var serviceName = (await _aliExpressLogisticRedefiningService.GetRedefining(aliExpressOrder.OrderId)).ServiceName;
+                            _logger.LogInformation("Подтверждение заказа.");
+                            var serviceName = (await _logisticServiceOrderService.GetLogisticServiceOrder(aliExpressOrder.OrderId)).LogisticsServiceName;
                             var logisticNumber = (await _aliExpressLogisticOrderDetailService.GetDetail(aliExpressOrder.OrderId)).LogisticOrderId;
                             _aliExpressOrderFullfilService.OrderFullfil(serviceName, aliExpressOrder.OrderId, logisticNumber);
                         }
