@@ -147,7 +147,7 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                             {
                                 logistics_service_name = aliExpressOrderProductDto.LogisticsServiceName,
                                 ali_order_id = aliExpressOrderProductDto.OrderId,
-                                order_id = newOrderId,
+                                order_id = aliExpressOrder.OrderId,
                                 product_count = aliExpressOrderProductDto.ProductCount,
                                 product_id = aliExpressOrderProductDto.ProductId,
                                 product_name = aliExpressOrderProductDto.ProductName,

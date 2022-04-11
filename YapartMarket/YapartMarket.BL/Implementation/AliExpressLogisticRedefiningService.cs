@@ -66,11 +66,16 @@ namespace YapartMarket.BL.Implementation
             }
         }
 
-        public async Task<AliExpressOrderLogisticRedefining> GetRedefining(long orderId)
+        public async Task<AliExpressOrderLogisticRedefining> GetRedefiningByOrderId(long orderId)
         {
             var orderRedefining = await _aliExpressOrderLogisticRedefiningRepository.GetAsync("select * from dbo.order_redefining where order_id = @order_id",new { order_id = orderId });
             return orderRedefining.FirstOrDefault();
         }
-        
+        public async Task<AliExpressOrderLogisticRedefining> GetRedefiningByDisplayName(string displayName)
+        {
+            var orderRedefining = await _aliExpressOrderLogisticRedefiningRepository.GetAsync("select * from dbo.order_redefining where display_name like @displayName", new { displayName = displayName });
+            return orderRedefining.FirstOrDefault();
+        }
+
     }
 }

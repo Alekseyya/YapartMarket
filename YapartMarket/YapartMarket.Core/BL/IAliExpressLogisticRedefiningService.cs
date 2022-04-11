@@ -10,6 +10,7 @@ namespace YapartMarket.Core.BL
     {
         List<AliExpressOrderLogisticDTO> LogisticsRedefiningListLogisticsServiceRequest();
         Task ProcessLogisticRedefining(List<AliExpressOrderLogisticDTO> aliExpressOrderLogisticDtos);
-        Task<AliExpressOrderLogisticRedefining> GetRedefining(long orderId);
+        Task<AliExpressOrderLogisticRedefining> GetRedefiningByOrderId(long orderId);
+        Task<AliExpressOrderLogisticRedefining> GetRedefiningByDisplayName(string displayName);
     }
 }
