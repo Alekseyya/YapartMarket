@@ -70,19 +70,19 @@ namespace YapartMarket.Data.Implementation.Azure
                 using (var connection = new SqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var orderDictionary = new Dictionary<int, AliExpressOrder>();
+                    var orderDictionary = new Dictionary<long, AliExpressOrder>();
                     var orderInDb = await connection.QueryAsync<AliExpressOrder, AliExpressOrderDetail, AliExpressOrder>(
                         @"select * FROM dbo.orders o 
-inner join dbo.order_details od on o.id = od.order_id 
+inner join dbo.order_details od on o.order_id = od.order_id 
 where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and order_status = @order_status",
                         (order, orderDetail) =>
                         {
                             AliExpressOrder orderEntry;
-                            if (!orderDictionary.TryGetValue(order.Id, out orderEntry))
+                            if (!orderDictionary.TryGetValue(order.OrderId, out orderEntry))
                             {
                                 orderEntry = order;
                                 orderEntry.AliExpressOrderDetails = new List<AliExpressOrderDetail>();
-                                orderDictionary.Add(orderEntry.Id, orderEntry);
+                                orderDictionary.Add(orderEntry.OrderId, orderEntry);
                             }
                             orderEntry.AliExpressOrderDetails.Add(orderDetail);
                             return orderEntry;
@@ -163,7 +163,7 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                     }
                     catch (Exception ex)
                     {
-                        _azureAliExpressOrderLogger.LogInformation($"OrderId : {aliExpressOrder.OrderId} OrderDetails: {string.Join(',', aliExpressOrder.AliExpressOrderDetails.Select(x => $" OrderId :{x.OrderId} AliOrderId: {x.AliOrderId}"))} \n");
+                        _azureAliExpressOrderLogger.LogInformation($"OrderId : {aliExpressOrder.OrderId} OrderDetails: {string.Join(',', aliExpressOrder.AliExpressOrderDetails.Select(x => $" OrderId :{x.OrderId}"))} \n");
                         _azureAliExpressOrderLogger.LogWarning(ex.Message);
                         _azureAliExpressOrderLogger.LogWarning(ex.StackTrace);
                         throw;

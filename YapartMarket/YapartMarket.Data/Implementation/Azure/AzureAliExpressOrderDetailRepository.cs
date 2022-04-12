@@ -33,14 +33,18 @@ namespace YapartMarket.Data.Implementation.Azure
                     var orderDetailsAnom = orderDetails.Select(orderDetail => new
                     {
                         id = orderDetail.Id,
+                        order_id = orderDetail.OrderId,
                         logistics_service_name = orderDetail.LogisticsServiceName,
                         product_count = orderDetail.ProductCount,
+                        product_id = orderDetail.ProductId,
                         product_name = orderDetail.ProductName,
                         product_unit_price = orderDetail.ProductUnitPrice,
                         send_goods_operator = orderDetail.SendGoodsOperator,
                         show_status = orderDetail.ShowStatus,
+                        goods_prepare_time = orderDetail.GoodsPrepareTime,
                         total_count_product_amount = orderDetail.TotalProductAmount,
-                        updated = DateTime.Now
+                        updated = DateTime.Now,
+                        created = DateTime.Now
                     });
                     await connection.ExecuteAsync(updateOrderDetailString, orderDetailsAnom);
                 }
@@ -65,7 +69,6 @@ namespace YapartMarket.Data.Implementation.Azure
                     {
                         logistics_service_name = orderDetail.LogisticsServiceName,
                         order_id = orderDetail.OrderId,
-                        ali_order_id = orderDetail.AliOrderId,
                         product_count = orderDetail.ProductCount,
                         product_id = orderDetail.ProductId,
                         product_name = orderDetail.ProductName,
@@ -74,7 +77,8 @@ namespace YapartMarket.Data.Implementation.Azure
                         show_status = orderDetail.ShowStatus,
                         goods_prepare_time = orderDetail.GoodsPrepareTime,
                         total_count_product_amount = orderDetail.TotalProductAmount,
-                        created = DateTime.Now
+                        created = DateTime.Now,
+                        updated = DateTime.Now
                     });
                     await connection.ExecuteAsync(insertOrderDetailString, orderDetailsAnom);
                 }

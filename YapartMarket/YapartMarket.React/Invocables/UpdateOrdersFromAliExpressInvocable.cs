@@ -70,15 +70,17 @@ namespace YapartMarket.React.Invocables
                             var orderReceiptDto = _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
                             _logger.LogInformation($"OrderId : {aliExpressOrder.OrderId}");
                             await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(aliExpressOrder.OrderId, orderReceiptDto);
-                            _logger.LogInformation($"Получение логистического номера заказа {aliExpressOrder.OrderId}");
-                            var logisticOrderDetail = _aliExpressLogisticOrderDetailService.GetLogisticOrderDetailRequest(aliExpressOrder.OrderId);
-                            await _aliExpressLogisticOrderDetailService.ProcessLogisticsOrderDetailAsync(logisticOrderDetail);
-                            _logger.LogInformation("Подтверждение заказа.");
-                            var logisticServiceName = aliExpressOrder.AliExpressOrderDetails.FirstOrDefault()?.LogisticsServiceName;
 
-                            var serviceName = (await _aliExpressLogisticRedefiningService.GetRedefiningByDisplayName(logisticServiceName)).ServiceName;
-                            var logisticNumber = (await _aliExpressLogisticOrderDetailService.GetDetail(aliExpressOrder.OrderId)).LogisticOrderId;
-                            _aliExpressOrderFullfilService.OrderFullfil(serviceName, aliExpressOrder.OrderId, logisticNumber);
+                            //todo это пока не работает
+                            //_logger.LogInformation($"Получение логистического номера заказа {aliExpressOrder.OrderId}");
+                            //var logisticOrderDetail = _aliExpressLogisticOrderDetailService.GetLogisticOrderDetailRequest(aliExpressOrder.OrderId);
+                            //await _aliExpressLogisticOrderDetailService.ProcessLogisticsOrderDetailAsync(logisticOrderDetail);
+                            //_logger.LogInformation("Подтверждение заказа.");
+                            //var logisticServiceName = aliExpressOrder.AliExpressOrderDetails.FirstOrDefault()?.LogisticsServiceName;
+
+                            //var serviceName = (await _aliExpressLogisticRedefiningService.GetRedefiningByDisplayName(logisticServiceName)).ServiceName;
+                            //var logisticNumber = (await _aliExpressLogisticOrderDetailService.GetDetail(aliExpressOrder.OrderId)).LogisticOrderId;
+                            //_aliExpressOrderFullfilService.OrderFullfil(serviceName, aliExpressOrder.OrderId, logisticNumber);
                         }
                     }
                 }

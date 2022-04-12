@@ -19,6 +19,7 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.DTO.AliExpress;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
@@ -114,7 +115,7 @@ namespace YapartMarket.BL.Implementation
                     }
                     currentPage++;
                 } while (haveElement);
-                await ProcessUpdateSku();
+                await ProcessUpdateProduct();
             }
             catch (Exception)
             {
@@ -122,89 +123,78 @@ namespace YapartMarket.BL.Implementation
             }
         }
 
-        public async Task ProcessUpdateSku()
+
+        public async Task<List<ProductInfoResult>> GetProductFromAli(List<long?> productIds)
         {
-            bool repeat = false;
+            var repeat = true;
+            var getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+            var listProductInfo = new List<ProductInfoResult>();
             do
             {
-                var productsInDbEmptySku = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts where sku is null");
-                //обновить у них SKU
-                if (productsInDbEmptySku.IsAny())
+                foreach (var productId in productIds)
                 {
-                    ITopClient getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint,
-                        _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-                    var updatedProductsFromDb = new List<AliExpressProduct>();
                     try
                     {
-                        var countUpdateData = 0;
-                        var skipRows = 0;
-                        for (int i = 0; i < productsInDbEmptySku.Count(); i++)
+                        var requestProductInfo = new AliexpressSolutionProductInfoGetRequest
                         {
-                            var productInDb = productsInDbEmptySku.ElementAt(i);
-                            var requestProductInfo = new AliexpressSolutionProductInfoGetRequest
-                            {
-                                ProductId = productInDb.ProductId
-                            };
-                            var productInfoResponse = getClient.Execute(requestProductInfo, _aliExpressOptions.AccessToken);
-                            var productInfo = ProductStringToDTO(productInfoResponse.Body); //read Json
-                            if (productInfo != null)
-                            {
-                                productInDb.SKU = productInfo.SkuCode;
-                                productInDb.Inventory = productInfo.SkuStock;
-                            }
-
-                            countUpdateData++;
-                            updatedProductsFromDb.Add(productInDb);
-                            if (countUpdateData == 100 || i == productsInDbEmptySku.Count() - 1)
-                            {
-                                updatedProductsFromDb = new List<AliExpressProduct>();
-                                foreach (var product in productsInDbEmptySku.Skip(skipRows).Take(countUpdateData))
-                                {
-                                    await _azureAliExpressProductRepository
-                                        .Update( //todo переписать на формирование большого update text!!!!
-                                            "update aliExpressProducts set sku = @sku, inventory = @inventory, updatedAt = @updatedAt where productId = @productId",
-                                            new
-                                            {
-                                                sku = product.SKU,
-                                                inventory = product.Inventory,
-                                                updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                                productId = product.ProductId
-                                            });
-                                }
-
-                                skipRows += countUpdateData;
-                                countUpdateData = 0;
-                            }
-                        }
+                            ProductId = productId
+                        };
+                        var productInfoResponse = getClient.Execute(requestProductInfo, _aliExpressOptions.AccessToken);
+                        var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(productInfoResponse.Body)?.Response.ProductInfoResult;
+                        listProductInfo.Add(productInfo);
                     }
                     catch (WebException ex)
                     {
                         if (ex.Status == WebExceptionStatus.Timeout)
                         {
-                            if (updatedProductsFromDb.Any())
-                            {
-                                foreach (var updateProductFromDb in updatedProductsFromDb)
-                                {
-                                    await _azureAliExpressProductRepository.Update(
-                                        "update aliExpressProducts set sku = @sku, inventory = @inventory, updatedAt = @updatedAt where productId = @productId",
-                                        new
-                                        {
-                                            sku = updateProductFromDb.SKU,
-                                            inventory = updateProductFromDb.Inventory,
-                                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                            productId = updateProductFromDb.ProductId
-                                        });
-                                }
-                            }
-
-                            await Task.Delay(10000);
-                            repeat = true;
+                            await Task.Delay(5000);
                         }
                     }
                 }
-                else
-                    repeat = false;
+                repeat = false;
+
             } while (repeat);
+
+            return listProductInfo;
+        }
+
+        public async Task ProcessUpdateProduct()
+        {
+            var productsInDb = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts");
+            //обновить у них SKU
+            if (productsInDb.IsAny())
+            {
+                try
+                {
+                    var productsInfo = await GetProductFromAli(productsInDb.Select(x => x.ProductId).ToList());
+                    var updateList = productsInfo.Select(x => new
+                    {
+                        sku = x.ProductInfoSku.GlobalProductSkus.First().Code,
+                        category_id = x.CategoryId,
+                        currency_code = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode,
+                        group_id = x.GroupId,
+                        package_height = x.PackageHeight,
+                        package_length = x.PackageLength,
+                        package_width = x.PackageWidth,
+                        product_price = decimal.Parse(x.ProductPrice),
+                        product_status_type = x.ProductStatusType,
+                        product_unit = x.ProductUnit,
+                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                        productId = x.ProductId
+
+                    });
+                    await _azureAliExpressProductRepository.Update( //todo переписать на формирование большого update text!!!!
+                            "update aliExpressProducts set sku = @sku, category_id = @category_id, currency_code = @currency_code, group_id = @group_id, package_height = @package_height, package_length = @package_length, package_width = @package_width," +
+                            "product_price = @product_price, product_status_type = @product_status_type, product_unit = @product_unit, updatedAt = @updatedAt" +
+                            "  where productId = @productId",
+                            updateList);
+
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
         }
 
         public async Task AddNewProducts(IEnumerable<AliExpressProductDTO> products)
@@ -340,7 +330,7 @@ namespace YapartMarket.BL.Implementation
             }
         }
 
-        public AliExpressProductDTO GetProduct(long productId)
+        public ProductInfoResult GetProductInfo(long productId)
         {
             ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
             AliexpressSolutionProductInfoGetRequest req = new AliexpressSolutionProductInfoGetRequest
@@ -348,10 +338,10 @@ namespace YapartMarket.BL.Implementation
                 ProductId = productId
             };
             AliexpressSolutionProductInfoGetResponse rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-            return ProductStringToDTO(rsp.Body);
+            var result = JsonConvert.DeserializeObject<ProductInfoRoot>(rsp.Body);
+            return result?.Response.ProductInfoResult;
         }
 
-        //todo А если придется читать не json -а XML - разбить на отдельный классы/command/Queryes!!!
         private IEnumerable<AliExpressProductDTO> GetProductFromJson(string json)
         {
             var jsonObject = JObject.Parse(json);

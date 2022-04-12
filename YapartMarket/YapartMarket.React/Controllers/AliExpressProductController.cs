@@ -52,7 +52,7 @@ namespace YapartMarket.React.Controllers
             {
                 if (productId == 0)
                     return BadRequest("Не указан productId");
-                var productInfo =_aliExpressProductService.GetProduct(productId);
+                var productInfo =_aliExpressProductService.GetProductInfo(productId);
                 return Ok(productInfo);
             }
             catch (Exception e)
@@ -83,7 +83,7 @@ namespace YapartMarket.React.Controllers
                     }
                 };
                 _aliExpressProductService.UpdateInventoryProducts(products);
-                var productInfo = _aliExpressProductService.GetProduct(productId);
+                var productInfo = _aliExpressProductService.GetProductInfo(productId);
                 return Ok(productInfo);
             }
             catch (Exception e)

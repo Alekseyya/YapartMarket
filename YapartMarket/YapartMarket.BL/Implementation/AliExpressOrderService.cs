@@ -78,26 +78,37 @@ namespace YapartMarket.BL.Implementation
 
         public async Task AddOrders(List<AliExpressOrder> aliExpressOrders)
         {
+            foreach (var aliExpressOrder in aliExpressOrders)
+            {
+                foreach (var aliExpressOrderDetail in aliExpressOrder.AliExpressOrderDetails)
+                {
+                    aliExpressOrderDetail.OrderId = aliExpressOrder.OrderId;
+                }
+            }
             var newAliExpressOrders = await ExceptOrders(aliExpressOrders);
             if (newAliExpressOrders.Any())
                 await _orderRepository.AddOrdersWitchOrderDetails(newAliExpressOrders);
             var updatedOrders = await IntersectOrder(aliExpressOrders);
+            await ProcessAddOrUpdateOrderDetails(aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).ToList());
             if (updatedOrders.IsAny())
             {
                 await _orderRepository.Update(updatedOrders);
                 //список товаров в заказах из бд, новые в списке orderUpdates не учитываются
                 var orderDetailUpdatesDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = updatedOrders.Select(x => x.OrderId) });
-
-                var orderDetailUpdates = updatedOrders.SelectMany(x => x.AliExpressOrderDetails);
-                //поучить те записи которые изменились
-                var modifyOrderDetails = orderDetailUpdatesDb.Where(x => orderDetailUpdates.Any(t =>
-                    t.OrderId == x.OrderId
-                    && t.ProductCount != x.ProductCount && t.ProductUnitPrice != x.ProductUnitPrice && t.SendGoodsOperator != x.SendGoodsOperator
-                    && t.ShowStatus != x.ShowStatus && t.TotalProductAmount != x.TotalProductAmount));
-                await _orderDetailRepository.Update(modifyOrderDetails);
-                //новые записи
-                var newOrderDetails = orderDetailUpdates.Where(x => orderDetailUpdatesDb.Any(t => t.OrderId == x.OrderId && t.ProductId != x.ProductCount));
-                await _orderDetailRepository.Add(newOrderDetails);
+                var orderDetailUpdates = updatedOrders.SelectMany(x => x.AliExpressOrderDetails).ToList();
+                if (orderDetailUpdatesDb.Any())
+                {
+                    //поучить те записи которые изменились
+                    var modifyOrderDetails = orderDetailUpdatesDb.Where(x => orderDetailUpdates.Any(t =>
+                        t.OrderId == x.OrderId
+                        && t.ProductCount != x.ProductCount && t.ProductUnitPrice != x.ProductUnitPrice && t.SendGoodsOperator != x.SendGoodsOperator
+                        && t.ShowStatus != x.ShowStatus && t.TotalProductAmount != x.TotalProductAmount));
+                    await _orderDetailRepository.Update(modifyOrderDetails);
+                    //новые записи
+                    var newOrderDetails = orderDetailUpdates.Where(x => orderDetailUpdatesDb.Any(t => t.OrderId == x.OrderId && t.ProductId != x.ProductCount));
+                    await _orderDetailRepository.Add(newOrderDetails);
+                }else
+                    await _orderDetailRepository.Add(orderDetailUpdates);
             }
         }
         /// <summary>
@@ -110,6 +121,40 @@ namespace YapartMarket.BL.Implementation
             var orderInDb = await _orderRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
             return aliExpressOrderList.Where(aliOrder => orderInDb.All(orderDb => orderDb.OrderId != aliOrder.OrderId));
         }
+
+        public async Task ProcessAddOrUpdateOrderDetails(List<AliExpressOrderDetail> aliExpressOrderList)
+        {
+            var orderDetailsDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
+            var newOrderDetail = aliExpressOrderList.Where(x => orderDetailsDb.All(t => t.OrderId != x.OrderId)).ToList();
+            if (orderDetailsDb.IsAny())
+            {
+                var orderDetailUpdate = aliExpressOrderList.Where(x => orderDetailsDb.Any(t =>
+                    (t.OrderId == x.OrderId && t.ProductId == x.ProductId) &&
+                    (t.LogisticsServiceName != x.LogisticsServiceName || t.ProductCount != x.ProductCount ||
+                     t.ProductUnitPrice != x.ProductUnitPrice || t.SendGoodsOperator != x.SendGoodsOperator ||
+                     t.ShowStatus != x.ShowStatus || t.GoodsPrepareTime != x.GoodsPrepareTime)));
+                if (orderDetailUpdate.IsAny())
+                    await _orderDetailRepository.Update(orderDetailUpdate);
+            }
+            if(newOrderDetail.IsAny())
+                await _orderDetailRepository.Add(newOrderDetail);
+        }
+
+        public async Task<IEnumerable<AliExpressOrderDetail>> IntersectOrderDetail(List<AliExpressOrderDetail> aliExpressOrderList)
+        {
+            var orderDetailsDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x=>x.OrderId)});
+            if (orderDetailsDb.Any())
+            {
+                var orderDetailUpdate = aliExpressOrderList.Where(x => orderDetailsDb.Any(t =>
+                    (t.OrderId == x.OrderId && t.ProductId == x.ProductId) &&
+                    (t.LogisticsServiceName != x.LogisticsServiceName || t.ProductCount != x.ProductCount ||
+                     t.ProductUnitPrice != x.ProductUnitPrice || t.SendGoodsOperator != x.SendGoodsOperator ||
+                     t.ShowStatus != x.ShowStatus || t.GoodsPrepareTime != x.GoodsPrepareTime)));
+                return orderDetailUpdate;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Получить заказы которые надо обновить
         /// </summary>
@@ -129,6 +174,7 @@ namespace YapartMarket.BL.Implementation
                     orderDb.FundStatus != x.FundStatus ||
                     orderDb.FrozenStatus != x.FrozenStatus)
             )).ToList();
+
             foreach (var orderInDb in ordersInDb)
             {
                 if (orderUpdates.Any(x => x.OrderId == orderInDb.OrderId))

@@ -13,7 +13,7 @@ namespace YapartMarket.Core.Mapper
             CreateMap<AliExpressOrderProductDTO, AliExpressOrderDetail>()
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.LogisticsServiceName,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.LogisticsServiceName))
-                .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.AliOrderId,
+                .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.OrderId,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.OrderId))
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.OrderId,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.Ignore())

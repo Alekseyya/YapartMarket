@@ -13,9 +13,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("logistics_service_name")]
         public string LogisticsServiceName { get; set; }
         [Column("order_id")]
-        public int OrderId { get; set; }
-        [Column("ali_order_id")]
-        public long AliOrderId { get; set; }
+        public long OrderId { get; set; }
         [Column("product_count")]
         public int ProductCount { get; set; }
         [Column("product_id")]
@@ -36,8 +34,6 @@ namespace YapartMarket.Core.Models.Azure
         public DateTime Created { get; set; }
         [Column("updated")]
         public DateTime Updated { get; set; }
-        [Computed]
-        public AliExpressOrder AliExpressOrder { get; set; }
         [Computed]
         public Product Product { get; set; }
     }
