@@ -21,6 +21,7 @@ namespace YapartMarket.React.Invocables
         private readonly IAliExpressLogisticRedefiningService _aliExpressLogisticRedefiningService;
         private readonly IAliExpressLogisticOrderDetailService _aliExpressLogisticOrderDetailService;
         private readonly IAliExpressOrderFullfilService _aliExpressOrderFullfilService;
+        private readonly ILogisticServiceOrderService _logisticServiceOrderService;
         private readonly ILogger<UpdateOrdersFromAliExpressInvocable> _logger;
         private readonly IMapper _mapper;
 
@@ -30,6 +31,7 @@ namespace YapartMarket.React.Invocables
             IAliExpressLogisticRedefiningService aliExpressLogisticRedefiningService,
             IAliExpressLogisticOrderDetailService aliExpressLogisticOrderDetailService,
             IAliExpressOrderFullfilService aliExpressOrderFullfilService,
+            ILogisticServiceOrderService logisticServiceOrderService,
             ILogger<UpdateOrdersFromAliExpressInvocable> logger,
             IMapper mapper)
         {
@@ -38,6 +40,7 @@ namespace YapartMarket.React.Invocables
             _aliExpressLogisticRedefiningService = aliExpressLogisticRedefiningService;
             _aliExpressLogisticOrderDetailService = aliExpressLogisticOrderDetailService;
             _aliExpressOrderFullfilService = aliExpressOrderFullfilService;
+            _logisticServiceOrderService = logisticServiceOrderService;
             _logger = logger;
             _mapper = mapper;
         }
@@ -60,10 +63,6 @@ namespace YapartMarket.React.Invocables
                     await _aliExpressOrderService.AddOrders(aliExpressOrders);
                     if (aliExpressOrders.Any())
                     {
-                        _logger.LogInformation("Получение информации о логистических сервисах, для всех заказов.");
-                        var logisticRedefiningServices = _aliExpressLogisticRedefiningService.LogisticsRedefiningListLogisticsServiceRequest();
-                        if (logisticRedefiningServices.Any())
-                            await _aliExpressLogisticRedefiningService.ProcessLogisticRedefining(logisticRedefiningServices);
                         _logger.LogInformation("Запись адреса получателя");
                         foreach (var aliExpressOrder in aliExpressOrders)
                         {

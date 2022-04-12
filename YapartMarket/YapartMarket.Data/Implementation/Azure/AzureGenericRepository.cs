@@ -143,6 +143,23 @@ namespace YapartMarket.Data.Implementation.Azure
             
         }
 
+        public virtual async Task InsertAsync(string sql, object insert)
+        {
+            try
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    await connection.ExecuteAsync(sql, insert);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public virtual async Task<IEnumerable<int>> InsertAsync(IEnumerable<object> listObjects)
         {
             var insertSql = Activator.CreateInstance<T>().InsertString(_tableName);

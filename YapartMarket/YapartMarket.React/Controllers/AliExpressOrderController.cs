@@ -22,6 +22,7 @@ namespace YapartMarket.React.Controllers
         private readonly IAliExpressLogisticRedefiningService _aliExpressLogisticRedefiningService;
         private readonly IAliExpressLogisticOrderDetailService _aliExpressLogisticOrderDetailService;
         private readonly IAliExpressOrderFullfilService _aliExpressOrderFullfilService;
+        private readonly ILogisticServiceOrderService _logisticServiceOrderService;
         private readonly ILogger<UpdateOrdersFromAliExpressInvocable> _logger;
         private readonly IMapper _mapper;
 
@@ -30,6 +31,7 @@ namespace YapartMarket.React.Controllers
             IAliExpressLogisticRedefiningService aliExpressLogisticRedefiningService,
             IAliExpressLogisticOrderDetailService aliExpressLogisticOrderDetailService,
             IAliExpressOrderFullfilService aliExpressOrderFullfilService,
+            ILogisticServiceOrderService logisticServiceOrderService,
             ILogger<UpdateOrdersFromAliExpressInvocable> logger,
             IMapper mapper)
         {
@@ -38,6 +40,7 @@ namespace YapartMarket.React.Controllers
             _aliExpressLogisticRedefiningService = aliExpressLogisticRedefiningService;
             _aliExpressLogisticOrderDetailService = aliExpressLogisticOrderDetailService;
             _aliExpressOrderFullfilService = aliExpressOrderFullfilService;
+            _logisticServiceOrderService = logisticServiceOrderService;
             _logger = logger;
             _mapper = mapper;
         }
@@ -82,7 +85,7 @@ namespace YapartMarket.React.Controllers
             {
                 var updateOrders = new UpdateOrdersFromAliExpressInvocable(_aliExpressOrderService,
                     _aliExpressOrderReceiptInfoService, _aliExpressLogisticRedefiningService,
-                    _aliExpressLogisticOrderDetailService, _aliExpressOrderFullfilService, _logger, _mapper);
+                    _aliExpressLogisticOrderDetailService, _aliExpressOrderFullfilService, _logisticServiceOrderService, _logger, _mapper);
                 await updateOrders.Invoke();
             }
             catch (Exception e)

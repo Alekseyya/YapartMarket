@@ -95,6 +95,7 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressLogisticRedefiningService, AliExpressLogisticRedefiningService>();
             services.AddTransient<IAliExpressLogisticOrderDetailService, AliExpressLogisticOrderDetailService>();
             services.AddTransient<IAliExpressOrderFullfilService, AliExpressOrderFullfilService>();
+            services.AddTransient<ILogisticServiceOrderService, LogisticServiceOrderService>();
 
             #endregion
 
@@ -108,6 +109,7 @@ namespace YapartMarket.React
             services.AddTransient<IAzureAliExpressOrderLogisticRedefiningRepository>(m => new AzureAliExpressOrderLogisticRedefiningRepository("dbo.order_redefining", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAliExpressOrderSizeCargoPlaceRepository>(m => new AliExpressOrderSizeCargoPlaceRepository("dbo.order_size_cargo_places", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAliExpressLogisticOrderDetailRepository>(m => new AliExpressLogisticOrderDetailRepository("dbo.logistic_order_detail", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<ILogisticServiceOrderRepository>(m => new LogisticServiceOrderRepository("dbo.logistic_service_order", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.goodsteam.tech"));
             services.AddTransient<IGoodsService, GoodsService>();
@@ -118,6 +120,7 @@ namespace YapartMarket.React
             services.AddTransient<UpdateProductIdFromAliExpressInvocable>();
             services.AddTransient<DoSomethingInvocable>();
             services.AddTransient<UpdateOrdersFromAliExpressInvocable>();
+            services.AddTransient<UpdateLogisticRedefiningInvocable>();
 
             services.AddMediatR(typeof(Startup));
             //CustomMapper для Dapper
