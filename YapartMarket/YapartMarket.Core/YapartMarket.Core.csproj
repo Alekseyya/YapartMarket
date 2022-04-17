@@ -6,7 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTO\Goods\" />
+    <Compile Remove="DTO\Goods\**" />
+    <EmbeddedResource Remove="DTO\Goods\**" />
+    <None Remove="DTO\Goods\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Models\Identiry\" />
   </ItemGroup>
 

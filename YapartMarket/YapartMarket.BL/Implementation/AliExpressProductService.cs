@@ -29,14 +29,18 @@ namespace YapartMarket.BL.Implementation
     {
         private readonly IAzureAliExpressProductRepository _azureAliExpressProductRepository;
         private readonly IAzureProductRepository _azureProductRepository;
+        private readonly IProductPropertyRepository _productPropertyRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AliExpressProductService> _logger;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressProductService(IAzureAliExpressProductRepository azureAliExpressProductRepository, IAzureProductRepository azureProductRepository, IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
+        public AliExpressProductService(IAzureAliExpressProductRepository azureAliExpressProductRepository, IAzureProductRepository azureProductRepository,
+            IProductPropertyRepository productPropertyRepository,
+            IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
         {
             _azureAliExpressProductRepository = azureAliExpressProductRepository;
             _azureProductRepository = azureProductRepository;
+            _productPropertyRepository = productPropertyRepository;
             _configuration = configuration;
             _logger = logger;
             _aliExpressOptions = options.Value;
@@ -183,11 +187,31 @@ namespace YapartMarket.BL.Implementation
                         productId = x.ProductId
 
                     });
-                    await _azureAliExpressProductRepository.Update( //todo переписать на формирование большого update text!!!!
+                    await _azureAliExpressProductRepository.Update(
                             "update aliExpressProducts set sku = @sku, category_id = @category_id, currency_code = @currency_code, group_id = @group_id, package_height = @package_height, package_length = @package_length, package_width = @package_width," +
                             "product_price = @product_price, product_status_type = @product_status_type, product_unit = @product_unit, updatedAt = @updatedAt" +
                             "  where productId = @productId",
                             updateList);
+                    foreach (var productInfo in productsInfo)
+                    {
+                        var globalProperties = productInfo.ProductInfoProperties.GlobalProductProperties;
+                        if (globalProperties.Any())
+                        {
+                            var productInfoDb = await _productPropertyRepository.GetAsync("select * from ali_product_properties where product_id = @product_id", new { product_id = productInfo.ProductId });
+                            if (!productInfoDb.IsAny())
+                            {
+                                var insertProductPropertySql = new ProductProperty().InsertString("dbo.ali_product_properties");
+                                await _productPropertyRepository.InsertAsync(insertProductPropertySql,
+                                    globalProperties.Select(x => new
+                                    {
+                                        product_id = productInfo.ProductId,
+                                        attr_name = x.AttributeName,
+                                        attr_name_id = x.AttributeNameId,
+                                        attr_value = x.AttributeValue
+                                    }));
+                            }
+                        }
+                    }
 
                 }
                 catch (Exception ex)

@@ -110,6 +110,7 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressOrderSizeCargoPlaceRepository>(m => new AliExpressOrderSizeCargoPlaceRepository("dbo.order_size_cargo_places", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IAliExpressLogisticOrderDetailRepository>(m => new AliExpressLogisticOrderDetailRepository("dbo.logistic_order_detail", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<ILogisticServiceOrderRepository>(m => new LogisticServiceOrderRepository("dbo.logistic_service_order", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<IProductPropertyRepository>(m => new ProductPropertiesRepository("dbo.ali_product_properties", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.goodsteam.tech"));
             services.AddTransient<IGoodsService, GoodsService>();

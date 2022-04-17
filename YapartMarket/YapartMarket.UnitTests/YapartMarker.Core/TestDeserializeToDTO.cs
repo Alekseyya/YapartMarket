@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.DTO.AliExpress;
 using YapartMarket.Core.JsonConverters;
 
 namespace YapartMarket.UnitTests.YapartMarker.Core
@@ -125,6 +126,32 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             var aliExpressOrder = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json);
             Assert.NotNull(aliExpressOrder);
             Assert.NotNull(aliExpressOrder.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto.AliExpressOrderListDTOs);
+        }
+
+        [Fact]
+        public void Deserialize_Category_ReturnSuccess()
+        {
+            //Arrange
+            var childrenCategoryId = 5090301;
+            var json =
+                "{\r\n    \"aliexpress_solution_seller_category_tree_query_response\":{\r\n        \"children_category_list\":{\r\n            \"category_info\":[\r\n                {\r\n                    \"children_category_id\":5090301,\r\n                    \"is_leaf_category\":true,\r\n                    \"level\":2,\r\n                    \"multi_language_names\":\"{   \\\"de\\\": \\\"Mobiltelefon\\\",   \\\"ru\\\": \\\"Мобильные телефоны\\\",   \\\"pt\\\": \\\"Telefonia\\\",   \\\"in\\\": \\\"Ponsel\\\",   \\\"en\\\": \\\"Mobile Phones\\\",   \\\"it\\\": \\\"Telefoni cellulari\\\",   \\\"fr\\\": \\\"Smartphones\\\",   \\\"es\\\": \\\"Smartphones\\\",   \\\"tr\\\": \\\"Cep Telefonu\\\",   \\\"nl\\\": \\\"Mobiele telefoons\\\" }\"\r\n                }\r\n            ]\r\n        },\r\n        \"is_success\":true\r\n    }\r\n}";
+            //Act
+            var category = JsonConvert.DeserializeObject<CategoryThreeRoot>(json);
+            //Assert
+            Assert.Equal(category.Response.ChildrenCategoryList.CategoryInfo.First().ChildrenCategoryId, childrenCategoryId);
+        }
+
+        [Fact]
+        public void Deserialize_LanguageName_ReturnSuccess()
+        {
+            //Arrange
+            var ruName = "Мобильные телефоны";
+            var json = "{   \"de\": \"Mobiltelefon\",   \"ru\": \"Мобильные телефоны\",   \"pt\": \"Telefonia\",   \"in\": \"Ponsel\",   \"en\": \"Mobile Phones\",   \"it\": \"Telefoni cellulari\",   \"fr\": \"Smartphones\",   \"es\": \"Smartphones\",   \"tr\": \"Cep Telefonu\",   \"nl\": \"Mobiele telefoons\" }";
+
+            //Act
+            var result = JsonConvert.DeserializeObject<LanguageNames>(json);
+            //Assert
+            Assert.Equal(result.Ru, ruName);
         }
 
         [Fact]
