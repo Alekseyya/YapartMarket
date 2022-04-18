@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.DTO.AliExpress;
@@ -14,6 +12,7 @@ namespace YapartMarket.Core.BL
         void UpdateInventoryProducts(IEnumerable<Product> products);
         Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products);
         ProductInfoResult GetProductInfo(long productId);
+        Task ProcessUpdateProduct();
         Task ProcessUpdateDatabaseAliExpressProductId();
         Task<IEnumerable<Product>> ListProductsForUpdateInventory();
     }

@@ -1,14 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
-using AutoMapper;
 using Coravel;
-using Coravel.Scheduling.Schedule.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +23,7 @@ using YapartMarket.React.Invocables;
 using YapartMarket.React.Options;
 using YapartMarket.React.Services;
 using YapartMarket.React.Services.Interfaces;
+using CategoryRepository = YapartMarket.Data.Implementation.Azure.CategoryRepository;
 
 namespace YapartMarket.React
 {
@@ -111,6 +107,7 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressLogisticOrderDetailRepository>(m => new AliExpressLogisticOrderDetailRepository("dbo.logistic_order_detail", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<ILogisticServiceOrderRepository>(m => new LogisticServiceOrderRepository("dbo.logistic_service_order", Configuration.GetConnectionString("SQLServerConnectionString")));
             services.AddTransient<IProductPropertyRepository>(m => new ProductPropertiesRepository("dbo.ali_product_properties", Configuration.GetConnectionString("SQLServerConnectionString")));
+            services.AddTransient<ICategoryRepository>(m => new CategoryRepository("dbo.ali_category", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.goodsteam.tech"));
             services.AddTransient<IGoodsService, GoodsService>();

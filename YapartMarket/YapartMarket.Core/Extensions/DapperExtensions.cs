@@ -28,6 +28,15 @@ namespace YapartMarket.Core.Extensions
             WHERE {sqlIdPairs}";
             return sql;
         }
+        public static string UpdateString<T>(this T obj, string tableName, string where)
+        {
+            var propertyContainer = ParseProperties(obj);
+            var sqlValuePairs = GetSqlPairs(propertyContainer.ValueNames);
+            var sql = $@"UPDATE {tableName} 
+            SET {sqlValuePairs}
+            WHERE {where}";
+            return sql;
+        }
 
         private static string GetSqlPairs(IEnumerable<string> keys, string separator = ", ")
         {

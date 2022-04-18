@@ -16,12 +16,14 @@ namespace YapartMarket.React.Controllers
     public class AliExpressProductController : Controller
     {
         private readonly IAliExpressProductService _aliExpressProductService;
+        private readonly IAliExpressCategoryService _aliExpressCategoryService;
         private readonly IAliExpressTokenService _aliExpressTokenService;
         private readonly AliExpressOptions _option;
 
-        public AliExpressProductController(IOptions<AliExpressOptions> option, IAliExpressProductService aliExpressProductService, IAliExpressTokenService aliExpressTokenService)
+        public AliExpressProductController(IOptions<AliExpressOptions> option, IAliExpressProductService aliExpressProductService, IAliExpressCategoryService aliExpressCategoryService,  IAliExpressTokenService aliExpressTokenService)
         {
             _aliExpressProductService = aliExpressProductService;
+            _aliExpressCategoryService = aliExpressCategoryService;
             _aliExpressTokenService = aliExpressTokenService;
             _option = option.Value;
         }
@@ -58,6 +60,23 @@ namespace YapartMarket.React.Controllers
             catch (Exception e)
             {
                 return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("updateProductAndCategory")]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateProductAndCategory()
+        {
+            try
+            {
+                await _aliExpressProductService.ProcessUpdateProduct();
+                await _aliExpressCategoryService.ProcessUpdateCategories();
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message + "/n" + e.StackTrace);
             }
         }
 

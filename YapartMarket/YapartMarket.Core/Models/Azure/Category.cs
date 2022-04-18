@@ -11,7 +11,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("children_category_id")]
         public int ChildrenCategoryId { get; set; }
         [Column("is_leaf_category")]
-        public int LeafCategory { get; set; }
+        public bool LeafCategory { get; set; }
         [Column("level")]
         public int Level { get; set; }
         [Column("ru_language_name")]

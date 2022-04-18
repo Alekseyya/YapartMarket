@@ -128,7 +128,7 @@ namespace YapartMarket.BL.Implementation
         }
 
 
-        public async Task<List<ProductInfoResult>> GetProductFromAli(List<long?> productIds)
+        private async Task<List<ProductInfoResult>> GetProductFromAli(List<long?> productIds)
         {
             var repeat = true;
             var getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
@@ -165,40 +165,62 @@ namespace YapartMarket.BL.Implementation
         public async Task ProcessUpdateProduct()
         {
             var productsInDb = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts");
-            //обновить у них SKU
             if (productsInDb.IsAny())
             {
                 try
                 {
                     var productsInfo = await GetProductFromAli(productsInDb.Select(x => x.ProductId).ToList());
-                    var updateList = productsInfo.Select(x => new
+                    var productInfoDb = await _azureAliExpressProductRepository.GetInAsync("product_id", new { product_id = productsInfo.Select(x => x.ProductId) });
+                    var modifiesProducts = productsInfo.Where(x => productInfoDb.Any(t=> t.ProductId == x.ProductId 
+                        && t.CategoryId != x.CategoryId && t.ProductUnit != x.ProductUnit && t.CurrencyCode != x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode 
+                        && t.GroupId != x.GroupId && t.PackageHeight != x.PackageHeight && t.PackageLength != x.PackageLength && t.ProductPrice != decimal.Parse(x.ProductPrice)
+                        && t.ProductStatusType != x.ProductStatusType));
+                    if (modifiesProducts.IsAny())
                     {
-                        sku = x.ProductInfoSku.GlobalProductSkus.First().Code,
-                        category_id = x.CategoryId,
-                        currency_code = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode,
-                        group_id = x.GroupId,
-                        package_height = x.PackageHeight,
-                        package_length = x.PackageLength,
-                        package_width = x.PackageWidth,
-                        product_price = decimal.Parse(x.ProductPrice),
-                        product_status_type = x.ProductStatusType,
-                        product_unit = x.ProductUnit,
-                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                        productId = x.ProductId
+                        var updateList = productsInfo.Select(x => new
+                        {
+                            sku = x.ProductInfoSku.GlobalProductSkus.First().Code,
+                            category_id = x.CategoryId,
+                            currency_code = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode,
+                            group_id = x.GroupId,
+                            package_height = x.PackageHeight,
+                            package_length = x.PackageLength,
+                            package_width = x.PackageWidth,
+                            product_price = decimal.Parse(x.ProductPrice),
+                            product_status_type = x.ProductStatusType,
+                            product_unit = x.ProductUnit,
+                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                            productId = x.ProductId
 
-                    });
-                    await _azureAliExpressProductRepository.Update(
+                        });
+                        await _azureAliExpressProductRepository.Update(
                             "update aliExpressProducts set sku = @sku, category_id = @category_id, currency_code = @currency_code, group_id = @group_id, package_height = @package_height, package_length = @package_length, package_width = @package_width," +
                             "product_price = @product_price, product_status_type = @product_status_type, product_unit = @product_unit, updatedAt = @updatedAt" +
                             "  where productId = @productId",
                             updateList);
+                    }
+                    
                     foreach (var productInfo in productsInfo)
                     {
                         var globalProperties = productInfo.ProductInfoProperties.GlobalProductProperties;
                         if (globalProperties.Any())
                         {
-                            var productInfoDb = await _productPropertyRepository.GetAsync("select * from ali_product_properties where product_id = @product_id", new { product_id = productInfo.ProductId });
-                            if (!productInfoDb.IsAny())
+                            var productPropertiesInfoDb = await _productPropertyRepository.GetAsync("select * from ali_product_properties where product_id = @product_id", new { product_id = productInfo.ProductId });
+                            var modifiedProperties = globalProperties.Where(x => productPropertiesInfoDb.Any(t =>
+                                t.ProductId == productInfo.ProductId && t.AttributeName != x.AttributeName &&
+                                t.AttributeNameId != x.AttributeNameId && t.AttributeValue != x.AttributeValue));
+                            if (modifiedProperties.IsAny())
+                            {
+                                var updateProductPropertiesSql = new ProductProperty().UpdateString("dbo.ali_product_properties", "product_id = @product_id");
+                                await _productPropertyRepository.Update(updateProductPropertiesSql,  modifiedProperties.Select(x=> new
+                                {
+                                    product_id = productInfo.ProductId,
+                                    attr_name = x.AttributeName,
+                                    attr_name_id = x.AttributeNameId,
+                                    attr_value = x.AttributeValue
+                                }));
+                            }
+                            if (!productPropertiesInfoDb.IsAny())
                             {
                                 var insertProductPropertySql = new ProductProperty().InsertString("dbo.ali_product_properties");
                                 await _productPropertyRepository.InsertAsync(insertProductPropertySql,
