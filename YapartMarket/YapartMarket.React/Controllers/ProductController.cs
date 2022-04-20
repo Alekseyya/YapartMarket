@@ -137,7 +137,7 @@ namespace YapartMarket.React.Controllers
 
             if(string.IsNullOrEmpty(authToken))
                 return StatusCode(403);
-            if (yapartToken != authToken || yapartRogToken != authToken)
+            if (yapartToken != authToken && yapartRogToken != authToken)
                 return StatusCode(403);
             if (cartDto != null)
             {
