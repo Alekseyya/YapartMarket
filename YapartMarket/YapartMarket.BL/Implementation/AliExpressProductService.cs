@@ -128,9 +128,8 @@ namespace YapartMarket.BL.Implementation
         }
 
 
-        private async Task<List<ProductInfoResult>> GetProductFromAli(List<long?> productIds)
+        private async Task<List<ProductInfoResult>> GetProductFromAli(List<long> productIds)
         {
-            var repeat = true;
             var getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
             var listProductInfo = new List<ProductInfoResult>();
             do
@@ -144,32 +143,34 @@ namespace YapartMarket.BL.Implementation
                             ProductId = productId
                         };
                         var productInfoResponse = getClient.Execute(requestProductInfo, _aliExpressOptions.AccessToken);
-                        var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(productInfoResponse.Body)?.Response.ProductInfoResult;
-                        listProductInfo.Add(productInfo);
+                        var body = productInfoResponse.Body;
+                        var productInfoRoot = JsonConvert.DeserializeObject<ProductInfoRoot>(body);
+                        listProductInfo.Add(productInfoRoot.Response.ProductInfoResult);
+                        
                     }
                     catch (WebException ex)
                     {
                         if (ex.Status == WebExceptionStatus.Timeout)
                         {
-                            await Task.Delay(5000);
+                            await Task.Delay(3000);
                         }
                     }
                 }
-                repeat = false;
-
-            } while (repeat);
+                break;
+            } while (true);
 
             return listProductInfo;
         }
 
         public async Task ProcessUpdateProduct()
         {
-            var productsInDb = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts");
+            var productsInDb = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts where category_id is null");
             if (productsInDb.IsAny())
             {
                 try
                 {
-                    var productsInfo = await GetProductFromAli(productsInDb.Select(x => x.ProductId).ToList());
+                    var productIds = productsInDb.Where(x=>x.ProductId.HasValue).Select(x => x.ProductId.Value).ToList();
+                    var productsInfo = await GetProductFromAli(productIds);
                     var productInfoDb = await _azureAliExpressProductRepository.GetInAsync("product_id", new { product_id = productsInfo.Select(x => x.ProductId) });
                     var modifiesProducts = productsInfo.Where(x => productInfoDb.Any(t=> t.ProductId == x.ProductId 
                         && t.CategoryId != x.CategoryId && t.ProductUnit != x.ProductUnit && t.CurrencyCode != x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode 

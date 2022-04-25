@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using YapartMarket.Core.DTO.AliExpress;
 using YapartMarket.Core.Models.Azure;
+using Category = YapartMarket.Core.DTO.AliExpress.Category;
 
 namespace YapartMarket.Core.Mapper
 {
@@ -9,9 +10,9 @@ namespace YapartMarket.Core.Mapper
     {
         public AliCategoryProfile()
         {
-            CreateMap<CategoryInfo, Category>()
-                .ForMember(x=>x.ChildrenCategoryId, t=> t.MapFrom(y=>y.ChildrenCategoryId))
-                .ForMember(x=>x.LeafCategory, t=>t.MapFrom(y=>y.LeafCategory))
+            CreateMap<Category, Models.Azure.Category>()
+                .ForMember(x=>x.CategoryId, t=> t.MapFrom(y=>y.Id))
+                .ForMember(x=>x.IsLeaf, t=>t.MapFrom(y=>y.IsLeaf))
                 .ForMember(x=>x.Level, t=>t.MapFrom(y=>y.Level))
                 .ForMember(x=>x.RuName, t=>t.MapFrom(y=> JsonConvert.DeserializeObject<LanguageNames>(y.MultilanguageName).Ru))
                 .ForMember(x=>x.EnName, t=>t.MapFrom(y=> JsonConvert.DeserializeObject<LanguageNames>(y.MultilanguageName).En))
