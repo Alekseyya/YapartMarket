@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Top.Api;
 using Top.Api.Request;
 using YapartMarket.Core.BL;
@@ -48,11 +49,11 @@ namespace YapartMarket.BL.Implementation
                 };
                 try
                 {
-                    var rsp = _client.Execute(request, _options.Value.AccessToken);
+                    var rsp =  _client.Execute(request, _options.Value.AccessToken);
                     var body = rsp.Body;
-                    if (body.TryParseJson(out CategoryThreeRoot outCategoryThreeRoot))
+                    if (body.TryParseJson(out CategoryThreeRoot categoryThreeRootResult))
                     {
-                        categoryThreeRoot = outCategoryThreeRoot;
+                        categoryThreeRoot = categoryThreeRootResult;
                         repeat = false;
                     }
                     if (body.TryParseJson(out AliExpressError error))
@@ -66,27 +67,37 @@ namespace YapartMarket.BL.Implementation
                         await Task.Delay(3000);
                     }
                 }
+                catch (Exception e)
+                {
+                    throw e;
+                    break;
+                }
             } while (repeat);
             return categoryThreeRoot?.Response?.ChildrenCategoryList?.CategoryInfo;
         }
 
-        private async Task UpdateCategoryByProductId(long categoryId)
+        public async Task UpdateCategoryByProductId(long productId)
         {
-            var queryGetCategories = await QueryCategoryThreeAsync(categoryId);
-            if (queryGetCategories == null)
-                await Task.CompletedTask;
-            var categories = _mapper.Map<List<CategoryInfo>, List<Category>>(queryGetCategories);
-            await InsertCategoryAsync(categoryId, categories);
+            var product = (await _aliExpressProductRepository.GetAsync("select * from aliExpressProducts where productId = @productId", new {productId = productId})).FirstOrDefault();
+            if (product != null && product.CategoryId.HasValue)
+            {
+                var queryGetCategories = await QueryCategoryThreeAsync(product.CategoryId.Value);
+                if (queryGetCategories != null)
+                {
+                    var categories = _mapper.Map<List<CategoryInfo>, List<Category>>(queryGetCategories);
+                    await InsertCategoryAsync(productId, categories);
+                }
+            }
         }
 
         public async Task ProcessUpdateCategories()
         {
-            var products = await _aliExpressProductRepository.GetAsync("select * from aliExpressProducts");
+            var products = await _aliExpressProductRepository.GetAsync("select * from dbo.aliExpressProducts where category_id is not null");
             if (!products.IsAny())
                 await Task.CompletedTask;
             foreach (var product in products)
             {
-                await UpdateCategoryByProductId(product.ProductId.GetValueOrDefault());
+                await UpdateCategoryByProductId(product.CategoryId.GetValueOrDefault());
             }
         }
 

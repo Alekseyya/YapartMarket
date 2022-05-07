@@ -11,7 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YapartMarket.BL.Implementation;
+using YapartMarket.BL.Implementation.AliExpress;
 using YapartMarket.Core.BL;
+using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data;
 using YapartMarket.Core.Data.Interfaces.Azure;
@@ -92,6 +94,8 @@ namespace YapartMarket.React
             services.AddTransient<IAliExpressLogisticOrderDetailService, AliExpressLogisticOrderDetailService>();
             services.AddTransient<IAliExpressOrderFullfilService, AliExpressOrderFullfilService>();
             services.AddTransient<ILogisticServiceOrderService, LogisticServiceOrderService>();
+            services.AddTransient<IAliExpressCategoryService, AliExpressCategoryService>();
+            services.AddTransient<ILogisticWarehouseOrderService, AliExpressCreateLogisticWarehouseOrderService>();
 
             #endregion
 
@@ -179,8 +183,8 @@ namespace YapartMarket.React
                 //scheduler.OnWorker("EmailTasks");
                 //scheduler.Schedule(() => Console.WriteLine("Hourly on Mondays.")).EverySeconds(3);
 
-                scheduler.OnWorker("UpdateOrdersFromAliExpress");
-                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryFiveMinutes();
+                //scheduler.OnWorker("UpdateOrdersFromAliExpress");
+                //scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryFiveMinutes();
 
 
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");

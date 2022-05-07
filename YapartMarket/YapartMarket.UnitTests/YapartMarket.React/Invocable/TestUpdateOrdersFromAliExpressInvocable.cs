@@ -9,6 +9,7 @@ using Moq;
 using Xunit;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
+using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Extensions;
 using YapartMarket.React.Invocables;
@@ -27,6 +28,9 @@ namespace YapartMarket.UnitTests.YapartMarket.React.Invocable
         private readonly Mock<IAliExpressLogisticOrderDetailService> _mockLogisticOrderDetailService;
         private readonly Mock<IAliExpressOrderFullfilService> _mockOrderFullfilService;
         private readonly Mock<ILogisticServiceOrderService> _mockLogisticServiceOrder;
+        private readonly Mock<IAliExpressProductService> _mockProductService;
+        private readonly Mock<IAliExpressCategoryService> _mockCategoryService;
+        private readonly Mock<ILogisticWarehouseOrderService> _mockLogisticWarehouseOrder;
 
         public TestUpdateOrdersFromAliExpressInvocable()
         {
@@ -46,7 +50,10 @@ namespace YapartMarket.UnitTests.YapartMarket.React.Invocable
             _mockLogisticOrderDetailService = new Mock<IAliExpressLogisticOrderDetailService>();
             _mockOrderFullfilService = new Mock<IAliExpressOrderFullfilService>();
             _mockLoggerUpdateOrdersFromAliExpressInvocable = new Mock<ILogger<UpdateOrdersFromAliExpressInvocable>>();
+            _mockProductService = new Mock<IAliExpressProductService>();
+            _mockCategoryService = new Mock<IAliExpressCategoryService>();
             _mockLogisticServiceOrder = new Mock<ILogisticServiceOrderService>();
+            _mockLogisticWarehouseOrder = new Mock<ILogisticWarehouseOrderService>();
             _mockMapper = new Mock<IMapper>();
         }
 
@@ -58,7 +65,15 @@ namespace YapartMarket.UnitTests.YapartMarket.React.Invocable
             _mockOrderService.Setup(s => s.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay(), null));
             _mockOrderService.Verify(s=>s.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay(), null));
             var updateOrdersFromAliExpressInvocable = new UpdateOrdersFromAliExpressInvocable(_mockOrderService.Object,
-                _mockOrderReceiptInfoService.Object, _mockRedefiningService.Object, _mockLogisticOrderDetailService.Object, _mockOrderFullfilService.Object, _mockLogisticServiceOrder.Object, _mockLoggerUpdateOrdersFromAliExpressInvocable.Object, _mockMapper.Object);
+                _mockOrderReceiptInfoService.Object,
+                _mockRedefiningService.Object,
+                _mockLogisticOrderDetailService.Object,
+                _mockOrderFullfilService.Object, 
+                _mockProductService.Object,
+                _mockCategoryService.Object,
+                _mockLogisticServiceOrder.Object,
+                _mockLogisticWarehouseOrder.Object,
+                _mockLoggerUpdateOrdersFromAliExpressInvocable.Object, _mockMapper.Object);
             //act
             //assert
             try

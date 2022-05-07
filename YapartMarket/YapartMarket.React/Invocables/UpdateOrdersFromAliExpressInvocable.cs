@@ -7,6 +7,7 @@ using AutoMapper;
 using Coravel.Invocable;
 using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
+using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.Exceptions;
 using YapartMarket.Core.Extensions;
@@ -21,7 +22,10 @@ namespace YapartMarket.React.Invocables
         private readonly IAliExpressLogisticRedefiningService _aliExpressLogisticRedefiningService;
         private readonly IAliExpressLogisticOrderDetailService _aliExpressLogisticOrderDetailService;
         private readonly IAliExpressOrderFullfilService _aliExpressOrderFullfilService;
+        private readonly IAliExpressProductService _aliExpressProductService;
+        private readonly IAliExpressCategoryService _aliExpressCategoryService;
         private readonly ILogisticServiceOrderService _logisticServiceOrderService;
+        private readonly ILogisticWarehouseOrderService _logisticWarehouseOrderService;
         private readonly ILogger<UpdateOrdersFromAliExpressInvocable> _logger;
         private readonly IMapper _mapper;
 
@@ -31,7 +35,10 @@ namespace YapartMarket.React.Invocables
             IAliExpressLogisticRedefiningService aliExpressLogisticRedefiningService,
             IAliExpressLogisticOrderDetailService aliExpressLogisticOrderDetailService,
             IAliExpressOrderFullfilService aliExpressOrderFullfilService,
+            IAliExpressProductService aliExpressProductService,
+            IAliExpressCategoryService aliExpressCategoryService,
             ILogisticServiceOrderService logisticServiceOrderService,
+            ILogisticWarehouseOrderService logisticWarehouseOrderService,
             ILogger<UpdateOrdersFromAliExpressInvocable> logger,
             IMapper mapper)
         {
@@ -40,7 +47,10 @@ namespace YapartMarket.React.Invocables
             _aliExpressLogisticRedefiningService = aliExpressLogisticRedefiningService;
             _aliExpressLogisticOrderDetailService = aliExpressLogisticOrderDetailService;
             _aliExpressOrderFullfilService = aliExpressOrderFullfilService;
+            _aliExpressProductService = aliExpressProductService;
+            _aliExpressCategoryService = aliExpressCategoryService;
             _logisticServiceOrderService = logisticServiceOrderService;
+            _logisticWarehouseOrderService = logisticWarehouseOrderService;
             _logger = logger;
             _mapper = mapper;
         }
@@ -70,11 +80,17 @@ namespace YapartMarket.React.Invocables
                             _logger.LogInformation($"OrderId : {aliExpressOrder.OrderId}");
                             await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(aliExpressOrder.OrderId, orderReceiptDto);
 
-                            //todo это пока не работает
-                            //_logger.LogInformation($"Получение логистического номера заказа {aliExpressOrder.OrderId}");
-                            //var logisticOrderDetail = _aliExpressLogisticOrderDetailService.GetLogisticOrderDetailRequest(aliExpressOrder.OrderId);
-                            //await _aliExpressLogisticOrderDetailService.ProcessLogisticsOrderDetailAsync(logisticOrderDetail);
-                            //_logger.LogInformation("Подтверждение заказа.");
+                            _logger.LogInformation($"Получение логистического номера заказа {aliExpressOrder.OrderId}");
+                            var logisticOrderDetail = _aliExpressLogisticOrderDetailService.GetLogisticOrderDetailRequest(aliExpressOrder.OrderId);
+                            await _aliExpressLogisticOrderDetailService.ProcessLogisticsOrderDetailAsync(logisticOrderDetail);
+                            var orderDetails = aliExpressOrder.AliExpressOrderDetails;
+                            foreach (var orderDetail in orderDetails)
+                            {
+                                await _aliExpressProductService.ProcessUpdateProduct(orderDetail.ProductId);
+                                await _aliExpressCategoryService.UpdateCategoryByProductId(orderDetail.ProductId);
+                            }
+                            _logger.LogInformation("Подтверждение заказа.");
+                            await _logisticWarehouseOrderService.CreateOrderAsync(aliExpressOrder.OrderId);
                             //var logisticServiceName = aliExpressOrder.AliExpressOrderDetails.FirstOrDefault()?.LogisticsServiceName;
 
                             //var serviceName = (await _aliExpressLogisticRedefiningService.GetRedefiningByDisplayName(logisticServiceName)).ServiceName;

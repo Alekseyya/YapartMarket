@@ -38,12 +38,12 @@ namespace YapartMarket.Data.Implementation.Azure
                 address = x.Address,
                 phone_number = x.PhoneNumber,
                 fax_number = x.FaxNumber,
-                detail_address = x.DetailAddress,
+                detail_address = x.StreetDetailedAddress,
                 city = x.City,
                 country = x.Country,
                 address2 = x.Address2,
                 fax_country = x.FaxCountry,
-                zip = x.Zip,
+                zip = x.PostCode,
                 fax_area = x.FaxArea,
                 localized_address = x.LocalizedAddress
             });
@@ -74,12 +74,12 @@ namespace YapartMarket.Data.Implementation.Azure
                         address = aliExpressOrderReceiptInfo.Address,
                         phone_number = aliExpressOrderReceiptInfo.PhoneNumber,
                         fax_number = aliExpressOrderReceiptInfo.FaxNumber,
-                        detail_address = aliExpressOrderReceiptInfo.DetailAddress,
+                        detail_address = aliExpressOrderReceiptInfo.StreetDetailedAddress,
                         city = aliExpressOrderReceiptInfo.City,
                         country = aliExpressOrderReceiptInfo.Country,
                         address2 = aliExpressOrderReceiptInfo.Address2,
                         fax_country = aliExpressOrderReceiptInfo.FaxCountry,
-                        zip = aliExpressOrderReceiptInfo.Zip,
+                        zip = aliExpressOrderReceiptInfo.PostCode,
                         fax_area = aliExpressOrderReceiptInfo.FaxArea,
                         localized_address = aliExpressOrderReceiptInfo.LocalizedAddress
                     });

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -119,7 +120,7 @@ namespace YapartMarket.BL.Implementation
                     }
                     currentPage++;
                 } while (haveElement);
-                await ProcessUpdateProduct();
+                //await ProcessUpdateProduct();
             }
             catch (Exception)
             {
@@ -144,8 +145,9 @@ namespace YapartMarket.BL.Implementation
                             ProductId = productId
                         };
                         var productInfoResponse = getClient.Execute(requestProductInfo, _aliExpressOptions.AccessToken);
-                        var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(productInfoResponse.Body)?.Response.ProductInfoResult;
-                        listProductInfo.Add(productInfo);
+                        var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(productInfoResponse.Body)?.Response?.ProductInfoResult;
+                        if(productInfo != null)
+                            listProductInfo.Add(productInfo);
                     }
                     catch (WebException ex)
                     {
@@ -162,19 +164,29 @@ namespace YapartMarket.BL.Implementation
             return listProductInfo;
         }
 
-        public async Task ProcessUpdateProduct()
+        public async Task ProcessUpdateProduct(long productId)
         {
-            var productsInDb = await _azureAliExpressProductRepository.GetAsync("select * from aliExpressProducts");
-            if (productsInDb.IsAny())
+            var productInDb = await _azureAliExpressProductRepository.GetAsync("select * from dbo.aliExpressProducts where productId =@productId", new {productId = productId});
+            if (productInDb.IsAny())
             {
                 try
                 {
-                    var productsInfo = await GetProductFromAli(productsInDb.Select(x => x.ProductId).ToList());
-                    var productInfoDb = await _azureAliExpressProductRepository.GetInAsync("product_id", new { product_id = productsInfo.Select(x => x.ProductId) });
-                    var modifiesProducts = productsInfo.Where(x => productInfoDb.Any(t=> t.ProductId == x.ProductId 
-                        && t.CategoryId != x.CategoryId && t.ProductUnit != x.ProductUnit && t.CurrencyCode != x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode 
-                        && t.GroupId != x.GroupId && t.PackageHeight != x.PackageHeight && t.PackageLength != x.PackageLength && t.ProductPrice != decimal.Parse(x.ProductPrice)
-                        && t.ProductStatusType != x.ProductStatusType));
+                    var productsInfo = await GetProductFromAli(productInDb.Select(x => x.ProductId).ToList());
+                    var productInfoDb = await _azureAliExpressProductRepository.GetInAsync("productId", new { productId = productsInfo.Select(x => x.ProductId) });
+                    
+                    var modifiesProducts = productsInfo.Where(x =>
+                    {
+                        var currentCode = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode;
+                        var productPrice = decimal.Parse(x.ProductPrice, CultureInfo.InvariantCulture);
+                        return productInfoDb.Any(t => t.ProductId == x.ProductId
+                                                      && t.CategoryId != x.CategoryId &&
+                                                      t.ProductUnit != x.ProductUnit &&
+                                                      t.CurrencyCode != currentCode
+                                                      && t.GroupId != x.GroupId && t.PackageHeight != x.PackageHeight &&
+                                                      t.PackageLength != x.PackageLength &&
+                                                      t.ProductPrice != productPrice
+                                                      && t.ProductStatusType != x.ProductStatusType);
+                    });
                     if (modifiesProducts.IsAny())
                     {
                         var updateList = productsInfo.Select(x => new
@@ -186,7 +198,7 @@ namespace YapartMarket.BL.Implementation
                             package_height = x.PackageHeight,
                             package_length = x.PackageLength,
                             package_width = x.PackageWidth,
-                            product_price = decimal.Parse(x.ProductPrice),
+                            product_price = decimal.Parse(x.ProductPrice, CultureInfo.InvariantCulture),
                             product_status_type = x.ProductStatusType,
                             product_unit = x.ProductUnit,
                             updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
@@ -234,6 +246,7 @@ namespace YapartMarket.BL.Implementation
                             }
                         }
                     }
+
 
                 }
                 catch (Exception ex)

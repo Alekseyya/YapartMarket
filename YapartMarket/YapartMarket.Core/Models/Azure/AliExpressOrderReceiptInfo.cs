@@ -29,7 +29,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("fax_number")]
         public string FaxNumber { get; set; }
         [Column("detail_address")]
-        public string DetailAddress { get; set; }
+        public string StreetDetailedAddress { get; set; }
         [Column("city")]
         public string City { get; set; }
         [Column("country")]
@@ -39,7 +39,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("fax_country")]
         public string FaxCountry { get; set; }
         [Column("zip")]
-        public string Zip { get; set; }
+        public string PostCode { get; set; }
         [Column("fax_area")]
         public string FaxArea { get; set; }
         [Column("localized_address")]

@@ -70,8 +70,8 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                await _aliExpressProductService.ProcessUpdateProduct();
-                await _aliExpressCategoryService.ProcessUpdateCategories();
+                //await _aliExpressProductService.ProcessUpdateProduct();
+                //await _aliExpressCategoryService.ProcessUpdateCategories();
                 return Ok();
             }
             catch (Exception e)

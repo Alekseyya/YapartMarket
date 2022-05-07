@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using YapartMarket.Core.BL;
+﻿using YapartMarket.Core.BL;
 using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
 {

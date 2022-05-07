@@ -455,6 +455,26 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             Assert.Equal(1, aliExpressProducts.First().Inventory);
         }
 
+        [Fact]
+        public void GetProductFromAli_SetInventoryValue()
+        {
+            //act
+            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _mockProductPropertyRepository.Object, _aliExpressOption, _configuration, _mockLogger.Object);
+            var aliExpressProductTest = new List<AliExpressProductDTO>()
+            {
+                new()
+                {
+                    SkuCode = "REINWV1181"
+                }
+            };
+            //arrange
+            var aliExpressProducts = aliExpressProductService.SetInventoryFromDatabase(aliExpressProductTest);
+            //assert
+            Assert.NotNull(aliExpressProducts);
+            Assert.True(aliExpressProducts.Count > 0);
+            Assert.Equal(1, aliExpressProducts.First().Inventory);
+        }
+
 
         [Fact]
         public async Task TestAliExpressService_GetProductWhereAliExpressProductIdIsNull_CheckNullAliProductId()

@@ -28,7 +28,7 @@ namespace YapartMarket.Core.Mapper
                     root => root.MapFrom(x => x.PhoneNumber))
                 .ForMember(orderRec => orderRec.FaxNumber,
                     root => root.MapFrom(x => x.FaxNumber))
-                .ForMember(orderRec => orderRec.DetailAddress,
+                .ForMember(orderRec => orderRec.StreetDetailedAddress,
                     root => root.MapFrom(x =>
                         x.DetailAddress))
                 .ForMember(orderRec => orderRec.City,
@@ -39,7 +39,7 @@ namespace YapartMarket.Core.Mapper
                     root => root.MapFrom(x => x.Address2))
                 .ForMember(orderRec => orderRec.FaxCountry,
                     root => root.MapFrom(x => x.FaxCountry))
-                .ForMember(orderRec => orderRec.Zip,
+                .ForMember(orderRec => orderRec.PostCode,
                     root => root.MapFrom(x => x.Zip))
                 .ForMember(orderRec => orderRec.FaxArea,
                     root => root.MapFrom(x => x.FaxArea))

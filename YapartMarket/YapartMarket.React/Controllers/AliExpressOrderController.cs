@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
+using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
@@ -21,8 +22,11 @@ namespace YapartMarket.React.Controllers
         private readonly IAliExpressOrderReceiptInfoService _aliExpressOrderReceiptInfoService;
         private readonly IAliExpressLogisticRedefiningService _aliExpressLogisticRedefiningService;
         private readonly IAliExpressLogisticOrderDetailService _aliExpressLogisticOrderDetailService;
+        private readonly IAliExpressProductService _aliExpressProductService;
+        private readonly IAliExpressCategoryService _aliExpressCategoryService;
         private readonly IAliExpressOrderFullfilService _aliExpressOrderFullfilService;
         private readonly ILogisticServiceOrderService _logisticServiceOrderService;
+        private readonly ILogisticWarehouseOrderService _logisticWarehouseOrderService;
         private readonly ILogger<UpdateOrdersFromAliExpressInvocable> _logger;
         private readonly IMapper _mapper;
 
@@ -30,8 +34,11 @@ namespace YapartMarket.React.Controllers
             IAliExpressOrderReceiptInfoService aliExpressOrderReceiptInfoService,
             IAliExpressLogisticRedefiningService aliExpressLogisticRedefiningService,
             IAliExpressLogisticOrderDetailService aliExpressLogisticOrderDetailService,
+            IAliExpressProductService aliExpressProductService,
+            IAliExpressCategoryService aliExpressCategoryService,
             IAliExpressOrderFullfilService aliExpressOrderFullfilService,
             ILogisticServiceOrderService logisticServiceOrderService,
+            ILogisticWarehouseOrderService logisticWarehouseOrderService,
             ILogger<UpdateOrdersFromAliExpressInvocable> logger,
             IMapper mapper)
         {
@@ -39,8 +46,11 @@ namespace YapartMarket.React.Controllers
             _aliExpressOrderReceiptInfoService = aliExpressOrderReceiptInfoService;
             _aliExpressLogisticRedefiningService = aliExpressLogisticRedefiningService;
             _aliExpressLogisticOrderDetailService = aliExpressLogisticOrderDetailService;
+            _aliExpressProductService = aliExpressProductService;
+            _aliExpressCategoryService = aliExpressCategoryService;
             _aliExpressOrderFullfilService = aliExpressOrderFullfilService;
             _logisticServiceOrderService = logisticServiceOrderService;
+            _logisticWarehouseOrderService = logisticWarehouseOrderService;
             _logger = logger;
             _mapper = mapper;
         }
@@ -85,7 +95,12 @@ namespace YapartMarket.React.Controllers
             {
                 var updateOrders = new UpdateOrdersFromAliExpressInvocable(_aliExpressOrderService,
                     _aliExpressOrderReceiptInfoService, _aliExpressLogisticRedefiningService,
-                    _aliExpressLogisticOrderDetailService, _aliExpressOrderFullfilService, _logisticServiceOrderService, _logger, _mapper);
+                    _aliExpressLogisticOrderDetailService, _aliExpressOrderFullfilService,
+                    _aliExpressProductService,
+                    _aliExpressCategoryService,
+                    _logisticServiceOrderService,
+                    _logisticWarehouseOrderService,
+                    _logger, _mapper);
                 await updateOrders.Invoke();
             }
             catch (Exception e)
