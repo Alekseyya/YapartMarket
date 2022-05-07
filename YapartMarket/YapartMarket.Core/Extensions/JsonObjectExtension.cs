@@ -2,6 +2,7 @@
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
 
 namespace YapartMarket.Core.Extensions
 {
@@ -17,6 +18,32 @@ namespace YapartMarket.Core.Extensions
             };
             result = JsonConvert.DeserializeObject<T>(@this, settings);
             return success;
+        }
+        public static bool TryParseJsonT<T>(this string obj, out T result)
+        {
+            try
+            {
+                // Validate missing fields of object
+                JsonSerializerSettings settings = new JsonSerializerSettings();
+                settings.MissingMemberHandling = MissingMemberHandling.Error;
+
+                result = JsonConvert.DeserializeObject<T>(obj, settings);
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw e;
+                result = default(T);
+                return false;
+            }
+        }
+        public static T TryParseJson<T>(this string json, string schema) where T : new()
+        {
+            JsonSchema parsedSchema = JsonSchema.Parse(schema);
+            JObject jObject = JObject.Parse(json);
+
+            return jObject.IsValid(parsedSchema) ?
+                JsonConvert.DeserializeObject<T>(json) : default(T);
         }
 
         public static T FillProperties<T>(this T entity, JObject jObject) where T : class

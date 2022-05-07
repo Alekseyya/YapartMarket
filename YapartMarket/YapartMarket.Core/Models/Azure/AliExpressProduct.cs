@@ -21,6 +21,8 @@ namespace YapartMarket.Core.Models.Azure
         public string CurrencyCode { get; set; }
         [Column("group_id")]
         public long? GroupId { get; set; }
+        [Column("gross_weight")]
+        public string GrossWeight { get; set; }
         [Column("package_height")]
         public int PackageHeight { get; set; }
         [Column("package_length")]

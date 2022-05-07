@@ -55,7 +55,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             receiverObject.City = orderInfo.City;
             receiverObject.Name = orderInfo.ContractPerson;
             receiverObject.Province = orderInfo.Province;
-            receiverObject.StreetAddress = orderInfo.StreetDetailedAddress;
+            receiverObject.StreetAddress = orderInfo.LocalizedAddress;
             receiverObject.Mobile = orderInfo.Mobile;
             obj1.Receiver = receiverObject;
             List<AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareProductForTopDtoDomain> list7 = new List<AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareProductForTopDtoDomain>();
@@ -67,7 +67,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 var productDto = new AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareProductForTopDtoDomain();
                 productDto.CategoryCnDesc = category.CnName;
                 productDto.CategoryEnDesc = category.EnName;
-                productDto.ProductWeight = product.PackageWidth.ToString();
+                productDto.ProductWeight = product.GrossWeight;
                 productDto.ProductNum = orderDetail.ProductCount;
                 productDto.ProductDeclareAmount = "1.3";
                 //productDto.SkuValue = "sku value";
@@ -79,7 +79,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             }
             
             req.DomesticLogisticsCompanyId = 505L;
-            req.DomesticTrackingNo = "L12345899";
+            req.DomesticTrackingNo = "none";
             req.DeclareProductDTOs_ = list7;
             req.TradeOrderFrom = "ESCROW";
             req.TradeOrderId = orderId;

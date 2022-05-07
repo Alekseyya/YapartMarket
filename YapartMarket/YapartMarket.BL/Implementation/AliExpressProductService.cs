@@ -129,9 +129,8 @@ namespace YapartMarket.BL.Implementation
         }
 
 
-        private async Task<List<ProductInfoResult>> GetProductFromAli(List<long?> productIds)
+        private async Task<List<ProductInfoResult>> GetProductFromAli(List<long> productIds)
         {
-            var repeat = true;
             var getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
             var listProductInfo = new List<ProductInfoResult>();
             do
@@ -153,13 +152,12 @@ namespace YapartMarket.BL.Implementation
                     {
                         if (ex.Status == WebExceptionStatus.Timeout)
                         {
-                            await Task.Delay(5000);
+                            await Task.Delay(3000);
                         }
                     }
                 }
-                repeat = false;
-
-            } while (repeat);
+                break;
+            } while (true);
 
             return listProductInfo;
         }
@@ -171,21 +169,23 @@ namespace YapartMarket.BL.Implementation
             {
                 try
                 {
-                    var productsInfo = await GetProductFromAli(productInDb.Select(x => x.ProductId).ToList());
+                    var productsInfo = await GetProductFromAli(productInDb.Select(x => x.ProductId.Value).ToList());
                     var productInfoDb = await _azureAliExpressProductRepository.GetInAsync("productId", new { productId = productsInfo.Select(x => x.ProductId) });
                     
                     var modifiesProducts = productsInfo.Where(x =>
                     {
                         var currentCode = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode;
                         var productPrice = decimal.Parse(x.ProductPrice, CultureInfo.InvariantCulture);
-                        return productInfoDb.Any(t => t.ProductId == x.ProductId
-                                                      && t.CategoryId != x.CategoryId &&
-                                                      t.ProductUnit != x.ProductUnit &&
-                                                      t.CurrencyCode != currentCode
-                                                      && t.GroupId != x.GroupId && t.PackageHeight != x.PackageHeight &&
-                                                      t.PackageLength != x.PackageLength &&
-                                                      t.ProductPrice != productPrice
-                                                      && t.ProductStatusType != x.ProductStatusType);
+                        return productInfoDb.Any(t => t.ProductId == x.ProductId &&
+                                                      (t.CategoryId != x.CategoryId ||
+                                                      t.ProductUnit != x.ProductUnit ||
+                                                      t.CurrencyCode != currentCode ||
+                                                      t.GroupId != x.GroupId ||
+                                                      t.GrossWeight != x.GrossWeight) ||
+                                                      t.PackageHeight != x.PackageHeight ||
+                                                      t.PackageLength != x.PackageLength ||
+                                                      t.ProductPrice != productPrice ||
+                                                      t.ProductStatusType != x.ProductStatusType);
                     });
                     if (modifiesProducts.IsAny())
                     {
@@ -195,6 +195,7 @@ namespace YapartMarket.BL.Implementation
                             category_id = x.CategoryId,
                             currency_code = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode,
                             group_id = x.GroupId,
+                            gross_weight = x.GrossWeight,
                             package_height = x.PackageHeight,
                             package_length = x.PackageLength,
                             package_width = x.PackageWidth,
@@ -206,7 +207,7 @@ namespace YapartMarket.BL.Implementation
 
                         });
                         await _azureAliExpressProductRepository.Update(
-                            "update aliExpressProducts set sku = @sku, category_id = @category_id, currency_code = @currency_code, group_id = @group_id, package_height = @package_height, package_length = @package_length, package_width = @package_width," +
+                            "update aliExpressProducts set sku = @sku, category_id = @category_id, currency_code = @currency_code, group_id = @group_id, gross_weight =@gross_weight, package_height = @package_height, package_length = @package_length, package_width = @package_width," +
                             "product_price = @product_price, product_status_type = @product_status_type, product_unit = @product_unit, updatedAt = @updatedAt" +
                             "  where productId = @productId",
                             updateList);

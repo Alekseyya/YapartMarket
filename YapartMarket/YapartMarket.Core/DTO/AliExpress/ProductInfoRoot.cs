@@ -29,6 +29,8 @@ namespace YapartMarket.Core.DTO.AliExpress
         public string GmtCreate { get; set; }
         [JsonProperty("gmt_modified")]
         public string GmtModified { get; set; }
+        [JsonProperty("gross_weight")]
+        public string GrossWeight { get; set; }
         [JsonProperty("group_id")]
         public long GroupId { get; set; }
         [JsonProperty("package_height")]

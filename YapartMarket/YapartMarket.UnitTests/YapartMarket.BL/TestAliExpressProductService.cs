@@ -54,12 +54,14 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             var productService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _mockProductPropertyRepository.Object, _aliExpressOption, _configuration, _mockLogger.Object);
             var attrName = "Brand Name";
             var propertyValue = 193;
+            var grossWeight = "1.000";
             //Act
             var result = productService.GetProductInfo(productId);
             //Assert
             Assert.Equal(result.ProductId, productId);
             Assert.Equal(result.ProductInfoProperties.GlobalProductProperties.First().AttributeName, attrName);
             Assert.Equal(result.ProductInfoSku.GlobalProductSkus.First().Property.GlobalSkuProperties.First().ValueId, propertyValue);
+            Assert.Equal(result.GrossWeight, grossWeight);
 
         }
 

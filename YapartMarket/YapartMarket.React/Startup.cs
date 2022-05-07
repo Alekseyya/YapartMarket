@@ -131,6 +131,8 @@ namespace YapartMarket.React
 
             services.Configure<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
             services.ConfigureWritable<AliExpressOptions>(Configuration.GetSection(AliExpressOptions.AliExpress));
+            services.Configure<Connections>(Configuration.GetSection(Connections.Section));
+            services.ConfigureWritable<Connections>(Configuration.GetSection(Connections.Section));
 
             //DefaultTopLogger.FilePath = "c:/tmp/topsdk.log";
 
