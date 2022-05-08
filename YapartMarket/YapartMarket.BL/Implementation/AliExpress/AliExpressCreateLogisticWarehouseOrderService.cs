@@ -48,6 +48,25 @@ namespace YapartMarket.BL.Implementation.AliExpress
             
             AliexpressLogisticsCreatewarehouseorderRequest req = new AliexpressLogisticsCreatewarehouseorderRequest();
             AliexpressLogisticsCreatewarehouseorderRequest.AddressdtosDomain obj1 = new AliexpressLogisticsCreatewarehouseorderRequest.AddressdtosDomain();
+            //todo добавить адрес отправителя
+            //AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain obj2 = new AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain();
+            //obj2.Phone = "9052550776";
+            //obj2.PostCode = "97022";
+            //obj2.Country = "RU";
+
+            //obj2.Fax = "234234234";
+            //obj2.MemberType = "类型";
+            //obj2.TrademanageId = "cn234234234";
+            //obj2.Street = "street";
+            //obj2.City = "Moscow";
+            //obj2.County = "county";
+            //obj2.Email = "alibaba@alibaba.com";
+            //obj2.AddressId = 1000L;
+            //obj2.Name = "Linda";
+            //obj2.Province = "Moscow";
+            //obj2.StreetAddress = "street address";
+            //obj2.Mobile = "18766234324";
+            //obj1.Sender = obj2;
             AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain receiverObject = new AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain();
             receiverObject.Phone = orderInfo.PhoneNumber;
             receiverObject.PostCode = orderInfo.PostCode;
@@ -58,6 +77,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             receiverObject.StreetAddress = orderInfo.LocalizedAddress;
             receiverObject.Mobile = orderInfo.Mobile;
             obj1.Receiver = receiverObject;
+            req.AddressDTOs_ = obj1;
             List<AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareProductForTopDtoDomain> list7 = new List<AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareProductForTopDtoDomain>();
             foreach (var orderDetail in orderDetails)
             {
@@ -83,7 +103,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             req.DeclareProductDTOs_ = list7;
             req.TradeOrderFrom = "ESCROW";
             req.TradeOrderId = orderId;
-            req.WarehouseCarrierService = "HRB_WLB_ZTOGZ";
+            req.WarehouseCarrierService = "CPAM_WLB_FPXSZ";
             AliexpressLogisticsCreatewarehouseorderResponse rsp = _client.Execute(req, _options.Value.AccessToken);
             Console.WriteLine(rsp.Body);
         }

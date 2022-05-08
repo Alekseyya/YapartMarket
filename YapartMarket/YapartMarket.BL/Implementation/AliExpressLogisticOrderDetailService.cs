@@ -57,7 +57,9 @@ namespace YapartMarket.BL.Implementation
                 {
                     order_id = x.OrderId,
                     logistic_order_id = x.LogisticOrderId,
-                    out_order_code = x.OutOrderCode
+                    out_order_code = x.OutOrderCode,
+                    logistic_status = x.LogisticStatus,
+                    gmt_create = x.GmtCreate
                 }));
             }
         }

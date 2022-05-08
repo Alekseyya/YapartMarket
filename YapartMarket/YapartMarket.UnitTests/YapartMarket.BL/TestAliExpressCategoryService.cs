@@ -57,7 +57,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         public async Task QueryCategoryThreeAsync_CallWithCorrectValue_ReturnCategory()
         {
             //Arrange
-            var categoryId = 200095145;
+            var categoryId = 200003311;
             var aliCategoryService = new AliExpressCategoryService(_mapper,_connections, _aliExpressOption, _mockCategoryRepository.Object, _mockProductRepository.Object, _mockProductService.Object);
             //Act
             var result = await aliCategoryService.QueryCategoryAsync(categoryId);
