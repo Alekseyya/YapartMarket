@@ -179,13 +179,6 @@ namespace YapartMarket.React.Controllers
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
                         await connection.OpenAsync();
-                        await connection.ExecuteAsync(
-                            "update products set count = @count, updatedAt = @updatedAt",
-                            new
-                            {
-                                count = 0,
-                                updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                            });
                         var productsByInsertSkuInDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
                         var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
                         var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
