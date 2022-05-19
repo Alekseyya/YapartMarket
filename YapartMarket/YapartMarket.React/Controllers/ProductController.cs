@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using YapartMarket.Core.BL;
 using YapartMarket.Core.Data.Interfaces.Access;
+using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Models;
 using YapartMarket.React.ViewModels;
 
@@ -168,7 +170,7 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("setProducts")]
         [Produces("application/json")]
-        public IActionResult SetProducts([FromBody] ItemsDto itemsDto)
+        public async Task<IActionResult> SetProducts([FromBody] ItemsDto itemsDto)
         {
             if (itemsDto != null)
             {
@@ -176,27 +178,22 @@ namespace YapartMarket.React.Controllers
                 {
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
-                        connection.Open();
-                        var products = connection.Query<Core.Models.Azure.Product>("select * from products");
-                        foreach (var product in products)
-                        {
-                            connection.Execute(
-                                "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
-                                new
-                                {
-                                    count = 0,
-                                    updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                    sku = product.Sku
-                                });
-                        }
-                        var productsByInsertSkuInDb = connection.Query<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
+                        await connection.OpenAsync();
+                        await connection.ExecuteAsync(
+                            "update products set count = @count, updatedAt = @updatedAt",
+                            new
+                            {
+                                count = 0,
+                                updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                            });
+                        var productsByInsertSkuInDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
                         var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
                         var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
                         if (updateProducts.Any())
                         {
                             foreach (var updateProduct in updateProducts)
                             {
-                                connection.Execute(
+                                await connection.ExecuteAsync(
                                     "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
                                     new
                                     {
@@ -210,7 +207,7 @@ namespace YapartMarket.React.Controllers
                         {
                             foreach (var insertProduct in insertProducts)
                             {
-                                connection.Execute("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
+                                await connection.ExecuteAsync("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
                                 {
                                     sku = insertProduct.Sku,
                                     count = insertProduct.Count,
