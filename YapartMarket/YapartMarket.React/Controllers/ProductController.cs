@@ -177,9 +177,21 @@ namespace YapartMarket.React.Controllers
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
                         connection.Open();
-                        var productsInDb = connection.Query<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
-                        var updateProducts = itemsDto.Products.Where(x => productsInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
-                        var insertProducts = itemsDto.Products.Where(x => productsInDb.All(t => t.Sku != x.Sku));
+                        var products = connection.Query<Core.Models.Azure.Product>("select * from products");
+                        foreach (var product in products)
+                        {
+                            connection.Execute(
+                                "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
+                                new
+                                {
+                                    count = 0,
+                                    updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                    sku = product.Sku
+                                });
+                        }
+                        var productsByInsertSkuInDb = connection.Query<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
+                        var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
+                        var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
                         if (updateProducts.Any())
                         {
                             foreach (var updateProduct in updateProducts)
