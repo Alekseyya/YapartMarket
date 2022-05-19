@@ -240,7 +240,8 @@ namespace YapartMarket.React.Controllers
                         Items = new List<ProductDto>
                         {
                             new ProductDto {Type = nameof(ProductType.FIT),
-                                Count = productFromDb.Count, UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")}
+                                Count = productFromDb.Count,
+                                UpdatedAt = productFromDb.UpdatedAt}
                         }
                     });
                 }
