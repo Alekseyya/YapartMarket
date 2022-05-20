@@ -119,9 +119,9 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto, [FromQuery(Name = "auth-token")] string authToken)
         {
-            if (string.IsNullOrEmpty(_configuration.GetValue<string>("auth-token")))
+            if(string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
-            if (string.IsNullOrEmpty(authToken) || (!string.IsNullOrEmpty(_configuration.GetValue<string>("auth-token")) && !string.IsNullOrEmpty(authToken) && _configuration.GetValue<string>("auth-token") != authToken))
+            if(_configuration.GetValue<string>("auth-token") != authToken && _configuration.GetValue<string>("auth-token-rog") != authToken)
                 return StatusCode(403);
             if (cartDto != null)
             {
