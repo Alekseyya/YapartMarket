@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -52,6 +54,54 @@ namespace YapartMarket.Data.Implementation.Azure
             {
                 throw;
             }
+        }
+        public DataTable ConvertToDataTable<T>(IEnumerable<T> data)
+        {
+            var properties = typeof(T).GetProperties();
+            DataTable table = new DataTable();
+            foreach (var property in properties)
+            {
+                if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+                    continue;
+
+                // Skip methods without a public setter
+                if (property.GetSetMethod() == null)
+                    continue;
+
+                // Skip methods specifically ignored
+                if (property.IsDefined(typeof(ComputedAttribute), false))
+                    continue;
+                if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                    continue;
+                var name = property.GetCustomAttribute<ColumnAttribute>()?.Name;
+                if (!string.IsNullOrEmpty(name))
+                    table.Columns.Add(name, Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType);
+            }
+                
+            foreach (T item in data)
+            {
+                DataRow row = table.NewRow();
+                foreach (var property in properties)
+                {
+                    if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+                        continue;
+
+                    // Skip methods without a public setter
+                    if (property.GetSetMethod() == null)
+                        continue;
+
+                    // Skip methods specifically ignored
+                    if (property.IsDefined(typeof(ComputedAttribute), false))
+                        continue;
+                    if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                        continue;
+                    var name = property.GetCustomAttribute<ColumnAttribute>()?.Name;
+                    if(!string.IsNullOrEmpty(name))
+                        row[name] = property.GetValue(item) ?? DBNull.Value;
+                }
+                table.Rows.Add(row);
+            }
+            return table;
         }
 
         private IList<string> GetSqlsInBatches(IList<string> userNames)
@@ -188,6 +238,18 @@ namespace YapartMarket.Data.Implementation.Azure
             {
                 await connection.OpenAsync();
                 await connection.ExecuteAsync(updateSQL, action);
+            }
+        }
+
+        public virtual async Task Update(string sql, List<object> actions)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                foreach (var action in actions)
+                {
+                    await connection.ExecuteAsync(sql, action);
+                }
             }
         }
     }

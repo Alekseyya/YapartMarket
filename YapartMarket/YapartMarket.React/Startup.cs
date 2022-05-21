@@ -64,6 +64,7 @@ namespace YapartMarket.React
 
             //services.AddAutoMapper(typeof(Startup));
             services.AddAutoMapper(typeof(Startup), typeof(AliExpressOrderProfile));
+            services.AddAutoMapper(typeof(Startup), typeof(ProductProfile));
             services.AddControllers();
 
             //Ðåãèñòðàöèÿ ñåðâèñîâ

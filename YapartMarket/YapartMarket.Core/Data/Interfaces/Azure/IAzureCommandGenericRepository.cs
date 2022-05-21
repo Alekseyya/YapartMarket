@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace YapartMarket.Core.Data.Interfaces.Azure
@@ -12,5 +13,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
         Task<IEnumerable<int>> InsertOutputAsync(string sql, IEnumerable<object> inserts);
         Task Update(string sql, object action);
         Task Update(object action);
+        DataTable ConvertToDataTable<T>(IEnumerable<T> data);
     }
 }

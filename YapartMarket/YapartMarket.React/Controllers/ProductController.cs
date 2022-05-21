@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Transactions;
 using AutoMapper;
@@ -16,6 +15,7 @@ using Newtonsoft.Json;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Data.Interfaces.Access;
 using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.DTO.Yandex;
 using YapartMarket.Core.Models;
 using YapartMarket.React.ViewModels;
 
@@ -27,13 +27,15 @@ namespace YapartMarket.React.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IAzureProductRepository _productRepository;
 
         private readonly List<YapartMarket.Core.Models.Product> _products;
-        public ProductController(IMapper mapper, IConfiguration configuration)
+        public ProductController(IMapper mapper, IConfiguration configuration, IAzureProductRepository productRepository)
         {
             //_accessProductRepository = accessProductRepository;
             _mapper = mapper;
             _configuration = configuration;
+            _productRepository = productRepository;
             _products = new List<YapartMarket.Core.Models.Product>()
             {
                 new YapartMarket.Core.Models.Product()
@@ -51,7 +53,7 @@ namespace YapartMarket.React.Controllers
                 }
             };
         }
-        
+
 
         [HttpGet]
         [Route("products")]
@@ -88,7 +90,7 @@ namespace YapartMarket.React.Controllers
                     connection.Open();
                     foreach (var orderItem in orderDto.OrderInfoDto.OrderItemsDto)
                     {
-                        var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new {sku = orderItem.OfferId, count = orderItem.Count});
+                        var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new { sku = orderItem.OfferId, count = orderItem.Count });
                         if (productInDb == null)
                         {
                             isAccepted = false;
@@ -96,7 +98,7 @@ namespace YapartMarket.React.Controllers
                         }
                     }
                 }
-                return Ok(isAccepted ? (object) new OrderViewModel() {OrderInfoViewModel = new OrderInfoViewModel() {Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString()}} : new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = "OUT_OF_DATE" });
+                return Ok(isAccepted ? (object)new OrderViewModel() { OrderInfoViewModel = new OrderInfoViewModel() { Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString() } } : new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = "OUT_OF_DATE" });
             }
             return BadRequest();
         }
@@ -119,9 +121,9 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto, [FromQuery(Name = "auth-token")] string authToken)
         {
-            if(string.IsNullOrEmpty(authToken))
+            if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
-            if(_configuration.GetValue<string>("auth-token") != authToken && _configuration.GetValue<string>("auth-token-rog") != authToken)
+            if (_configuration.GetValue<string>("auth-token") != authToken && _configuration.GetValue<string>("auth-token-rog") != authToken)
                 return StatusCode(403);
             if (cartDto != null)
             {
@@ -129,10 +131,10 @@ namespace YapartMarket.React.Controllers
                 {
                     var cartViewModel = new CartViewModel()
                     {
-                       Cart = new CartInfoViewModel()
-                       {
-                           CartItems = new List<CartItemViewModel>()
-                       }
+                        Cart = new CartInfoViewModel()
+                        {
+                            CartItems = new List<CartItemViewModel>()
+                        }
                     };
                     await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
@@ -142,7 +144,7 @@ namespace YapartMarket.React.Controllers
                             var isDelivery = false;
                             var count = 0;
                             var productInDb = await connection.QueryFirstOrDefaultAsync<Core.Models.Azure.Product>("select * from products where sku = @sku",
-                                new { sku = cartItemDto.OfferId});
+                                new { sku = cartItemDto.OfferId });
                             if (productInDb != null)
                             {
                                 isDelivery = true;
@@ -153,7 +155,7 @@ namespace YapartMarket.React.Controllers
                             {
                                 FeedId = cartItemDto.FeedId,
                                 OfferId = cartItemDto.OfferId,
-                                Count =  count,
+                                Count = count,
                                 Delivery = isDelivery
                             });
                         }
@@ -166,34 +168,7 @@ namespace YapartMarket.React.Controllers
             }
             return BadRequest();
         }
-
-        [HttpPost]
-        [Route("updateCount")]
-        [Produces("application/json")]
-        public async Task<IActionResult> UpdateCount()
-        {
-            try
-            {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-                {
-                    await connection.OpenAsync();
-                    await connection.ExecuteAsync(
-                        "update products set count = @count, updatedAt = @updatedAt",
-                        new
-                        {
-                            count = 0,
-                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-
-                        });
-                }
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-            return Ok();
-        }
-
+        
         [HttpPost]
         [Route("setProducts")]
         [Produces("application/json")]
@@ -206,28 +181,43 @@ namespace YapartMarket.React.Controllers
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
                         await connection.OpenAsync();
-                        var productsByInsertSkuInDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = itemsDto.Products.Select(x => x.Sku) });
-                        var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count));
+                        var products = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products");
+                        var take = 2000;
+                        var skip = 0;
+                        var productsByInsertSkuInDb = new List<Core.Models.Azure.Product>();
+                        do
+                        {
+                            var takeSkus = itemsDto.Products.Select(x=>x.Sku).Skip(skip).Take(take);
+                            skip = skip + take;
+                            if(!takeSkus.Any())
+                                break;
+                            productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
+                        } while (true);
+                        var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
                         var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
+                        var setCountEmptyProducts = products.Where(x => itemsDto.Products.All(t => t.Sku != x.Sku)).ToList();
+                        setCountEmptyProducts.ForEach(x=>
+                        {
+                            x.Count = 0;
+                            x.UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
+                        });
+                        if (setCountEmptyProducts.Any())
+                            await _productRepository.BulkUpdateCountData(setCountEmptyProducts);
                         if (updateProducts.Any())
                         {
-                            foreach (var updateProduct in updateProducts)
+                            var result = updateProducts.Select(x=> new Core.Models.Azure.Product()
                             {
-                                await connection.ExecuteAsync(
-                                    "update products set count = @count, updatedAt = @updatedAt where sku = @sku",
-                                    new
-                                    {
-                                        count = updateProduct.Count,
-                                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                        sku = updateProduct.Sku
-                                    });
-                            }
+                                Sku = x.Sku,
+                                Count = x.Count,
+                                UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                            }).ToList();
+                            await _productRepository.BulkUpdateCountData(result);
                         }
                         if (insertProducts.Any())
                         {
                             foreach (var insertProduct in insertProducts)
                             {
-                                await connection.ExecuteAsync("insert into products(sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
+                                await connection.ExecuteAsync("insert into products (sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
                                 {
                                     sku = insertProduct.Sku,
                                     count = insertProduct.Count,
@@ -260,7 +250,7 @@ namespace YapartMarket.React.Controllers
             {
                 connection.Open();
                 var productsFromDb = connection.Query<Core.Models.Azure.Product>("select * from dbo.products").ToList();
-                foreach (var productFromDb in productsFromDb.Where(x=> stockDto.Skus.Any(t=> x.Sku.Equals(t))))
+                foreach (var productFromDb in productsFromDb.Where(x => stockDto.Skus.Any(t => x.Sku.Equals(t))))
                 {
                     listSkuInfo.Add(new SkuInfoDto
                     {
@@ -290,53 +280,5 @@ namespace YapartMarket.React.Controllers
         {
             return _mapper.Map<ProductViewModel>(_products.FirstOrDefault(x => x.Id == id));
         }
-    }
-
-    public class ItemsDto
-    {
-        public List<ItemDto> Products { get; set; }
-    }
-
-    public class ItemDto
-    {
-        public string Sku { get; set; }
-        public int Count { get; set; }
-    }
-
-    public class StockDto
-    {
-        public Int64 WarehouseId { get; set; }
-        public List<string> Skus { get; set; }
-    }
-
-    public class StocksSkuDto
-    {
-        [JsonPropertyName("skus")]
-        public List<SkuInfoDto> Skus { get; set; }
-    }
-
-    public class SkuInfoDto
-    {
-        [JsonPropertyName("sku")]
-        public string Sku { get; set; }
-        [JsonPropertyName("warehouseId")]
-        public Int64 WarehouseId { get; set; }
-        [JsonPropertyName("items")]
-        public List<ProductDto> Items { get; set; }
-    }
-
-    public class ProductDto
-    {
-        [JsonPropertyName("type")]
-        public string Type { get; set; }
-        [JsonPropertyName("count")]
-        public Int64 Count { get; set; }
-        [JsonPropertyName("updatedAt")]
-        public string UpdatedAt { get; set; }
-    }
-
-    public enum ProductType
-    {
-        FIT
     }
 }
