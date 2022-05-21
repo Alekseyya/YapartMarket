@@ -195,14 +195,15 @@ namespace YapartMarket.React.Controllers
                         } while (true);
                         var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
                         var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
-                        var setCountEmptyProducts = products.Where(x => itemsDto.Products.All(t => t.Sku != x.Sku)).ToList();
-                        setCountEmptyProducts.ForEach(x=>
-                        {
-                            x.Count = 0;
-                            x.UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
-                        });
-                        if (setCountEmptyProducts.Any())
-                            await _productRepository.BulkUpdateCountData(setCountEmptyProducts);
+
+                        //var setCountEmptyProducts = products.Where(x => itemsDto.Products.All(t => t.Sku != x.Sku)).ToList();
+                        //setCountEmptyProducts.ForEach(x=>
+                        //{
+                        //    x.Count = 0;
+                        //    x.UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
+                        //});
+                        //if (setCountEmptyProducts.Any())
+                        //    await _productRepository.BulkUpdateCountData(setCountEmptyProducts);
                         if (updateProducts.Any())
                         {
                             var result = updateProducts.Select(x=> new Core.Models.Azure.Product()
