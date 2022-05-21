@@ -181,14 +181,14 @@ namespace YapartMarket.React.Controllers
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
                         await connection.OpenAsync();
-                        var products = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products");
+                        //var products = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products");
                         var take = 2000;
                         var skip = 0;
                         var productsByInsertSkuInDb = new List<Core.Models.Azure.Product>();
                         do
                         {
                             var takeSkus = itemsDto.Products.Select(x=>x.Sku).Skip(skip).Take(take);
-                            skip = skip + take;
+                            skip += take;
                             if(!takeSkus.Any())
                                 break;
                             productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
