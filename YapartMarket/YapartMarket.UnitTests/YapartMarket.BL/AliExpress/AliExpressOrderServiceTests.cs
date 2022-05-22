@@ -20,7 +20,7 @@ using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL
 {
-    public class TestAliExpressOrderService
+    public class AliExpressOrderServiceTests
     {
         private readonly IOptions<AliExpressOptions> _aliExpressOption;
         private readonly IConfiguration _configuration;
@@ -30,7 +30,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         private Mock<IMapper> _mockMapper;
         private IMapper _mapper;
 
-        public TestAliExpressOrderService()
+        public AliExpressOrderServiceTests()
         {
             _configuration = (IConfiguration)new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -55,7 +55,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         }
 
         [Fact]
-        public void TestAliExpressOrderService_QueryOrderDetail_Deserialize()
+        public void QueryOrderDetail_Deserialize()
         {
             //arrange
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
@@ -66,7 +66,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         }
 
         [Fact]
-        public void TestAliExpressOrderService_QueryOrderDetail_ReturnEmptyOrder()
+        public void QueryOrderDetail_ReturnEmptyOrder()
         {
             //arrange
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
@@ -77,7 +77,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         }
 
         [Fact]
-        public void TestAliExpressOrderService_QueryOrderDetail_ReturnNotNull()
+        public void QueryOrderDetail_ReturnNotNull()
         {
             //arrange
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
@@ -86,6 +86,18 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
             //assert
             Assert.True(aliExpressOrderList.Count > 0);
+        }
+        [Fact]
+        public void QueryOrderDetail_GetDetailsByOrder_ReturnNotNull()
+        {
+            //arrange
+            var orderId = 5029342366925571;
+            var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
+            var dateTimeNow = DateTime.UtcNow;
+            //act
+            var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-2).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
+            //assert
+            Assert.True(aliExpressOrderList.Any(x=>x.OrderId == orderId));
         }
 
         [Fact]

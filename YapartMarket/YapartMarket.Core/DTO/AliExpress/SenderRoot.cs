@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 
 namespace YapartMarket.Core.DTO.AliExpress
@@ -13,15 +14,31 @@ namespace YapartMarket.Core.DTO.AliExpress
     {
         [JsonProperty("sender_seller_address_list")]
         public SenderSellerAddressList SenderSellerAddressList { get; set; }
+        [JsonProperty("refund_seller_address_list")]
+        public RefundSellerAddressList RefundSellerAddressList { get; set; }
+        [JsonProperty("pickup_seller_address_list")]
+        public PickupSellerAddressList PickupSellerAddressList { get; set; }
+    }
+
+    public class PickupSellerAddressList
+    {
+        [JsonProperty("pickupselleraddresslist")]
+        public List<Address> RefundSellerAddresses { get; set; }
+    }
+
+    public class RefundSellerAddressList
+    {
+        [JsonProperty("refundselleraddresslist")]
+        public List<Address> RefundSellerAddresses { get; set; }
     }
 
     public class SenderSellerAddressList
     {
         [JsonProperty("senderselleraddresslist")]
-        public List<SenderSellerAddress> SenderSellerAddress { get; set; }
+        public List<Address> SenderSellerAddress { get; set; }
     }
 
-    public class SenderSellerAddress
+    public class Address
     {
         [JsonProperty("street_address")]
         public string StreetAddress { get; set; }

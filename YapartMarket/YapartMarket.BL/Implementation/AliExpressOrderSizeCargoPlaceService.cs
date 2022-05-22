@@ -33,17 +33,16 @@ namespace YapartMarket.BL.Implementation
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
         }
 
-        public List<AliExpressOrderSizeCargoPlaceDTO> GetOnlineLogisticsServiceListByOrderId(long orderId)
+        public List<AliExpressOrderSizeCargoPlaceDTO> GetRequest(long orderId)
         {
             AliexpressLogisticsRedefiningGetonlinelogisticsservicelistbyorderidRequest req = new AliexpressLogisticsRedefiningGetonlinelogisticsservicelistbyorderidRequest();
-            req.GoodsWidth = 1L;
-            req.GoodsHeight = 1L;
-            req.GoodsWeight = "1.5";
-            req.GoodsLength = 1L;
+            //req.GoodsWidth = 1L;
+            //req.GoodsHeight = 1L;
+            //req.GoodsWeight = "1";
+            //req.GoodsLength = 1L;
             req.OrderId = orderId;
             req.Locale = "ru_RU";
             AliexpressLogisticsRedefiningGetonlinelogisticsservicelistbyorderidResponse rsp = _client.Execute(req, _options.Value.AccessToken);
-            Console.WriteLine();
             var aliExpressOrderSizeCargoPlaceDTOs = JsonConvert
                 .DeserializeObject<AliExpressLogisticsRedefiningGetOnlineLogisticsServiceListByOrderIdResponseRoot>
                     (rsp.Body)?.AliExpressLogisticsRedefiningGetOnlineLogisticsServiceListByOrderIdResponse
