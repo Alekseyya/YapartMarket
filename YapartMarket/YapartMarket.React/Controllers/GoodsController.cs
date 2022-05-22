@@ -42,6 +42,7 @@ namespace YapartMarket.React.Controllers
                         await _goodsService.Confirm(shipmentId, orderId);
                         await _goodsService.Reject(shipmentId, orderId);
                     }
+                    await _goodsService.Package(shipmentId, orderId);
                 }
                 return Ok(new SuccessfulResponse()
                 {

@@ -7,7 +7,7 @@ namespace YapartMarket.React.ViewModels.Goods
     {
         [JsonProperty("shipmentId")]
         public string ShipmentId { get; set; }
-        [JsonProperty("orderCode")]
+        [JsonProperty("orderCode", NullValueHandling = NullValueHandling.Ignore)]
         public string OrderCode { get; set; }
         [JsonProperty("items")]
         public List<OrderItemViewModel> Items { get; set; }
