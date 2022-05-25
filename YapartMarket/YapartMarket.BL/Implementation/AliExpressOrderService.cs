@@ -93,20 +93,27 @@ namespace YapartMarket.BL.Implementation
             {
                 await _orderRepository.Update(updatedOrders);
                 //список товаров в заказах из бд, новые в списке orderUpdates не учитываются
-                var orderDetailUpdatesDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = updatedOrders.Select(x => x.OrderId) });
-                var orderDetailUpdates = updatedOrders.SelectMany(x => x.AliExpressOrderDetails).ToList();
-                if (orderDetailUpdatesDb.Any())
-                {
-                    //поучить те записи которые изменились
-                    var modifyOrderDetails = orderDetailUpdatesDb.Where(x => orderDetailUpdates.Any(t =>
-                        t.OrderId == x.OrderId
-                        && t.ProductCount != x.ProductCount && t.ProductUnitPrice != x.ProductUnitPrice && t.SendGoodsOperator != x.SendGoodsOperator
-                        && t.ShowStatus != x.ShowStatus && t.TotalProductAmount != x.TotalProductAmount));
-                    if(modifyOrderDetails.IsAny())
-                        await _orderDetailRepository.Update(modifyOrderDetails);
-                }else
-                    await _orderDetailRepository.Add(orderDetailUpdates);
+                await UpdateOrderDetails(aliExpressOrders);
             }
+            await UpdateOrderDetails(aliExpressOrders);
+        }
+
+        public async Task UpdateOrderDetails(List<AliExpressOrder> aliExpressOrders)
+        {
+            var orderDetails = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).ToList();
+            var orderDetailHasInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).Select(x => x.OrderId) });
+            var orderDetailNotHasInDb = orderDetails.Where(x => orderDetailHasInDb.Any(t => t.OrderId != x.OrderId)).ToList();
+            if (orderDetailHasInDb.IsAny())
+            {
+                var modifyOrderDetails = orderDetailHasInDb.Where(x => orderDetails.Any(t =>
+                    t.OrderId == x.OrderId
+                    && t.ProductCount != x.ProductCount && t.ProductUnitPrice != x.ProductUnitPrice && t.SendGoodsOperator != x.SendGoodsOperator
+                    && t.ShowStatus != x.ShowStatus && t.TotalProductAmount != x.TotalProductAmount));
+                if (modifyOrderDetails.IsAny())
+                    await _orderDetailRepository.Update(modifyOrderDetails);
+            }
+            if (orderDetailNotHasInDb.IsAny())
+                await _orderDetailRepository.Add(orderDetails);
         }
         /// <summary>
         /// Получить только новые заказы

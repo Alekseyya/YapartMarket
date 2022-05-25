@@ -172,7 +172,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 req.DeclareProductDTOs_ = list7;
                 req.TradeOrderFrom = "ESCROW";
                 req.TradeOrderId = orderId;
-                req.WarehouseCarrierService = "AE_RU_MPFF_RUPOST;AE_RU_MP_COURIER_PH3_CITY";
+                req.WarehouseCarrierService = "AE_RU_MPFF_RUPOST;AE_RU_MP_COURIER_PH3_CITY"; // todo возможно тут не хватает _ правильного. Получать из заказа!
                 AliexpressLogisticsCreatewarehouseorderResponse rsp = _client.Execute(req, _options.Value.AccessToken);
                 Console.WriteLine(rsp.Body);
             }
