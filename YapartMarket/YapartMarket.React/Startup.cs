@@ -98,7 +98,7 @@ namespace YapartMarket.React
             services.AddTransient<ILogisticWarehouseOrderService, AliExpressCreateLogisticWarehouseOrderService>();
             services.AddTransient<IRedefiningDomesticLogisticsCompany, RedefiningDomesticLogisticsCompanyService>();
             services.AddTransient<IWarehouseDetailService, WarehouseDetailService>();
-            services.AddTransient<IAliExpressOrderSizeCargoPlaceService, AliExpressOrderSizeCargoPlaceService>();
+            services.AddTransient<IOrderSizeCargoPlaceService, OrderSizeCargoPlaceService>();
 
             #endregion
 

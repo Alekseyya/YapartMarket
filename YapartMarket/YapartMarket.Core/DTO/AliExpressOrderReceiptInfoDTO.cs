@@ -2,18 +2,20 @@
 
 namespace YapartMarket.Core.DTO
 {
-    public class AliExpressReceiptRoot
+    public sealed class AliExpressReceiptRoot
     {
         [JsonProperty("aliexpress_solution_order_receiptinfo_get_response")]
         public AliExpressReceiptInfoResult AliExpressReceiptInfoResult { get; set; }
     }
 
-    public class AliExpressReceiptInfoResult
+    public sealed class AliExpressReceiptInfoResult
     {
         [JsonProperty("result")]
         public AliExpressOrderReceiptInfoDTO AliExpressOrderReceiptInfoDto { get; set; }
+        [JsonProperty("request_id")]
+        public string RequestId { get; set; }
     }
-    public class AliExpressOrderReceiptInfoDTO
+    public sealed class AliExpressOrderReceiptInfoDTO
     {
         [JsonProperty("country_name")]
         public string CountryName { get; set; }

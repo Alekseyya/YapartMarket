@@ -58,9 +58,10 @@ namespace YapartMarket.BL.Implementation
                 var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
                 var deserializeAliExpressOrderList = DeserializeAliExpressOrderList(rsp.Body);
                 if (deserializeAliExpressOrderList != null)
+                {
                     aliExpressOrderList.AddRange(deserializeAliExpressOrderList);
-                else
                     break;
+                }
                 currentPage++;
             } while (true);
             return aliExpressOrderList;
@@ -101,8 +102,8 @@ namespace YapartMarket.BL.Implementation
         public async Task UpdateOrderDetails(List<AliExpressOrder> aliExpressOrders)
         {
             var orderDetails = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).ToList();
-            var orderDetailHasInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).Select(x => x.OrderId) });
-            var orderDetailNotHasInDb = orderDetails.Where(x => orderDetailHasInDb.Any(t => t.OrderId != x.OrderId)).ToList();
+            var orderDetailHasInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = orderDetails.Select(x => x.OrderId) });
+            var orderDetailNotHasInDb = orderDetails.Where(x => orderDetailHasInDb.All(t => t.OrderId != x.OrderId)).ToList();
             if (orderDetailHasInDb.IsAny())
             {
                 var modifyOrderDetails = orderDetailHasInDb.Where(x => orderDetails.Any(t =>

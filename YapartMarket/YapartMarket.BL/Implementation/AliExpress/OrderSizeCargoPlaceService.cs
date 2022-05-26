@@ -12,18 +12,17 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
-using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
-namespace YapartMarket.BL.Implementation
+namespace YapartMarket.BL.Implementation.AliExpress
 {
-    public class AliExpressOrderSizeCargoPlaceService : IAliExpressOrderSizeCargoPlaceService
+    public class OrderSizeCargoPlaceService : IOrderSizeCargoPlaceService
     {
         private readonly IOptions<AliExpressOptions> _options;
         private readonly IMapper _mapper;
         private readonly IAliExpressOrderSizeCargoPlaceRepository _aliExpressOrderSizeCargoPlaceRepository;
         private ITopClient _client;
-        public AliExpressOrderSizeCargoPlaceService(IOptions<AliExpressOptions> options, 
+        public OrderSizeCargoPlaceService(IOptions<AliExpressOptions> options, 
             IMapper mapper,
             IAliExpressOrderSizeCargoPlaceRepository aliExpressOrderSizeCargoPlaceRepository)
         {
@@ -49,6 +48,17 @@ namespace YapartMarket.BL.Implementation
                 .AliExpressLogisticsRedefiningGetOnlineLogisticsServiceListByOrderIdResult
                 .AliExpressOrderSizeCargoPlaceDTOs;
             return aliExpressOrderSizeCargoPlaceDTOs;
+        }
+
+        public string CreateLogisticsServicesId(List<AliExpressOrderSizeCargoPlaceDTO> orderSizeCargoPlaces)
+        {
+            var result = string.Empty;
+            if (orderSizeCargoPlaces.Any())
+            {
+                var logisticServices = orderSizeCargoPlaces.Select(x => x.LogisticServiceId).ToList();
+                result = string.Join(";", logisticServices);
+            }
+            return result;
         }
         public async Task ProcessWriteOrderSizeCargoPlace(List<AliExpressOrderSizeCargoPlaceDTO> aliExpressOrderSize)
         {

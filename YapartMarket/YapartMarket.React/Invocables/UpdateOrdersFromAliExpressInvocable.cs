@@ -76,7 +76,7 @@ namespace YapartMarket.React.Invocables
                         _logger.LogInformation("Запись адреса получателя");
                         foreach (var aliExpressOrder in aliExpressOrders)
                         {
-                            var orderReceiptDto = _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
+                            var orderReceiptDto = await _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
                             _logger.LogInformation($"OrderId : {aliExpressOrder.OrderId}");
                             await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(aliExpressOrder.OrderId, orderReceiptDto);
 

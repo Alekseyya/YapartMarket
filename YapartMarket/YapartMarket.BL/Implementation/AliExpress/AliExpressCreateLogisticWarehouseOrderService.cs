@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Top.Api;
 using Top.Api.Request;
 using Top.Api.Response;
+using YapartMarket.Core.BL;
 using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
@@ -24,6 +25,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
         private readonly IAzureAliExpressProductRepository _productRepository;
         private readonly IAzureAliExpressOrderDetailRepository _orderDetailRepository;
         private readonly IProductPropertyRepository _productPropertyRepository;
+        private readonly IOrderSizeCargoPlaceService _orderSizeCargoPlaceService;
         private readonly IMapper _mapper;
         private ITopClient _client;
 
@@ -32,7 +34,8 @@ namespace YapartMarket.BL.Implementation.AliExpress
             ICategoryRepository categoryRepository,
             IAzureAliExpressProductRepository productRepository,
             IAzureAliExpressOrderDetailRepository orderDetailRepository,
-            IProductPropertyRepository productPropertyRepository)
+            IProductPropertyRepository productPropertyRepository,
+            IOrderSizeCargoPlaceService orderSizeCargoPlaceService)
         {
             _mapper = mapper;
             _options = options;
@@ -41,6 +44,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             _productRepository = productRepository;
             _orderDetailRepository = orderDetailRepository;
             _productPropertyRepository = productPropertyRepository;
+            _orderSizeCargoPlaceService = orderSizeCargoPlaceService;
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
         }
 
@@ -167,12 +171,16 @@ namespace YapartMarket.BL.Implementation.AliExpress
                     list7.Add(productDto);
                 }
 
-                req.DomesticLogisticsCompanyId = -1; // 505L;
-                req.DomesticTrackingNo = "none";
+                req.DomesticLogisticsCompanyId = 505L; //-1; // 505L; //todo - найти какой ставить
+                req.DomesticTrackingNo = "12312";// "none"; //todo возможно с этим ошибка
                 req.DeclareProductDTOs_ = list7;
                 req.TradeOrderFrom = "ESCROW";
                 req.TradeOrderId = orderId;
-                req.WarehouseCarrierService = "AE_RU_MPFF_RUPOST;AE_RU_MP_COURIER_PH3_CITY"; // todo возможно тут не хватает _ правильного. Получать из заказа!
+
+                var orderWarehouseServicesResponse = _orderSizeCargoPlaceService.GetRequest(orderId);
+                var warehouseService = _orderSizeCargoPlaceService.CreateLogisticsServicesId(orderWarehouseServicesResponse);
+
+                req.WarehouseCarrierService = warehouseService; 
                 AliexpressLogisticsCreatewarehouseorderResponse rsp = _client.Execute(req, _options.Value.AccessToken);
                 Console.WriteLine(rsp.Body);
             }

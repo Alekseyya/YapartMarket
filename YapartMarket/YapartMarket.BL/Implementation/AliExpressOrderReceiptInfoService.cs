@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -11,6 +13,7 @@ using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.BL.Implementation
@@ -30,15 +33,36 @@ namespace YapartMarket.BL.Implementation
             _options = options.Value;
         }
 
-        public AliExpressOrderReceiptInfoDTO GetReceiptInfo(long orderId)
+        public async Task<AliExpressOrderReceiptInfoDTO> GetReceiptInfo(long orderId)
         {
-            AliexpressSolutionOrderReceiptinfoGetRequest req = new AliexpressSolutionOrderReceiptinfoGetRequest();
-            AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain singleOrderQueryDomain = new AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain();
-            singleOrderQueryDomain.OrderId = orderId;
-            req.Param1_ = singleOrderQueryDomain;
-            AliexpressSolutionOrderReceiptinfoGetResponse rsp = _client.Execute(req, _options.AccessToken);
-            var aliExpressReceiptRoot = JsonConvert.DeserializeObject<AliExpressReceiptRoot>(rsp.Body);
-            return aliExpressReceiptRoot?.AliExpressReceiptInfoResult.AliExpressOrderReceiptInfoDto;
+            AliExpressOrderReceiptInfoDTO orderReceiptInfo;
+            do
+            {
+                try
+                {
+                    var req = new AliexpressSolutionOrderReceiptinfoGetRequest();
+                    AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain singleOrderQueryDomain = new AliexpressSolutionOrderReceiptinfoGetRequest.SingleOrderQueryDomain();
+                    singleOrderQueryDomain.OrderId = orderId;
+                    req.Param1_ = singleOrderQueryDomain;
+                    AliexpressSolutionOrderReceiptinfoGetResponse rsp = _client.Execute(req, _options.AccessToken);
+                    var body = rsp.Body;
+                    if (body.TryParseJson(out AliExpressReceiptRoot receiptRoot))
+                    {
+                        orderReceiptInfo = receiptRoot?.AliExpressReceiptInfoResult.AliExpressOrderReceiptInfoDto;
+                        break;
+                    }
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Status == WebExceptionStatus.Timeout)
+                    {
+                        await Task.Delay(3000);
+                    }
+                }
+                
+            } while (true);
+
+            return orderReceiptInfo;
         }
 
         public async Task InsertOrderReceipt(long orderId, AliExpressOrderReceiptInfoDTO orderInfoDto)
