@@ -110,9 +110,8 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
            
         }
 
-        public async Task AddOrdersWitchOrderDetails(IEnumerable<AliExpressOrder> aliExpressOrders)
+        public async Task AddOrders(IEnumerable<AliExpressOrder> aliExpressOrders)
         {
-            //var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
             var insertOrder = new AliExpressOrder().InsertString(_tableName);
             var insertOrderDetail = new AliExpressOrderDetail().InsertString("dbo.order_details");
             using (var connection = new SqlConnection(_connectionString))
@@ -122,7 +121,7 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                 {
                     try
                     {
-                        var newOrderId = await connection.QuerySingleAsync<int>(insertOrder, new
+                        await connection.QuerySingleAsync<int>(insertOrder, new
                         {
                             seller_signer_fullname = aliExpressOrder.SellerSignerFullName,
                             seller_login_id = aliExpressOrder.SellerLoginId,
@@ -141,25 +140,6 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                             fund_status = aliExpressOrder.FundStatus,
                             frozen_status = aliExpressOrder.FrozenStatus
                         });
-
-                        foreach (var aliExpressOrderProductDto in aliExpressOrder.AliExpressOrderDetails)
-                            await connection.ExecuteAsync(insertOrderDetail, new
-                            {
-                                logistics_service_name = aliExpressOrderProductDto.LogisticsServiceName,
-                                ali_order_id = aliExpressOrderProductDto.OrderId,
-                                order_id = aliExpressOrder.OrderId,
-                                product_count = aliExpressOrderProductDto.ProductCount,
-                                product_id = aliExpressOrderProductDto.ProductId,
-                                product_name = aliExpressOrderProductDto.ProductName,
-                                product_unit_price = aliExpressOrderProductDto.ProductUnitPrice,
-                                send_goods_operator = aliExpressOrderProductDto.SendGoodsOperator,
-                                show_status = aliExpressOrderProductDto.ShowStatus,
-                                goods_prepare_time = aliExpressOrderProductDto.GoodsPrepareTime,
-                                total_count_product_amount = aliExpressOrderProductDto.TotalProductAmount,
-                                created = DateTime.Now,
-                                updated = (DateTime?)null,
-                            });
-
                     }
                     catch (Exception ex)
                     {

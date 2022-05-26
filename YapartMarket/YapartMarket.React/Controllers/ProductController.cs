@@ -80,10 +80,10 @@ namespace YapartMarket.React.Controllers
             if (orderDto != null)
             {
                 var isAccepted = true;
-                await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     //Пройтись по всем товарам, если хоть одного нету или количество меньше того что есть на сервере = отменить заказа
-                    connection.Open();
+                    await connection.OpenAsync();
                     foreach (var orderItem in orderDto.OrderInfoDto.OrderItemsDto)
                     {
                         var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new {sku = orderItem.OfferId, count = orderItem.Count});

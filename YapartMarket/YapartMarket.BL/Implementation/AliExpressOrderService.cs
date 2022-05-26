@@ -88,18 +88,14 @@ namespace YapartMarket.BL.Implementation
             }
             var newAliExpressOrders = await ExceptOrders(aliExpressOrders);
             if (newAliExpressOrders.Any())
-                await _orderRepository.AddOrdersWitchOrderDetails(newAliExpressOrders);
+                await _orderRepository.AddOrders(newAliExpressOrders);
             var updatedOrders = await IntersectOrder(aliExpressOrders);
             if (updatedOrders.IsAny())
-            {
                 await _orderRepository.Update(updatedOrders);
-                //список товаров в заказах из бд, новые в списке orderUpdates не учитываются
-                await UpdateOrderDetails(aliExpressOrders);
-            }
-            await UpdateOrderDetails(aliExpressOrders);
+            await AddOrUpdateOrderDetails(aliExpressOrders);
         }
 
-        public async Task UpdateOrderDetails(List<AliExpressOrder> aliExpressOrders)
+        public async Task AddOrUpdateOrderDetails(List<AliExpressOrder> aliExpressOrders)
         {
             var orderDetails = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).ToList();
             var orderDetailHasInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = orderDetails.Select(x => x.OrderId) });
