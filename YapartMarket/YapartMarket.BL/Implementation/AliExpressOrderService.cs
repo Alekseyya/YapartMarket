@@ -110,7 +110,7 @@ namespace YapartMarket.BL.Implementation
                     await _orderDetailRepository.Update(modifyOrderDetails);
             }
             if (orderDetailNotHasInDb.IsAny())
-                await _orderDetailRepository.Add(orderDetails);
+                await _orderDetailRepository.Add(orderDetailNotHasInDb);
         }
         /// <summary>
         /// Получить только новые заказы
