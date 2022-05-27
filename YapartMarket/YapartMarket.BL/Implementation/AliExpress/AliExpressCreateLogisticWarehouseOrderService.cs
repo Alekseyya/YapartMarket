@@ -51,64 +51,64 @@ namespace YapartMarket.BL.Implementation.AliExpress
         private void Refund(AliexpressLogisticsCreatewarehouseorderRequest.AddressdtosDomain addressesDomain, Address address)
         {
             var refundObject = new AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain();
-            refundObject.Phone = address.Phone;
-            refundObject.Fax = address.Fax;
-            refundObject.MemberType = address.MemberType;
-            refundObject.TrademanageId = address.TradeManageId;
-            refundObject.Street = address.Street;
-            refundObject.Country = address.Country;
-            refundObject.City = address.City;
-            refundObject.County = address.County;
-            refundObject.Email = address.Email;
+            //refundObject.Phone = address.Phone;
+            //refundObject.Fax = address.Fax;
+            //refundObject.MemberType = address.MemberType;
+            //refundObject.TrademanageId = address.TradeManageId;
+            //refundObject.Street = address.Street;
+            //refundObject.Country = address.Country;
+            //refundObject.City = address.City;
+            //refundObject.County = address.County;
+            //refundObject.Email = address.Email;
             refundObject.AddressId = address.AddressId;
-            refundObject.Name = address.Name;
-            refundObject.Province = address.Province;
-            refundObject.StreetAddress = address.StreetAddress;
-            refundObject.Mobile = address.Mobile;
-            refundObject.PostCode = address.Postcode;
+            //refundObject.Name = address.Name;
+            //refundObject.Province = address.Province;
+            //refundObject.StreetAddress = address.StreetAddress;
+            //refundObject.Mobile = address.Mobile;
+            //refundObject.PostCode = address.Postcode;
             addressesDomain.Refund = refundObject;
         }
 
         private void Sender(AliexpressLogisticsCreatewarehouseorderRequest.AddressdtosDomain addressesDomain, Address address)
         {
             AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain senderObject = new AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain();
-            senderObject.Phone = address.Phone;
-            senderObject.PostCode = address.Postcode;
-            senderObject.Country = address.Country;
-            //obj2.Fax = "234234234";
-            //obj2.MemberType = "类型";
-            senderObject.TrademanageId = address.TradeManageId;
-            senderObject.Street = address.Street;
-            senderObject.City = address.City;
-            senderObject.County = address.County;
-            senderObject.Email = address.Email;
+            //senderObject.Phone = address.Phone;
+            //senderObject.PostCode = address.Postcode;
+            //senderObject.Country = address.Country;
+            ////obj2.Fax = "234234234";
+            ////obj2.MemberType = "类型";
+            //senderObject.TrademanageId = address.TradeManageId;
+            //senderObject.Street = address.Street;
+            //senderObject.City = address.City;
+            //senderObject.County = address.County;
+            //senderObject.Email = address.Email;
             senderObject.AddressId = address.AddressId;
-            senderObject.Name = address.Name;
-            senderObject.Province = address.Province;
-            senderObject.StreetAddress = address.StreetAddress;
-            senderObject.Mobile = address.Mobile;
+            //senderObject.Name = address.Name;
+            //senderObject.Province = address.Province;
+            //senderObject.StreetAddress = address.StreetAddress;
+            //senderObject.Mobile = address.Mobile;
             addressesDomain.Sender = senderObject;
         }
 
         private void Pickup(AliexpressLogisticsCreatewarehouseorderRequest.AddressdtosDomain addressesDomain, Address address)
         {
             var pickupObject = new AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareAddressDtoDomain();
-            pickupObject.Phone = address.Phone;
+            //pickupObject.Phone = address.Phone;
             //pickupObject.Fax = "234234234";
-            //pickupObject.MemberType = "类型";
-            pickupObject.TrademanageId = address.TradeManageId;
-            pickupObject.Street = address.Street;
-            pickupObject.Country = address.Country;
-            pickupObject.City = address.City;
-            pickupObject.County = address.County;
-            pickupObject.Email = address.Email;
+            ////pickupObject.MemberType = "类型";
+            ////pickupObject.TrademanageId = address.TradeManageId;
+            //pickupObject.Street = address.Street;
+            //pickupObject.Country = address.Country;
+            //pickupObject.City = address.City;
+            //pickupObject.County = address.County;
+            //pickupObject.Email = address.Email;
             pickupObject.AddressId = address.AddressId;
-            pickupObject.Name = address.Name;
-            pickupObject.Province = address.Province;
-            pickupObject.StreetAddress = address.StreetAddress;
-            pickupObject.Mobile = address.Mobile;
-            pickupObject.PostCode = address.Postcode;
-            //pickupObject.FromWarehouseCode = "AML001";
+            //pickupObject.Name = address.Name;
+            //pickupObject.Province = address.Province;
+            //pickupObject.StreetAddress = address.StreetAddress;
+            //pickupObject.Mobile = address.Mobile;
+            //pickupObject.PostCode = address.Postcode;
+            ////pickupObject.FromWarehouseCode = "AML001";
             addressesDomain.Pickup = pickupObject;
         }
 
@@ -122,8 +122,9 @@ namespace YapartMarket.BL.Implementation.AliExpress
             receiverObject.City = orderInfo.City;
             receiverObject.Name = orderInfo.ContractPerson;
             receiverObject.Province = orderInfo.Province;
-            //receiverObject.AddressId = sender.AddressId;
-            //receiverObject.Street = orderInfo.StreetDetailedAddress;
+            //receiverObject.TrademanageId = orderInfo.
+            //receiverObject.AddressId = orderInfo.Address.AddressId; //todo ЭТО ВАЖНО!!
+            receiverObject.Street = orderInfo.StreetDetailedAddress;
             receiverObject.StreetAddress = orderInfo.LocalizedAddress;
             receiverObject.Mobile = orderInfo.Mobile;
             addressesDomain.Receiver = receiverObject;
@@ -143,7 +144,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 var rspSender = _client.Execute(reqSender, _options.Value.AccessToken);
                 var sender = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.SenderSellerAddressList.SenderSellerAddress.First();
                 var refund = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.RefundSellerAddressList.RefundSellerAddresses.First();
-                var pickup = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.PickupSellerAddressList.RefundSellerAddresses.First();
+                var pickup = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.PickupSellerAddressList.PickupSellerAddresses.First();
 
                 Sender(addressesDomain, sender);
                 Pickup(addressesDomain, pickup);
@@ -162,25 +163,27 @@ namespace YapartMarket.BL.Implementation.AliExpress
                     productDto.CategoryEnDesc = category.EnName;
                     productDto.ProductWeight = product.GrossWeight;
                     productDto.ProductNum = orderDetail.ProductCount;
-                    productDto.ProductDeclareAmount = "1.3";
-                    //productDto.SkuValue = "sku value";
+                    productDto.ProductDeclareAmount = "1.3"; //todo взять откуда-то
+                    productDto.SkuValue = "black";
                     productDto.ProductId = product.ProductId;
                     productDto.Breakable = false;
                     productDto.SkuCode = product.Sku;
+                    productDto.AneroidMarkup = false;
                     productDto.ContainsBattery = false;
+                    productDto.ChildOrderId = orderId;
                     list7.Add(productDto);
                 }
-
-                req.DomesticLogisticsCompanyId = 505L; //-1; // 505L; //todo - найти какой ставить
-                req.DomesticTrackingNo = "12312";// "none"; //todo возможно с этим ошибка
                 req.DeclareProductDTOs_ = list7;
+                req.DomesticLogisticsCompany = "SF Express";
+                req.DomesticLogisticsCompanyId = 133; // 505L; //todo - найти какой ставить
+                req.DomesticTrackingNo = "none";// "none"; //todo возможно с этим ошибка
                 req.TradeOrderFrom = "ESCROW";
                 req.TradeOrderId = orderId;
 
-                var orderWarehouseServicesResponse = _orderSizeCargoPlaceService.GetRequest(orderId);
-                var warehouseService = _orderSizeCargoPlaceService.CreateLogisticsServicesId(orderWarehouseServicesResponse);
+                //var orderWarehouseServicesResponse = _orderSizeCargoPlaceService.GetRequest(orderId);
+                //var warehouseService = _orderSizeCargoPlaceService.CreateLogisticsServicesId(orderWarehouseServicesResponse);
 
-                req.WarehouseCarrierService = warehouseService; 
+                req.WarehouseCarrierService = "AE_RU_MP_COURIER_PH3_REGION;"; //warehouseService; // todo поствить один! 
                 AliexpressLogisticsCreatewarehouseorderResponse rsp = _client.Execute(req, _options.Value.AccessToken);
                 Console.WriteLine(rsp.Body);
             }

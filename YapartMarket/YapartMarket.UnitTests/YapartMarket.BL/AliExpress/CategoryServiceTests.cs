@@ -1,11 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
 using Xunit;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
@@ -13,9 +11,9 @@ using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Mapper;
 
-namespace YapartMarket.UnitTests.YapartMarket.BL
+namespace YapartMarket.UnitTests.YapartMarket.BL.AliExpress
 {
-    public class TestAliExpressCategoryService
+    public class CategoryServiceTests
     {
         private readonly IOptions<AliExpressOptions> _aliExpressOption;
         private readonly IConfiguration _configuration;
@@ -26,7 +24,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         private readonly Mock<IAliExpressProductService> _mockProductService;
         private readonly IOptions<Connections> _connections;
 
-        public TestAliExpressCategoryService()
+        public CategoryServiceTests()
         {
             _configuration = (IConfiguration)new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -57,7 +55,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         public async Task QueryCategoryThreeAsync_CallWithCorrectValue_ReturnCategory()
         {
             //Arrange
-            var categoryId = 200003311;
+            var categoryId = 200000466;
             var aliCategoryService = new AliExpressCategoryService(_mapper,_connections, _aliExpressOption, _mockCategoryRepository.Object, _mockProductRepository.Object, _mockProductService.Object);
             //Act
             var result = await aliCategoryService.QueryCategoryAsync(categoryId);
