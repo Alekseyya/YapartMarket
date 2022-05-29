@@ -26,6 +26,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
         private readonly IAzureAliExpressOrderDetailRepository _orderDetailRepository;
         private readonly IProductPropertyRepository _productPropertyRepository;
         private readonly IOrderSizeCargoPlaceService _orderSizeCargoPlaceService;
+        private readonly IFullOrderInfoService _fullOrderInfoService;
         private readonly IMapper _mapper;
         private ITopClient _client;
 
@@ -35,7 +36,8 @@ namespace YapartMarket.BL.Implementation.AliExpress
             IAzureAliExpressProductRepository productRepository,
             IAzureAliExpressOrderDetailRepository orderDetailRepository,
             IProductPropertyRepository productPropertyRepository,
-            IOrderSizeCargoPlaceService orderSizeCargoPlaceService)
+            IOrderSizeCargoPlaceService orderSizeCargoPlaceService,
+            IFullOrderInfoService fullOrderInfoService)
         {
             _mapper = mapper;
             _options = options;
@@ -45,6 +47,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             _orderDetailRepository = orderDetailRepository;
             _productPropertyRepository = productPropertyRepository;
             _orderSizeCargoPlaceService = orderSizeCargoPlaceService;
+            _fullOrderInfoService = fullOrderInfoService;
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
         }
 
@@ -159,7 +162,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                     var category = (await _categoryRepository.GetAsync("select * from ali_category where category_id = @category_id", new { category_id = product.CategoryId })).FirstOrDefault();
                     //var productProperties = (await _productPropertyRepository.GetAsync("select * from ali_product_properties where product_id = @product_id", new {product_id = product.ProductId}));
                     var productDto = new AliexpressLogisticsCreatewarehouseorderRequest.AeopWlDeclareProductForTopDtoDomain();
-                    productDto.CategoryCnDesc = category.CnName;
+                    productDto.CategoryCnDesc = category.CnName; // todo вот с этим вопрос!
                     productDto.CategoryEnDesc = category.EnName;
                     productDto.ProductWeight = product.GrossWeight;
                     productDto.ProductNum = orderDetail.ProductCount;
@@ -174,16 +177,19 @@ namespace YapartMarket.BL.Implementation.AliExpress
                     list7.Add(productDto);
                 }
                 req.DeclareProductDTOs_ = list7;
-                req.DomesticLogisticsCompany = "SF Express";
-                req.DomesticLogisticsCompanyId = 133; // 505L; //todo - найти какой ставить
+                //todo добавить полную инф о продукте
+                //req.DomesticLogisticsCompany = "SF Express";//todo необязательное поле, тоже самое! WarehouseCarrierService -  AE_RU_MP_COURIER_PH3_REGION
+                req.DomesticLogisticsCompanyId = 505; // 505L; //todo - найти какой ставить
                 req.DomesticTrackingNo = "none";// "none"; //todo возможно с этим ошибка
-                req.TradeOrderFrom = "ESCROW";
+                req.TradeOrderFrom = "none"; // "ESCROW";
                 req.TradeOrderId = orderId;
 
-                //var orderWarehouseServicesResponse = _orderSizeCargoPlaceService.GetRequest(orderId);
-                //var warehouseService = _orderSizeCargoPlaceService.CreateLogisticsServicesId(orderWarehouseServicesResponse);
+                
+                var warehouseService = _fullOrderInfoService.GetRequest(orderId).aliexpress_trade_new_redefining_findorderbyid_response.
+                    target.child_order_list.aeop_tp_child_order_dto
+                    .FirstOrDefault().logistics_type;
 
-                req.WarehouseCarrierService = "AE_RU_MP_COURIER_PH3_REGION;"; //warehouseService; // todo поствить один! 
+                req.WarehouseCarrierService = warehouseService;
                 AliexpressLogisticsCreatewarehouseorderResponse rsp = _client.Execute(req, _options.Value.AccessToken);
                 Console.WriteLine(rsp.Body);
             }

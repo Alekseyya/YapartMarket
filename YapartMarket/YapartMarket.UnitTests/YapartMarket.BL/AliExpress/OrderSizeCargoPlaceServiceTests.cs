@@ -45,7 +45,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL.AliExpress
         public void GetRequest_OrderId_Success()
         {
             //Arrange
-            var orderId = 5029408847452678;
+            var orderId = 5029474366293600;
             var orderSizeCargoPlaceService = new OrderSizeCargoPlaceService(_aliExpressOption, _mockMapper.Object, _mockOrderSizeCargoPlaceRepository.Object);
             //Act
             var result = orderSizeCargoPlaceService.GetRequest(orderId);

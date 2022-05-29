@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Top.Api;
 using Top.Api.Request;
-using Top.Api.Response;
 using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;
+using YapartMarket.Core.DTO.AliExpress.FullOrderInfo;
 
 namespace YapartMarket.BL.Implementation.AliExpress
 {
@@ -22,14 +23,14 @@ namespace YapartMarket.BL.Implementation.AliExpress
             _mapper = mapper;
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
         }
-        public string GetRequest(long orderId, long? flag = null)
+        public Root GetRequest(long orderId, long? flag = null)
         {
             var req = new AliexpressTradeNewRedefiningFindorderbyidRequest();
             AliexpressTradeNewRedefiningFindorderbyidRequest.AeopTpSingleOrderQueryDomain obj1 = new AliexpressTradeNewRedefiningFindorderbyidRequest.AeopTpSingleOrderQueryDomain();
             obj1.OrderId = orderId;
             req.Param1_ = obj1;
-            AliexpressTradeNewRedefiningFindorderbyidResponse rsp = _client.Execute(req, _options.Value.AccessToken);
-            return rsp.Body;
+            var rsp = _client.Execute(req, _options.Value.AccessToken);
+            return JsonConvert.DeserializeObject<Root>(rsp.Body);
         }
     }
 }

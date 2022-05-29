@@ -35,10 +35,6 @@ namespace YapartMarket.BL.Implementation.AliExpress
         public List<AliExpressOrderSizeCargoPlaceDTO> GetRequest(long orderId)
         {
             AliexpressLogisticsRedefiningGetonlinelogisticsservicelistbyorderidRequest req = new AliexpressLogisticsRedefiningGetonlinelogisticsservicelistbyorderidRequest();
-            //req.GoodsWidth = 1L;
-            //req.GoodsHeight = 1L;
-            //req.GoodsWeight = "1";
-            //req.GoodsLength = 1L;
             req.OrderId = orderId;
             req.Locale = "ru_RU";
             AliexpressLogisticsRedefiningGetonlinelogisticsservicelistbyorderidResponse rsp = _client.Execute(req, _options.Value.AccessToken);

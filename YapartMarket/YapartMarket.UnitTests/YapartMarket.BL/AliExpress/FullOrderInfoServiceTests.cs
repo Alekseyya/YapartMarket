@@ -41,7 +41,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL.AliExpress
         public void GetRequest_OrderId_Success()
         {
             //Arrange
-            var orderId = 5019158945676610;
+            var orderId = 5029474366293600;
             var serviceOrderService = new FullOrderInfoService(_mockLogger.Object, _aliExpressOption, _mockMapper.Object);
             //Act
             var result = serviceOrderService.GetRequest(orderId);
