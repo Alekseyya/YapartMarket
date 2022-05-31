@@ -89,17 +89,18 @@ namespace YapartMarket.BL.Implementation
                 throw;
             }
         }
-        
+
         public async Task ProcessDataFromAliExpress()
         {
             bool haveElement = true;
             long currentPage = 1;
-            try
+
+            ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+            do
             {
-                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-                do
+                try
                 {
-                    _logger.LogInformation($"Запрос. Страница {currentPage}");
+                    //_logger.LogInformation($"Запрос. Страница {currentPage}");
                     var req = new AliexpressSolutionProductListGetRequest();
                     var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
                     {
@@ -109,7 +110,7 @@ namespace YapartMarket.BL.Implementation
                     };
                     req.AeopAEProductListQuery_ = obj1;
                     var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-                    _logger.LogInformation($"Страница {currentPage} Десериализация json продуктов");
+                    //_logger.LogInformation($"Страница {currentPage} Десериализация json продуктов");
                     var listProducts = GetProductFromJson(rsp.Body);
                     if (!listProducts.IsAny())
                         haveElement = false;
@@ -118,14 +119,17 @@ namespace YapartMarket.BL.Implementation
                         //Добавлени новых товаров
                         await AddNewProducts(listProducts);
                     }
-                    currentPage++;
-                } while (haveElement);
-                //await ProcessUpdateProduct();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.RequestCanceled)
+                    {
+                        await Task.Delay(2000);
+                    }
+                    continue;
+                }
+                currentPage++;
+            } while (haveElement);
         }
 
 
