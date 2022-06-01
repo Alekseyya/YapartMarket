@@ -179,6 +179,7 @@ namespace YapartMarket.BL.Implementation
                     var modifiesProducts = productsInfo.Where(x =>
                     {
                         var currentCode = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode;
+                        var skuCode = x.ProductInfoSku.GlobalProductSkus.First().Code;
                         var productPrice = decimal.Parse(x.ProductPrice, CultureInfo.InvariantCulture);
                         return productInfoDb.Any(t => t.ProductId == x.ProductId &&
                                                       (t.CategoryId != x.CategoryId ||
@@ -189,7 +190,8 @@ namespace YapartMarket.BL.Implementation
                                                       t.PackageHeight != x.PackageHeight ||
                                                       t.PackageLength != x.PackageLength ||
                                                       t.ProductPrice != productPrice ||
-                                                      t.ProductStatusType != x.ProductStatusType);
+                                                      t.ProductStatusType != x.ProductStatusType ||
+                                                      t.Sku != skuCode);
                     });
                     if (modifiesProducts.IsAny())
                     {

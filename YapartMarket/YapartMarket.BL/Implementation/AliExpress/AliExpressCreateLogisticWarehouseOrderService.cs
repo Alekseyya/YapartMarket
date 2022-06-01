@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Options;
@@ -8,12 +10,16 @@ using Newtonsoft.Json;
 using Top.Api;
 using Top.Api.Request;
 using Top.Api.Response;
+using Top.Api.Util;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO.AliExpress;
+using YapartMarket.Core.DTO.AliExpress.CreateWarehouse;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
+using YapartMarket.React.ViewModels.AliExpress;
 
 namespace YapartMarket.BL.Implementation.AliExpress
 {
@@ -29,6 +35,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
         private readonly IFullOrderInfoService _fullOrderInfoService;
         private readonly IMapper _mapper;
         private ITopClient _client;
+        private readonly HttpClient _httpClient;
 
         public AliExpressCreateLogisticWarehouseOrderService(IMapper mapper, IOptions<AliExpressOptions> options, 
             IAzureAliExpressOrderReceiptInfoRepository aliExpressOrderReceiptInfoRepository,
@@ -37,7 +44,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             IAzureAliExpressOrderDetailRepository orderDetailRepository,
             IProductPropertyRepository productPropertyRepository,
             IOrderSizeCargoPlaceService orderSizeCargoPlaceService,
-            IFullOrderInfoService fullOrderInfoService)
+            IFullOrderInfoService fullOrderInfoService, IHttpClientFactory factory)
         {
             _mapper = mapper;
             _options = options;
@@ -49,6 +56,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             _orderSizeCargoPlaceService = orderSizeCargoPlaceService;
             _fullOrderInfoService = fullOrderInfoService;
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
+            _httpClient = factory.CreateClient("aliClient");
         }
 
         private void Refund(AliexpressLogisticsCreatewarehouseorderRequest.AddressdtosDomain addressesDomain, Address address)
@@ -131,6 +139,137 @@ namespace YapartMarket.BL.Implementation.AliExpress
             receiverObject.StreetAddress = orderInfo.LocalizedAddress;
             receiverObject.Mobile = orderInfo.Mobile;
             addressesDomain.Receiver = receiverObject;
+        }
+        private async Task<bool> SendRequest(string url, string body)
+        {
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+            var result = await _httpClient.PostAsync(url, content);
+            var resultContent = await result.Content.ReadAsStringAsync();
+            if (resultContent.TryParseJson(out SuccessfulResponse successfulResponse))
+                return true;
+            if(resultContent.TryParseJson(out ErrorResponse errorResponse))
+                Log.Instance.Error(errorResponse.cainiao_global_logistic_order_create_response.error_info.error_msg);
+            return false;
+        }
+        private async Task<bool> SendCreateWarehouseRequest(CreateWarehouseDTO createWarehouseDto)
+        {
+
+            TopDictionary topDictionary = new TopDictionary();
+            topDictionary.Add("method", "cainiao.global.logistic.order.create");
+            topDictionary.Add("v", "2.0");
+            topDictionary.Add("sign_method", "hmac");
+            topDictionary.Add("app_key", _options.Value.AppKey);
+            topDictionary.Add("format", "json");
+            //topDictionary.Add("target_app_key", request.GetTargetAppKey());
+            topDictionary.Add("session", _options.Value.AccessToken);
+            //topDictionary.AddAll(this.systemParameters);
+            //if (this.useSimplifyJson)
+            //    topDictionary.Add("simplify", "true");
+            var sign = TopUtils.SignTopRequest(topDictionary, _options.Value.AppSecret, "hmac");
+            var dateTime = DateTime.UtcNow;
+            var singapore = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
+            var chinaTimeZone = TimeZoneInfo.ConvertTimeFromUtc(dateTime, singapore); //гггг-мм-дд ЧЧ:ММ:СС
+            var chinaTimeZoneString =chinaTimeZone.ToString("yyyy-MM-dd HH:mm:ss");
+            var body = JsonConvert.SerializeObject(createWarehouseDto);
+            var url = $"?method=cainiao.global.logistic.order.create&v=2.0&app_key={_options.Value.AppKey}&session={_options.Value.AccessToken}&format=json&timestamp={chinaTimeZoneString}&sign_method=hmac&sign={sign}";
+            var response = await SendRequest(url, body);
+            return response;
+        }
+
+        public async Task CreateWarehouseOrderAsync(long orderId)
+        {
+            var orderDetails = await _orderDetailRepository.GetAsync("select * from order_details where order_id = @order_id", new { order_id = orderId });
+            if (orderDetails.IsAny())
+            {
+                var orderInfo = (await _aliExpressOrderReceiptInfoRepository.GetAsync("select * from order_receipt_infos where order_id = @order_id", new { order_id = orderId })).FirstOrDefault();
+                var warehouseService = _fullOrderInfoService.GetRequest(orderId).aliexpress_trade_new_redefining_findorderbyid_response.
+                    target.child_order_list.aeop_tp_child_order_dto
+                    .FirstOrDefault().logistics_type;
+                AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest reqSender = new AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest();
+                reqSender.SellerAddressQuery = "sender,pickup,refund";
+                var rspSender = _client.Execute(reqSender, _options.Value.AccessToken);
+                var sender = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.SenderSellerAddressList.SenderSellerAddress.First();
+                var refund = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.RefundSellerAddressList.RefundSellerAddresses.First();
+                var pickup = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.PickupSellerAddressList.PickupSellerAddresses.First();
+
+                var itemsInOrder = new List<ItemParam>();
+                foreach (var orderDetail in orderDetails)
+                {
+                    itemsInOrder.Add(new()
+                    {
+                        item_id = orderDetail.ProductId,
+                        //sku = orderDetail. //Todo Дописать!!!
+                    });
+                }
+
+                var result = new CreateWarehouseDTO()
+                {
+                    locale = "ru_RU",
+                    order_param = new()
+                    {
+                        trade_order_param = new()
+                        {
+                            trade_order_id = orderId
+                        },
+                        solution_param = new()
+                        {
+                            solution_code = warehouseService,
+                            service_params = new List<ServiceParam>
+                        {
+                            new()
+                            {
+                                code = "SELF_SEND",
+                                features = new()
+                                {
+                                    warehouse_code = warehouseService
+                                }
+                            }
+                        }
+                        },
+                        //seller_info_param = new()
+                        //{
+                        //    top_user_key = 
+                        //}
+                        sender_param = new()
+                        {
+                            seller_address_id = sender.AddressId
+                        },
+                        returner_param = new()
+                        {
+                            seller_address_id = refund.AddressId
+                        },
+                        pickup_info_param = new()
+                        {
+                            seller_address_id = pickup.AddressId
+                        },
+                        receiver_param = new()
+                        {
+                            name = orderInfo.ContractPerson,
+                            telephone = orderInfo.PhoneNumber,
+                            mobile_phone = orderInfo.Mobile,
+                            address_param = new()
+                            {
+                                country_code = orderInfo.Country,
+                                country_name = "Russia",
+                                province = orderInfo.Province,
+                                city = orderInfo.City,
+                                detail_address = orderInfo.LocalizedAddress,
+                                zip_code = orderInfo.PostCode
+                            }
+                        },
+                        package_params = new List<PackageParam>
+                    {
+                        new PackageParam
+                        {
+                            item_params = new List<ItemParam>()
+                            {
+                                new()
+                            }
+                        }
+                    }
+                    }
+                };
+            }
         }
 
         public async Task CreateOrderAsync(long orderId)

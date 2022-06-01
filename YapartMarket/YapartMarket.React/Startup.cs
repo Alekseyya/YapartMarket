@@ -120,6 +120,7 @@ namespace YapartMarket.React
             services.AddTransient<ICategoryRepository>(m => new CategoryRepository("dbo.ali_category", Configuration.GetConnectionString("SQLServerConnectionString")));
 
             services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.goodsteam.tech"));
+            services.AddHttpClient("aliClient", c => c.BaseAddress = new Uri("https://eco.taobao.com/router/rest"));
             services.AddTransient<IGoodsService, GoodsService>();
 
             services.AddScheduler();
