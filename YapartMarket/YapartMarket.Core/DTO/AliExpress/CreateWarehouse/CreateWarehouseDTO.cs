@@ -11,12 +11,12 @@ namespace YapartMarket.React.ViewModels.AliExpress
         public string province { get; set; }
         [JsonProperty("city")]
         public string city { get; set; }
-        [JsonProperty("street")]
-        public string street { get; set; }
+        //[JsonProperty("street")]
+        //public string street { get; set; }
         [JsonProperty("detail_address")]
         public string detail_address { get; set; }
-        [JsonProperty("district")]
-        public string district { get; set; }
+        //[JsonProperty("district")]
+        //public string district { get; set; }
         [JsonProperty("country_name")]
         public string country_name { get; set; }
         [JsonProperty("zip_code")]
@@ -25,7 +25,7 @@ namespace YapartMarket.React.ViewModels.AliExpress
 
     public class Features
     {
-        [JsonProperty("zip_code")]
+        [JsonProperty("warehouse_code")]
         public string warehouse_code { get; set; }
     }
 
@@ -34,17 +34,23 @@ namespace YapartMarket.React.ViewModels.AliExpress
         [JsonProperty("quantity")]
         public int quantity { get; set; }
         [JsonProperty("total_price")]
-        public int total_price { get; set; }
+        public decimal total_price { get; set; }
         [JsonProperty("item_id")]
         public long item_id { get; set; }
         [JsonProperty("item_features")]
-        public string item_features { get; set; }
+        public string[] item_features { get; set; }
         [JsonProperty("weight")]
         public int weight { get; set; }
+        [JsonProperty("height")]
+        public int height { get; set; }
         [JsonProperty("unit_price")]
-        public int unit_price { get; set; }
+        public decimal unit_price { get; set; }
         [JsonProperty("local_name")]
         public string local_name { get; set; }
+        [JsonProperty("length")]
+        public int length { get; set; }
+        [JsonProperty("width")]
+        public int width { get; set; }
         [JsonProperty("english_name")]
         public string english_name { get; set; }
         [JsonProperty("currency")]

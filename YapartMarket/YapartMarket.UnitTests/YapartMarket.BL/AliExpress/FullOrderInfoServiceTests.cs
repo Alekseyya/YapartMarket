@@ -37,17 +37,16 @@ namespace YapartMarket.UnitTests.YapartMarket.BL.AliExpress
             _mockMapper = new Mock<IMapper>();
             _mockFullOrderInfoService = new Mock<IFullOrderInfoService>();
         }
-        //[Fact]
-        //public void GetRequest_OrderId_Success()
-        //{
-        //    //Arrange
-        //    var orderId = 5029474366293600;
-        //    var serviceOrderService = new FullOrderInfoService(_mockLogger.Object, _aliExpressOption, _mockMapper.Object);
-        //    //Act
-        //    var result = serviceOrderService.GetRequest(orderId);
-        //    //Assert
-        //    _testOutputHelper.WriteLine(result);
-        //    Assert.NotNull(result);
-        //}
+        [Fact]
+        public void GetRequest_OrderId_Success()
+        {
+            //Arrange
+            var orderId = 5029511218437032;
+            var serviceOrderService = new FullOrderInfoService(_mockLogger.Object, _aliExpressOption, _mockMapper.Object);
+            //Act
+            var result = serviceOrderService.GetRequest(orderId);
+            //Assert
+            Assert.NotNull(result);
+        }
     }
 }

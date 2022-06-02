@@ -133,7 +133,7 @@ namespace YapartMarket.BL.Implementation
         }
 
 
-        private async Task<List<ProductInfoResult>> GetProductFromAli(List<long> productIds)
+        public async Task<List<ProductInfoResult>> GetProductFromAli(List<long> productIds)
         {
             var getClient = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
             var listProductInfo = new List<ProductInfoResult>();
@@ -179,7 +179,7 @@ namespace YapartMarket.BL.Implementation
                     var modifiesProducts = productsInfo.Where(x =>
                     {
                         var currentCode = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode;
-                        var skuCode = x.ProductInfoSku.GlobalProductSkus.First().Code;
+                        var skuCode = x.ProductInfoSku.GlobalProductSkus.First().SkuCode;
                         var productPrice = decimal.Parse(x.ProductPrice, CultureInfo.InvariantCulture);
                         return productInfoDb.Any(t => t.ProductId == x.ProductId &&
                                                       (t.CategoryId != x.CategoryId ||
@@ -197,7 +197,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         var updateList = productsInfo.Select(x => new
                         {
-                            sku = x.ProductInfoSku.GlobalProductSkus.First().Code,
+                            sku = x.ProductInfoSku.GlobalProductSkus.First().SkuCode,
                             category_id = x.CategoryId,
                             currency_code = x.ProductInfoSku.GlobalProductSkus.First().CurrencyCode,
                             group_id = x.GroupId,
@@ -439,11 +439,6 @@ namespace YapartMarket.BL.Implementation
                 throw;
             }
             return null;
-        }
-
-        public void UpdatePriceProduct(List<long> productIds)
-        {
-            throw new NotImplementedException();
         }
     }
 }

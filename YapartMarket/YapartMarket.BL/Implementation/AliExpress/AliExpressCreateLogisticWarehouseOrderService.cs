@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -33,18 +34,21 @@ namespace YapartMarket.BL.Implementation.AliExpress
         private readonly IProductPropertyRepository _productPropertyRepository;
         private readonly IOrderSizeCargoPlaceService _orderSizeCargoPlaceService;
         private readonly IFullOrderInfoService _fullOrderInfoService;
+        private readonly IAliExpressProductService _productProductService;
         private readonly IMapper _mapper;
         private ITopClient _client;
         private readonly HttpClient _httpClient;
 
-        public AliExpressCreateLogisticWarehouseOrderService(IMapper mapper, IOptions<AliExpressOptions> options, 
+        public AliExpressCreateLogisticWarehouseOrderService(IMapper mapper, IOptions<AliExpressOptions> options,
             IAzureAliExpressOrderReceiptInfoRepository aliExpressOrderReceiptInfoRepository,
             ICategoryRepository categoryRepository,
             IAzureAliExpressProductRepository productRepository,
             IAzureAliExpressOrderDetailRepository orderDetailRepository,
             IProductPropertyRepository productPropertyRepository,
             IOrderSizeCargoPlaceService orderSizeCargoPlaceService,
-            IFullOrderInfoService fullOrderInfoService, IHttpClientFactory factory)
+            IFullOrderInfoService fullOrderInfoService,
+            IAliExpressProductService productProductService,
+            IHttpClientFactory factory)
         {
             _mapper = mapper;
             _options = options;
@@ -55,6 +59,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             _productPropertyRepository = productPropertyRepository;
             _orderSizeCargoPlaceService = orderSizeCargoPlaceService;
             _fullOrderInfoService = fullOrderInfoService;
+            _productProductService = productProductService;
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
             _httpClient = factory.CreateClient("aliClient");
         }
@@ -147,13 +152,12 @@ namespace YapartMarket.BL.Implementation.AliExpress
             var resultContent = await result.Content.ReadAsStringAsync();
             if (resultContent.TryParseJson(out SuccessfulResponse successfulResponse))
                 return true;
-            if(resultContent.TryParseJson(out ErrorResponse errorResponse))
+            if (resultContent.TryParseJson(out ErrorResponse errorResponse))
                 Log.Instance.Error(errorResponse.cainiao_global_logistic_order_create_response.error_info.error_msg);
             return false;
         }
         private async Task<bool> SendCreateWarehouseRequest(CreateWarehouseDTO createWarehouseDto)
         {
-
             TopDictionary topDictionary = new TopDictionary();
             topDictionary.Add("method", "cainiao.global.logistic.order.create");
             topDictionary.Add("v", "2.0");
@@ -169,14 +173,14 @@ namespace YapartMarket.BL.Implementation.AliExpress
             var dateTime = DateTime.UtcNow;
             var singapore = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
             var chinaTimeZone = TimeZoneInfo.ConvertTimeFromUtc(dateTime, singapore); //гггг-мм-дд ЧЧ:ММ:СС
-            var chinaTimeZoneString =chinaTimeZone.ToString("yyyy-MM-dd HH:mm:ss");
+            var chinaTimeZoneString = chinaTimeZone.ToString("yyyy-MM-dd HH:mm:ss");
             var body = JsonConvert.SerializeObject(createWarehouseDto);
             var url = $"?method=cainiao.global.logistic.order.create&v=2.0&app_key={_options.Value.AppKey}&session={_options.Value.AccessToken}&format=json&timestamp={chinaTimeZoneString}&sign_method=hmac&sign={sign}";
             var response = await SendRequest(url, body);
             return response;
         }
 
-        public async Task CreateWarehouseOrderAsync(long orderId)
+        public async Task CreateWarehouseAsync(long orderId)
         {
             var orderDetails = await _orderDetailRepository.GetAsync("select * from order_details where order_id = @order_id", new { order_id = orderId });
             if (orderDetails.IsAny())
@@ -191,15 +195,154 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 var sender = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.SenderSellerAddressList.SenderSellerAddress.First();
                 var refund = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.RefundSellerAddressList.RefundSellerAddresses.First();
                 var pickup = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.PickupSellerAddressList.PickupSellerAddresses.First();
+                var orderProductsId = orderDetails.Select(x => x.ProductId).ToList();
+                var products = await _productProductService.GetProductFromAli(orderProductsId);
+                var items = new List<CainiaoGlobalLogisticOrderCreateRequest.OpenItemParamDomain>();
+                foreach (var orderDetail in orderDetails)
+                {
+                    var product = products.FirstOrDefault(x => x.ProductId == orderDetail.ProductId);
+                    var sku = product.ProductInfoSku.GlobalProductSkus?.FirstOrDefault()?.SkuCode;
+                    var englishName = product.MultiLanguageList.GlobalSubjects.FirstOrDefault(x => x.Locale == "en_US")?.Subject;
+                    var localeName = product.MultiLanguageList.GlobalSubjects.FirstOrDefault(x => x.Locale == "ru_RU")?.Subject;
+                    var unitPrice = Convert.ToInt64(Math.Round(decimal.Parse(product.ProductInfoSku.GlobalProductSkus?.FirstOrDefault()?.DiscountPrice!, new CultureInfo("en-US"))));
+                    var totalPrice = Convert.ToInt64(orderDetail.TotalProductAmount);
+                    var gramms = Convert.ToInt32(product.GrossWeight.Split(".")[1]);
+                    var kilo = Convert.ToInt32(product.GrossWeight.Split(".")[0]);
+                    var summaryGramms = (kilo * 1000) + gramms;
+                    if (product != null)
+                    {
+                        items.Add(new()
+                        {
+                            ItemId = product.ProductId,
+                            Sku = sku,
+                            EnglishName = englishName,
+                            LocalName = localeName,
+                            Height = product.PackageHeight,
+                            Length = product.PackageLength,
+                            Weight = summaryGramms,
+                            Width = product.PackageWidth,
+                            UnitPrice = unitPrice,
+                            TotalPrice = totalPrice,
+                            Quantity = orderDetail.ProductCount,
+                            Currency = "RUB"
+                        });
+                    }
+                }
 
+                var request = new CainiaoGlobalLogisticOrderCreateRequest();
+                var orderParam = new CainiaoGlobalLogisticOrderCreateRequest.OpenOrderParamDomain();
+
+                orderParam.TradeOrderParam = new()
+                {
+                    TradeOrderId = orderId
+                };
+                orderParam.SolutionParam = new()
+                {
+                    SolutionCode = warehouseService,
+                    ServiceParams = new List<CainiaoGlobalLogisticOrderCreateRequest.OpenServiceParamDomain>()
+                    {
+                        new()
+                        {
+                            Code = "SELF_SEND",
+                            Features = new()
+                            {
+                                WarehouseCode = warehouseService
+                            }
+                        }
+                    }
+                };
+                orderParam.SenderParam = new()
+                {
+                    SellerAddressId = sender.AddressId
+                };
+                orderParam.SellerInfoParam = new() //todo неизвестно обязательный ли он
+                {
+                    TopUserKey = ""
+                };
+                orderParam.ReturnerParam = new()
+                {
+                    SellerAddressId = refund.AddressId
+                };
+                orderParam.ReceiverParam = new()
+                {
+                    Name = orderInfo.ContractPerson,
+                    Telephone = !string.IsNullOrEmpty(orderInfo.PhoneNumber) ? orderInfo.PhoneNumber : "",
+                    MobilePhone = !string.IsNullOrEmpty(orderInfo.Mobile) ? orderInfo.Mobile : "",
+                    AddressParam = new()
+                    {
+                        CountryCode = orderInfo.Country,
+                        CountryName = orderInfo.CountryName,
+                        Province = orderInfo.Province,
+                        City = orderInfo.City,
+                        DetailAddress = orderInfo.LocalizedAddress,
+                        ZipCode = orderInfo.PostCode
+                    }
+                };
+                orderParam.PickupInfoParam = new()
+                {
+                    SellerAddressId = pickup.AddressId
+                };
+                orderParam.PackageParams = new List<CainiaoGlobalLogisticOrderCreateRequest.OpenPackageParamDomain>()
+                {
+                    new CainiaoGlobalLogisticOrderCreateRequest.OpenPackageParamDomain()
+                    {
+                        ItemParams = items
+                    }
+                };
+                request.Locale = "ru_RU";
+                request.OrderParam_ = orderParam;
+                var response = _client.Execute(request, _options.Value.AccessToken);
+                Console.WriteLine(response.Body);
+            }
+        }
+
+        public async Task CreateWarehouseOrderAsync(long orderId)
+        {
+
+            
+
+            var orderDetails = await _orderDetailRepository.GetAsync("select * from order_details where order_id = @order_id", new { order_id = orderId });
+            if (orderDetails.IsAny())
+            {
+                var orderInfo = (await _aliExpressOrderReceiptInfoRepository.GetAsync("select * from order_receipt_infos where order_id = @order_id", new { order_id = orderId })).FirstOrDefault();
+                var warehouseService = _fullOrderInfoService.GetRequest(orderId).aliexpress_trade_new_redefining_findorderbyid_response.
+                    target.child_order_list.aeop_tp_child_order_dto
+                    .FirstOrDefault().logistics_type;
+                AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest reqSender = new AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest();
+                reqSender.SellerAddressQuery = "sender,pickup,refund";
+                var rspSender = _client.Execute(reqSender, _options.Value.AccessToken);
+                var sender = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.SenderSellerAddressList.SenderSellerAddress.First();
+                var refund = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.RefundSellerAddressList.RefundSellerAddresses.First();
+                var pickup = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.PickupSellerAddressList.PickupSellerAddresses.First();
+                var orderProductsId = orderDetails.Select(x => x.ProductId).ToList();
+                var products = await _productProductService.GetProductFromAli(orderProductsId);
                 var itemsInOrder = new List<ItemParam>();
                 foreach (var orderDetail in orderDetails)
                 {
-                    itemsInOrder.Add(new()
+                    var product = products.FirstOrDefault(x => x.ProductId == orderDetail.ProductId);
+                    var sku = product.ProductInfoSku.GlobalProductSkus.FirstOrDefault()?.SkuCode;
+                    var englishName = product.MultiLanguageList.GlobalSubjects.FirstOrDefault(x => x.Locale == "en_US")?.Subject;
+                    var localeName = product.MultiLanguageList.GlobalSubjects.FirstOrDefault(x => x.Locale == "ru_RU")?.Subject;
+                    var unitPrice = Convert.ToInt64(Math.Round(decimal.Parse(product.ProductInfoSku.GlobalProductSkus.FirstOrDefault()?.DiscountPrice)));
+                    var totalPrice = Convert.ToInt64(orderDetail.TotalProductAmount);
+                    if (product != null)
                     {
-                        item_id = orderDetail.ProductId,
-                        //sku = orderDetail. //Todo Дописать!!!
-                    });
+                        itemsInOrder.Add(new()
+                        {
+                            item_id = product.ProductId,
+                            sku = sku,
+                            english_name = englishName,
+                            local_name = localeName,
+                            length = product.PackageLength,
+                            width = product.PackageWidth,
+                            height = product.PackageHeight,
+                            quantity = orderDetail.ProductCount,
+                            unit_price = unitPrice,
+                            total_price = totalPrice,
+                            currency = "RUB",
+                            item_features = new []{ "cf_normal" }
+                        });
+                    }
                 }
 
                 var result = new CreateWarehouseDTO()
@@ -226,10 +369,10 @@ namespace YapartMarket.BL.Implementation.AliExpress
                             }
                         }
                         },
-                        //seller_info_param = new()
-                        //{
-                        //    top_user_key = 
-                        //}
+                        seller_info_param = new()
+                        {
+
+                        },
                         sender_param = new()
                         {
                             seller_address_id = sender.AddressId
@@ -245,12 +388,12 @@ namespace YapartMarket.BL.Implementation.AliExpress
                         receiver_param = new()
                         {
                             name = orderInfo.ContractPerson,
-                            telephone = orderInfo.PhoneNumber,
-                            mobile_phone = orderInfo.Mobile,
+                            telephone =  !string.IsNullOrEmpty(orderInfo.PhoneNumber) ? orderInfo.PhoneNumber : "",
+                            mobile_phone = !string.IsNullOrEmpty(orderInfo.Mobile) ? orderInfo.Mobile : "",
                             address_param = new()
                             {
                                 country_code = orderInfo.Country,
-                                country_name = "Russia",
+                                country_name = orderInfo.CountryName,
                                 province = orderInfo.Province,
                                 city = orderInfo.City,
                                 detail_address = orderInfo.LocalizedAddress,
@@ -258,24 +401,22 @@ namespace YapartMarket.BL.Implementation.AliExpress
                             }
                         },
                         package_params = new List<PackageParam>
-                    {
-                        new PackageParam
-                        {
-                            item_params = new List<ItemParam>()
                             {
-                                new()
+                                new PackageParam
+                                {
+                                    item_params = itemsInOrder
+                                }
                             }
-                        }
-                    }
                     }
                 };
+                await SendCreateWarehouseRequest(result);
             }
         }
 
         public async Task CreateOrderAsync(long orderId)
         {
-            var orderDetails = await _orderDetailRepository.GetAsync("select * from order_details where order_id = @order_id", new {order_id = orderId});
-            var orderInfo = (await _aliExpressOrderReceiptInfoRepository.GetAsync("select * from order_receipt_infos where order_id = @order_id", new { order_id = orderId})).FirstOrDefault();
+            var orderDetails = await _orderDetailRepository.GetAsync("select * from order_details where order_id = @order_id", new { order_id = orderId });
+            var orderInfo = (await _aliExpressOrderReceiptInfoRepository.GetAsync("select * from order_receipt_infos where order_id = @order_id", new { order_id = orderId })).FirstOrDefault();
             if (orderDetails.Any())
             {
                 AliexpressLogisticsCreatewarehouseorderRequest req = new AliexpressLogisticsCreatewarehouseorderRequest();
@@ -323,7 +464,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 req.TradeOrderFrom = "none"; // "ESCROW";
                 req.TradeOrderId = orderId;
 
-                
+
                 var warehouseService = _fullOrderInfoService.GetRequest(orderId).aliexpress_trade_new_redefining_findorderbyid_response.
                     target.child_order_list.aeop_tp_child_order_dto
                     .FirstOrDefault().logistics_type;

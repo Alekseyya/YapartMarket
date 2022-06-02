@@ -50,7 +50,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         public void GetProductInfo_SuccessDeserialize()
         {
             //Arrange
-            var productId = 1005003606597178;
+            var productId = 1005002891751261;
             var productService = new AliExpressProductService(_mockAzureAliExpressRepository.Object, _mockAzureProductService.Object, _mockProductPropertyRepository.Object, _aliExpressOption, _configuration, _mockLogger.Object);
             var attrName = "Brand Name";
             var propertyValue = 193;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
+using Remotion.Linq.Parsing.ExpressionVisitors;
 
 namespace YapartMarket.Core.DTO.AliExpress
 {
@@ -47,6 +48,22 @@ namespace YapartMarket.Core.DTO.AliExpress
         public string ProductStatusType { get; set; }
         [JsonProperty("product_unit")]
         public long ProductUnit { get; set; }
+        [JsonProperty("multi_language_subject_list")]
+        public MultiLanguageList MultiLanguageList { get; set; }
+    }
+
+    public sealed class MultiLanguageList
+    {
+        [JsonProperty("global_subject")]
+        public List<GlobalSubject> GlobalSubjects { get; set; }
+    }
+
+    public sealed class GlobalSubject
+    {
+        [JsonProperty("locale")]
+        public string Locale { get; set; }
+        [JsonProperty("subject")]
+        public string Subject { get; set; }
     }
 
     public sealed class ProductInfoSku
@@ -62,15 +79,17 @@ namespace YapartMarket.Core.DTO.AliExpress
         [JsonProperty("barcode")]
         public string Barcode { get; set; }
         [JsonProperty("sku_code")]
-        public string Code { get; set; }
+        public string SkuCode { get; set; }
         [JsonProperty("currency_code")]
         public string CurrencyCode { get; set; }
         [JsonProperty("sku_price")]
-        public string Price { get; set; }
+        public string SkuPrice { get; set; }
         [JsonProperty("sku_discount_price")]
         public string DiscountPrice { get; set; }
         [JsonProperty("sku_stock")]
         public bool Stock { get; set; }
+        [JsonProperty("ean_code")]
+        public string EanCode { get; set; }
     }
 
     public sealed class SkuProperty

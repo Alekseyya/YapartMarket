@@ -54,7 +54,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         public void GetReceiptInfo_CallWithCorrectValue_ReturnCategory()
         {
             //Arrange
-            var orderId = 5029293096328871;
+            var orderId = 5029511218437032;
             var orderReceiptInfoService = new AliExpressOrderReceiptInfoService(_aliExpressOption, _mockOrderReceiptInfoRepository.Object, _mapper);
             //Act
             var result = orderReceiptInfoService.GetReceiptInfo(orderId);

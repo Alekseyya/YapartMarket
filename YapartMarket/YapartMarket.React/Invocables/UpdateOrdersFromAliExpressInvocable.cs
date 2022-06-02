@@ -91,6 +91,8 @@ namespace YapartMarket.React.Invocables
                             }
                             //_logger.LogInformation("Подтверждение заказа.");
                             //await _logisticWarehouseOrderService.CreateOrderAsync(aliExpressOrder.OrderId);
+                            //await _logisticWarehouseOrderService.CreateWarehouseOrderAsync(aliExpressOrder.OrderId);
+                            await _logisticWarehouseOrderService.CreateWarehouseAsync(aliExpressOrder.OrderId);
                             //var logisticServiceName = aliExpressOrder.AliExpressOrderDetails.FirstOrDefault()?.LogisticsServiceName;
 
                             //var serviceName = (await _aliExpressLogisticRedefiningService.GetRedefiningByDisplayName(logisticServiceName)).ServiceName;
