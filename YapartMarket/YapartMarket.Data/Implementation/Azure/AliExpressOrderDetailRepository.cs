@@ -10,12 +10,12 @@ using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
-    public class AzureAliExpressOrderDetailRepository: AzureGenericRepository<AliExpressOrderDetail>, IAzureAliExpressOrderDetailRepository 
+    public class AliExpressOrderDetailRepository: AzureGenericRepository<AliExpressOrderDetail>, IAliExpressOrderDetailRepository 
     {
         private readonly string _tableName;
         private readonly string _connectionString;
 
-        public AzureAliExpressOrderDetailRepository(string tableName, string connectionString) : base(tableName, connectionString)
+        public AliExpressOrderDetailRepository(string tableName, string connectionString) : base(tableName, connectionString)
         {
             _tableName = tableName;
             _connectionString = connectionString;

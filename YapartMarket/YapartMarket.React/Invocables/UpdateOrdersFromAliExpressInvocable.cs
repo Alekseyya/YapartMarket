@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Exceptions;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
@@ -61,14 +62,12 @@ namespace YapartMarket.React.Invocables
             var dateTimeNow = DateTime.UtcNow;
             try
             {
-                //var yesterdayDateTime = new DateTimeWithZone(dateTimeNow.AddDays(-1).StartOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-                //var tommorowDateTime = new DateTimeWithZone(dateTimeNow.AddDays(+1).EndOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-                var ordersDTO = _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay()); 
-                if (ordersDTO.Any())
+                var ordersDTO = await _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay()); 
+                if (ordersDTO.IsAny())
                 {
                     _logger.LogInformation("Получены заказы");
                     Debug.WriteLine("Получены заказы");
-                    var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(ordersDTO);
+                    var aliExpressOrders = _mapper.Map<List<OrderDto>, List<AliExpressOrder>>(ordersDTO);
                     _logger.LogInformation("Сохранение новых заказов");
                     await _aliExpressOrderService.AddOrders(aliExpressOrders);
                     if (aliExpressOrders.Any())
@@ -92,12 +91,7 @@ namespace YapartMarket.React.Invocables
                             //_logger.LogInformation("Подтверждение заказа.");
                             //await _logisticWarehouseOrderService.CreateOrderAsync(aliExpressOrder.OrderId);
                             //await _logisticWarehouseOrderService.CreateWarehouseOrderAsync(aliExpressOrder.OrderId);
-                            await _logisticWarehouseOrderService.CreateWarehouseAsync(aliExpressOrder.OrderId);
-                            //var logisticServiceName = aliExpressOrder.AliExpressOrderDetails.FirstOrDefault()?.LogisticsServiceName;
-
-                            //var serviceName = (await _aliExpressLogisticRedefiningService.GetRedefiningByDisplayName(logisticServiceName)).ServiceName;
-                            //var logisticNumber = (await _aliExpressLogisticOrderDetailService.GetDetail(aliExpressOrder.OrderId)).LogisticOrderId;
-                            //_aliExpressOrderFullfilService.OrderFullfil(serviceName, aliExpressOrder.OrderId, logisticNumber);
+                            //await _logisticWarehouseOrderService.CreateWarehouseAsync(aliExpressOrder.OrderId);
                         }
                     }
                 }

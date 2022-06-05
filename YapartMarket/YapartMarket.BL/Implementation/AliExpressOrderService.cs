@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -15,6 +16,7 @@ using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 
@@ -24,13 +26,13 @@ namespace YapartMarket.BL.Implementation
     public class AliExpressOrderService : IAliExpressOrderService
     {
         private readonly ILogger<AliExpressOrderService> _logger;
-        private readonly IAzureAliExpressOrderRepository _orderRepository;
-        private readonly IAzureAliExpressOrderDetailRepository _orderDetailRepository;
+        private readonly IAliExpressOrderRepository _orderRepository;
+        private readonly IAliExpressOrderDetailRepository _orderDetailRepository;
         private readonly IMapper _mapper;
         private readonly AliExpressOptions _aliExpressOptions;
 
-        public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAzureAliExpressOrderRepository orderRepository,
-            IAzureAliExpressOrderDetailRepository orderDetailRepository, IMapper mapper)
+        public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAliExpressOrderRepository orderRepository,
+            IAliExpressOrderDetailRepository orderDetailRepository, IMapper mapper)
         {
             _logger = logger;
             _orderRepository = orderRepository;
@@ -39,28 +41,50 @@ namespace YapartMarket.BL.Implementation
             _aliExpressOptions = options.Value;
         }
         
-        public List<AliExpressOrderDTO> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
+        public async Task<List<OrderDto>> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
         {
             var currentPage = 1;
             ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-            var aliExpressOrderList = new List<AliExpressOrderDTO>();
+            var aliExpressOrderList = new List<OrderDto>();
             do
             {
-                AliexpressSolutionOrderGetRequest req = new AliexpressSolutionOrderGetRequest();
-                AliexpressSolutionOrderGetRequest.OrderQueryDomain obj1 = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
-                obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                if (orderStatusList != null)
-                    obj1.OrderStatusList = new List<string> { OrderStatus.SELLER_PART_SEND_GOODS.ToString() };
-                obj1.PageSize = 20;
-                obj1.CurrentPage = currentPage;
-                req.Param0_ = obj1;
-                var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-                var deserializeAliExpressOrderList = DeserializeAliExpressOrderList(rsp.Body);
-                if (deserializeAliExpressOrderList != null)
+                try
                 {
-                    aliExpressOrderList.AddRange(deserializeAliExpressOrderList);
-                    break;
+                    var req = new AliexpressSolutionOrderGetRequest();
+                    AliexpressSolutionOrderGetRequest.OrderQueryDomain obj1 =
+                        new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
+                    obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
+                    obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
+                    if (orderStatusList != null)
+                        obj1.OrderStatusList = new List<string> { OrderStatus.SELLER_PART_SEND_GOODS.ToString() };
+                    obj1.PageSize = 20;
+                    obj1.CurrentPage = currentPage;
+                    req.Param0_ = obj1;
+                    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
+                    var orderRootDto = JsonConvert.DeserializeObject<OrderRootDto>(rsp.Body);
+                    if (orderRootDto == null)
+                        return null;
+                    var result = orderRootDto.aliexpress_solution_order_get_response.result;
+                    if (result.success)
+                    {
+                        if (result.target_list.Orders.IsAny())
+                            aliExpressOrderList.AddRange(orderRootDto!.aliexpress_solution_order_get_response.result
+                                .target_list.Orders);
+                        break;
+                    }
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.Timeout)
+                    {
+                        await Task.Delay(2000);
+                    }
+
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    continue;;
                 }
                 currentPage++;
             } while (true);
@@ -154,12 +178,9 @@ namespace YapartMarket.BL.Implementation
             return orderUpdates;
         }
 
-        public List<AliExpressOrderDTO> DeserializeAliExpressOrderList(string json)
+        public OrderRootDto DeserializeAliExpressOrderList(string json)
         {
-            var aliExpressResponseResult = JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json)?.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto;
-            if (aliExpressResponseResult.AliExpressOrderListDTOs == null)
-                return null;
-            return JsonConvert.DeserializeObject<AliExpressGetOrderRoot>(json)?.AliExpressSolutionOrderGetResponseDTO.AliExpressSolutionOrderGetResponseResultDto.AliExpressOrderListDTOs;
+            return JsonConvert.DeserializeObject<OrderRootDto>(json);
         }
     }
 }

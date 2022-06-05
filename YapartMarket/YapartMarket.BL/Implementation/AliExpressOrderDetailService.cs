@@ -5,11 +5,11 @@ namespace YapartMarket.BL.Implementation
 {
     public class AliExpressOrderDetailService : IAliExpressOrderDetailService
     {
-        private readonly IAzureAliExpressOrderRepository _azureAliExpressOrderRepository;
+        private readonly IAliExpressOrderRepository _aliExpressOrderRepository;
 
-        public AliExpressOrderDetailService(IAzureAliExpressOrderRepository azureAliExpressOrderRepository)
+        public AliExpressOrderDetailService(IAliExpressOrderRepository aliExpressOrderRepository)
         {
-            _azureAliExpressOrderRepository = azureAliExpressOrderRepository;
+            _aliExpressOrderRepository = aliExpressOrderRepository;
         }
     }
 }

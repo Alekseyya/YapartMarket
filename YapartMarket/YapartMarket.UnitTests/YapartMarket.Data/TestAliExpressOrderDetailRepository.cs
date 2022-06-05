@@ -25,7 +25,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
         private async Task TestAliExpressOrderDetailRepository_GetById_ProductIdNotZero()
         {
             //arrange
-            var aliExpressOrderDetailRepository = new AzureAliExpressOrderDetailRepository("dbo.order_details", _configuration.GetConnectionString("SQLServerConnectionString"));
+            var aliExpressOrderDetailRepository = new AliExpressOrderDetailRepository("dbo.order_details", _configuration.GetConnectionString("SQLServerConnectionString"));
             var id = 0;
             //act
             var orderDetail = await aliExpressOrderDetailRepository.GetById(id);
@@ -37,7 +37,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
         private async Task TestAliExpressOrderDetailRepository_GetById_ProductCountNotZero()
         {
             //arrange
-            var aliExpressOrderDetailRepository = new AzureAliExpressOrderDetailRepository("dbo.order_details", _configuration.GetConnectionString("SQLServerConnectionString"));
+            var aliExpressOrderDetailRepository = new AliExpressOrderDetailRepository("dbo.order_details", _configuration.GetConnectionString("SQLServerConnectionString"));
             var id = 0;
             //act
             var orderDetail = await aliExpressOrderDetailRepository.GetById(id);

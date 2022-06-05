@@ -11,6 +11,7 @@ using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.React.Invocables;
 using YapartMarket.React.ViewModels;
+using OrderDto = YapartMarket.Core.DTO.AliExpress.OrderGetResponse.OrderDto;
 
 namespace YapartMarket.React.Controllers
 {
@@ -135,10 +136,8 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                //var yesterdayDateTime = new DateTimeWithZone(DateTime.Now.AddDays(-1).StartOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-                //var tomorrowDateTime = new DateTimeWithZone(DateTime.Now.AddDays(+1).EndOfDay(), TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-                var aliExpressOrderDTO = _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.AddDays(+1).EndOfDay());
-                var aliExpressOrders = _mapper.Map<List<AliExpressOrderDTO>, List<AliExpressOrder>>(aliExpressOrderDTO);
+                var aliExpressOrderDTO = await _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-8).StartOfDay(), DateTime.Now.AddDays(+1).EndOfDay());
+                var aliExpressOrders = _mapper.Map<List<OrderDto>, List<AliExpressOrder>>(aliExpressOrderDTO);
                 await _aliExpressOrderService.AddOrders(aliExpressOrders);
             }
             catch (Exception e)

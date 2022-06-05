@@ -12,13 +12,13 @@ using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
-    public class AzureAliExpressOrderRepository : AzureGenericRepository<AliExpressOrder>, IAzureAliExpressOrderRepository
+    public class AliExpressOrderRepository : AzureGenericRepository<AliExpressOrder>, IAliExpressOrderRepository
     {
-        private readonly ILogger<AzureAliExpressOrderRepository> _azureAliExpressOrderLogger;
+        private readonly ILogger<AliExpressOrderRepository> _azureAliExpressOrderLogger;
         private readonly string _tableName;
         private readonly string _connectionString;
 
-        public AzureAliExpressOrderRepository(ILogger<AzureAliExpressOrderRepository> azureAliExpressOrderLogger, string tableName, string connectionString) : base(tableName, connectionString)
+        public AliExpressOrderRepository(ILogger<AliExpressOrderRepository> azureAliExpressOrderLogger, string tableName, string connectionString) : base(tableName, connectionString)
         {
             _azureAliExpressOrderLogger = azureAliExpressOrderLogger;
             _tableName = tableName;

@@ -30,7 +30,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
         private readonly IAzureAliExpressOrderReceiptInfoRepository _aliExpressOrderReceiptInfoRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IAzureAliExpressProductRepository _productRepository;
-        private readonly IAzureAliExpressOrderDetailRepository _orderDetailRepository;
+        private readonly IAliExpressOrderDetailRepository _orderDetailRepository;
         private readonly IProductPropertyRepository _productPropertyRepository;
         private readonly IOrderSizeCargoPlaceService _orderSizeCargoPlaceService;
         private readonly IFullOrderInfoService _fullOrderInfoService;
@@ -43,7 +43,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             IAzureAliExpressOrderReceiptInfoRepository aliExpressOrderReceiptInfoRepository,
             ICategoryRepository categoryRepository,
             IAzureAliExpressProductRepository productRepository,
-            IAzureAliExpressOrderDetailRepository orderDetailRepository,
+            IAliExpressOrderDetailRepository orderDetailRepository,
             IProductPropertyRepository productPropertyRepository,
             IOrderSizeCargoPlaceService orderSizeCargoPlaceService,
             IFullOrderInfoService fullOrderInfoService,

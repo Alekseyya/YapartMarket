@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="JsonConverters\" />
     <Folder Include="Models\Identiry\" />
   </ItemGroup>
 
