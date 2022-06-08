@@ -63,22 +63,24 @@ namespace YapartMarket.React.Services
                     id = await connection.QuerySingleAsync<int>("insert into goods_order(shipmentId) values(@shipmentId);SELECT CAST(SCOPE_IDENTITY() as int)", new { shipmentId = shipmentId });
                     foreach (var confirmOrder in confirmOrderItems)
                     {
-                        connection.Execute("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
+                        await connection.ExecuteAsync("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
                         {
                             offerId = confirmOrder.OfferId,
                             orderId = id,
                             item_index = confirmOrder.ItemIndex,
-                            reason_type = (int)ReasonType.Empty
+                            reason_type = (int)ReasonType.Empty,
+                            create = DateTime.UtcNow
                         });
                     }
                     foreach (var rejectItem in rejectOrderItems)
                     {
-                        connection.Execute("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
+                        await connection.ExecuteAsync("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
                         {
                             offerId = rejectItem.OfferId,
                             orderId = id,
                             item_index = rejectItem.ItemIndex,
-                            reason_type = (int)ReasonType.OUT_OF_STOCK
+                            reason_type = (int)ReasonType.OUT_OF_STOCK,
+                            create = DateTime.UtcNow
                         });
                     }
                 }
@@ -88,20 +90,28 @@ namespace YapartMarket.React.Services
 
         public async Task<bool> Reject(string shipmentId, int orderId)
         {
-            var shipments = await Shipments(shipmentId, orderId, ReasonType.OUT_OF_STOCK);
-            var order = CreateOrderReject(shipments);
+            var orderItems = await OrderItems(orderId, ReasonType.OUT_OF_STOCK);
+            var order = CreateOrderReject(shipmentId, orderItems);
             var isSent = await SendRejectRequest(order);
             return isSent;
         }
 
         public async Task<bool> Confirm(string shipmentId, int orderId)
         {
-            var shipments = await Shipments(shipmentId, orderId, ReasonType.Empty);
-            var order = CreateOrderConfirm(shipments);
+            var orderItems = await OrderItems(orderId, ReasonType.Empty);
+            var order = CreateOrderConfirm(shipmentId, orderItems);
             var isSent = await SendConfirmRequest(order);
             return isSent;
         }
-        private async Task<List<OrderShipmentViewModel>> Shipments(string shipmentId, int orderId, ReasonType reasonType)
+
+        public async Task<bool> Package(string shipmentId, int orderId)
+        {
+            var orderItems = await OrderItems(orderId, ReasonType.Empty);
+            var package = CreatePackage(shipmentId, orderItems);
+            var isSent = await SendConfirmRequest(package);
+            return isSent;
+        }
+        private async Task<List<GoodsOrderItem>> OrderItems(int orderId, ReasonType reasonType)
         {
             var goodsOrderItems = new List<GoodsOrderItem>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
@@ -109,46 +119,103 @@ namespace YapartMarket.React.Services
                 await connection.OpenAsync();
                 goodsOrderItems = (List<GoodsOrderItem>)await connection.QueryAsync<GoodsOrderItem>("select * from goods_order_details where orderId = @orderId and reason_type = @reason_type", new { orderId = orderId, reason_type = (int)reasonType });
             }
-            var orderItems = new List<OrderItemViewModel>();
-            foreach (var goodsItem in goodsOrderItems)
+            return goodsOrderItems;
+        }
+
+        private OrderViewModel CreatePackage(string shipmentId, List<GoodsOrderItem> orderItems)
+        {
+            var orderId = orderItems.First().OrderId;
+            var orderItemsViewModels = new List<OrderItemViewModel>();
+            var boxIndex = 1;
+            foreach (var items in orderItems)
             {
-                orderItems.Add(new()
+                orderItemsViewModels.Add(new()
                 {
-                    ItemIndex = goodsItem.ItemIndex,
-                    OfferId = goodsItem.OfferId
+                    ItemIndex = items.ItemIndex,
+                    OrderBox = new()
+                    {
+                        new OrderBox()
+                        {
+                            BoxIndex = boxIndex,
+                            BoxCode = $"3897*{orderId}*{boxIndex}"
+                        }
+                    },
                 });
+                boxIndex++;
             }
             var orderShipments = new List<OrderShipmentViewModel>();
             orderShipments.Add(new()
             {
                 ShipmentId = shipmentId,
                 OrderCode = orderId.ToString(),
-                Items = orderItems
+                Items = orderItemsViewModels
             });
-            return orderShipments;
-        }
 
-        private OrderViewModel CreateOrderConfirm(List<OrderShipmentViewModel> shipments)
+            var package = new OrderViewModel()
+            {
+                Data = new()
+                {
+                    Token = _configuration.GetSection("goodsTestToken").Value,
+                    Shipments = orderShipments
+                },
+                Meta = new()
+            };
+            return package;
+        }
+        private OrderViewModel CreateOrderConfirm(string shipmentId, List<GoodsOrderItem> orderItems)
         {
+            var orderId = orderItems.First().OrderId;
+            var orderItemViewModels = new List<OrderItemViewModel>();
+            foreach (var item in orderItems)
+            {
+                orderItemViewModels.Add(new()
+                {
+                    ItemIndex = item.ItemIndex,
+                    OfferId = item.OfferId
+                });
+            }
+            var orderShipments = new List<OrderShipmentViewModel>();
+
+            orderShipments.Add(new()
+            {
+                ShipmentId = shipmentId,
+                OrderCode = orderId.ToString(),
+                Items = orderItemViewModels
+            });
             var order = new OrderViewModel()
             {
                 Data = new()
                 {
                     Token = _configuration.GetSection("goodsTestToken").Value,
-                    Shipments = shipments
+                    Shipments = orderShipments
                 },
                 Meta = new()
             };
             return order;
         }
-        private OrderViewModel CreateOrderReject(List<OrderShipmentViewModel> shipments)
+        private OrderViewModel CreateOrderReject(string shipmentId, List<GoodsOrderItem> orderItems)
         {
+            var orderItemViewModels = new List<OrderItemViewModel>();
+            foreach (var item in orderItems)
+            {
+                orderItemViewModels.Add(new()
+                {
+                    ItemIndex = item.ItemIndex,
+                    OfferId = item.OfferId
+                });
+            }
+            var orderShipments = new List<OrderShipmentViewModel>();
+            orderShipments.Add(new()
+            {
+                ShipmentId = shipmentId,
+                Items = orderItemViewModels
+            });
             var order = new OrderViewModel()
             {
                 Data = new()
                 {
                     Token = _configuration.GetSection("goodsTestToken").Value,
-                    Shipments = shipments
+                    Shipments = orderShipments
                 },
                 Reason = new()
                 {
@@ -171,6 +238,15 @@ namespace YapartMarket.React.Services
         {
             var body = JsonConvert.SerializeObject(order);
             var url = "/api/market/v1/orderService/order/confirm";
+            var response = await SendRequest(url, body);
+            if (response.Success == 1)
+                return true;
+            return false;
+        }
+        private async Task<bool> SendPackageRequest(OrderViewModel order)
+        {
+            var body = JsonConvert.SerializeObject(order);
+            var url = "/api/market/v1/orderService/order/packing";
             var response = await SendRequest(url, body);
             if (response.Success == 1)
                 return true;
