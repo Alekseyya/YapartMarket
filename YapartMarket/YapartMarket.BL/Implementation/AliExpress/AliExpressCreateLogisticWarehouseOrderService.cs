@@ -186,15 +186,17 @@ namespace YapartMarket.BL.Implementation.AliExpress
             if (orderDetails.IsAny())
             {
                 var orderInfo = (await _aliExpressOrderReceiptInfoRepository.GetAsync("select * from order_receipt_infos where order_id = @order_id", new { order_id = orderId })).FirstOrDefault();
-                var warehouseService = _fullOrderInfoService.GetRequest(orderId).aliexpress_trade_new_redefining_findorderbyid_response.
-                    target.child_order_list.aeop_tp_child_order_dto
-                    .FirstOrDefault().logistics_type;
+                var warehouseService = (await _fullOrderInfoService.GetRequest(orderId))?.aliexpress_trade_new_redefining_findorderbyid_response?.
+                    target.child_order_list?.aeop_tp_child_order_dto?.FirstOrDefault()!.logistics_type;
                 AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest reqSender = new AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest();
                 reqSender.SellerAddressQuery = "sender,pickup,refund";
                 var rspSender = _client.Execute(reqSender, _options.Value.AccessToken);
-                var sender = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.SenderSellerAddressList.SenderSellerAddress.First();
-                var refund = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.RefundSellerAddressList.RefundSellerAddresses.First();
-                var pickup = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.PickupSellerAddressList.PickupSellerAddresses.First();
+                var senderAddresses = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body)?.Sender.SenderSellerAddressList.SenderSellerAddress;
+                var refundAddresses = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body)?.Sender.RefundSellerAddressList.RefundSellerAddresses;
+                var pickupAddresses = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body)?.Sender.PickupSellerAddressList.PickupSellerAddresses;
+                var sender = senderAddresses.First();
+                var refund = refundAddresses.First();
+                var pickup = pickupAddresses.First();
                 var orderProductsId = orderDetails.Select(x => x.ProductId).ToList();
                 var products = await _productProductService.GetProductFromAli(orderProductsId);
                 var items = new List<CainiaoGlobalLogisticOrderCreateRequest.OpenItemParamDomain>();
@@ -305,7 +307,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
             if (orderDetails.IsAny())
             {
                 var orderInfo = (await _aliExpressOrderReceiptInfoRepository.GetAsync("select * from order_receipt_infos where order_id = @order_id", new { order_id = orderId })).FirstOrDefault();
-                var warehouseService = _fullOrderInfoService.GetRequest(orderId).aliexpress_trade_new_redefining_findorderbyid_response.
+                var warehouseService = (await  _fullOrderInfoService.GetRequest(orderId)).aliexpress_trade_new_redefining_findorderbyid_response.
                     target.child_order_list.aeop_tp_child_order_dto
                     .FirstOrDefault().logistics_type;
                 AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest reqSender = new AliexpressLogisticsRedefiningGetlogisticsselleraddressesRequest();
@@ -465,7 +467,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 req.TradeOrderId = orderId;
 
 
-                var warehouseService = _fullOrderInfoService.GetRequest(orderId).aliexpress_trade_new_redefining_findorderbyid_response.
+                var warehouseService = (await _fullOrderInfoService.GetRequest(orderId)).aliexpress_trade_new_redefining_findorderbyid_response.
                     target.child_order_list.aeop_tp_child_order_dto
                     .FirstOrDefault().logistics_type;
 

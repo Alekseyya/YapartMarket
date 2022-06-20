@@ -148,8 +148,9 @@ namespace YapartMarket.BL.Implementation
                             ProductId = productId
                         };
                         var productInfoResponse = getClient.Execute(requestProductInfo, _aliExpressOptions.AccessToken);
-                        var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(productInfoResponse.Body)?.Response?.ProductInfoResult;
-                        if(productInfo != null)
+                        var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(productInfoResponse.Body)
+                            ?.Response?.ProductInfoResult;
+                        if (productInfo != null)
                             listProductInfo.Add(productInfo);
                     }
                     catch (WebException ex)
@@ -159,10 +160,13 @@ namespace YapartMarket.BL.Implementation
                             await Task.Delay(3000);
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        await Task.Delay(3000);
+                    }
                 }
                 break;
             } while (true);
-
             return listProductInfo;
         }
 
