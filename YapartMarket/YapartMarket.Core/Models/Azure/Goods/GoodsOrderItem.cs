@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace YapartMarket.Core.Models.Azure
+namespace YapartMarket.Core.Models.Azure.Goods
 {
     public class GoodsOrderItem
     {

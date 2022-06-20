@@ -9,7 +9,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using YapartMarket.Core.DateStructures;
+using YapartMarket.Core.DTO.Goods;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
+using YapartMarket.Core.Models.Azure.Goods;
 using YapartMarket.React.Services.Interfaces;
 using YapartMarket.React.ViewModels.Goods;
 
@@ -25,69 +28,107 @@ namespace YapartMarket.React.Services
             _configuration = configuration;
             _httpClient = factory.CreateClient("goodsClient");
         }
-        public void GetOrders(OrderNewViewModel order, out List<OrderNewShipmentItem> confirmOrders, out List<OrderNewShipmentItem> rejectOrders)
+        public async Task<List<OrderDetailDto>> GetOrders(OrderNewViewModel order)
         {
-            confirmOrders = new List<OrderNewShipmentItem>();
-            rejectOrders =  new List<OrderNewShipmentItem>();
+            var orderDetails = new List<OrderDetailDto>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 var orderItems = order.OrderNewDataViewModel.Shipments[0].Items;
                 var groupOrderItems = orderItems.GroupBy(x => x.OfferId).Select(x => new { OfferId = x.Key, Count = x.Count() });
                 
                 foreach (var orderItem in groupOrderItems)
                 {
-                    var product = connection.QueryFirstOrDefault<Product>("select * from products where sku = @sku", new { sku = orderItem.OfferId });
+                    var product = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku", new { sku = orderItem.OfferId });
                     if (product.Count >= orderItem.Count)
-                        confirmOrders.AddRange(orderItems.Where(x => x.OfferId == orderItem.OfferId));
+                        orderDetails.AddRange(Convert(orderItems.Where(x => x.OfferId == orderItem.OfferId).ToList(), ReasonType.Empty));
                     else
                     {
                         var rejectItems = orderItem.Count - product.Count;
                         var confirmItems = orderItem.Count - rejectItems;
-                        confirmOrders.AddRange(orderItems.Where(x => x.OfferId == orderItem.OfferId).Take(confirmItems));
-                        rejectOrders.AddRange(orderItems.Where(x => x.OfferId == orderItem.OfferId).TakeLast(confirmItems));
+                        var confirmOrderDetails = orderItems.Where(x => x.OfferId == orderItem.OfferId).Take(confirmItems).ToList();
+                        var rejectOrderDetails = orderItems.Where(x => x.OfferId == orderItem.OfferId).TakeLast(confirmItems).ToList();
+                        orderDetails.AddRange(Convert(confirmOrderDetails.AsReadOnly(), ReasonType.Empty));
+                        orderDetails.AddRange(Convert(rejectOrderDetails.AsReadOnly(), ReasonType.OUT_OF_STOCK));
                     }
                 }
             }
+
+            return orderDetails;
         }
-        public async Task<int> SaveOrder(string shipmentId, List<OrderNewShipmentItem> confirmOrderItems, List<OrderNewShipmentItem> rejectOrderItems)
+
+        private IReadOnlyList<OrderDetailDto> Convert(IReadOnlyList<OrderNewShipmentItem> orderNewShipmentItems, ReasonType reasonType)
+        {
+            var orderDetails = new List<OrderDetailDto>();
+            foreach (var orderNewShipmentItem in orderNewShipmentItems)
+            {
+                orderDetails.Add(new()
+                {
+                    OfferId = orderNewShipmentItem.OfferId,
+                    GoodsId = orderNewShipmentItem.GoodsId,
+                    ItemIndex = orderNewShipmentItem.ItemIndex,
+                    ReasonType = reasonType
+                });
+            }
+            return orderDetails.AsReadOnly();
+        }
+        public async Task<int> SaveOrder(string shipmentId, List<OrderDetailDto> orderDetails)
         {
             int id = default;
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
                 var order = await connection.QueryFirstOrDefaultAsync<GoodsOrder>("select * from goods_order where shipmentId = @shipmentId", new { shipmentId = shipmentId });
-                //todo добавить orderItem если есть order 
+                if (order != null)
+                {
+                    var confirmOrders = await connection.QueryAsync<GoodsOrderItem>(
+                        "select * from goods_order_details where order_id = @order_id and reason_type = @reason_type", new
+                        {
+                            order_id = order.Id,
+                            reason_type = (int)ReasonType.Empty
+                        });
+                    var rejectOrders = await connection.QueryAsync<GoodsOrderItem>(
+                        "select * from goods_order_details where order_id = @order_id and reason_type = @reason_type", new
+                        {
+                            order_id = order.Id,
+                            reason_type = (int)ReasonType.OUT_OF_STOCK
+                        });
+                    var newConfirmOrders = orderDetails.Where(x => confirmOrders.All(t => t.OfferId != x.OfferId || (t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex))).ToList();
+                    //var updateConfirmOrders = confirmOrders.Where(x=> confirmOrders.All(t=>t.OfferId.Equals(x.OfferId) && t.ItemIndex == x.ItemIndex));
+                    var newRejectOrders = orderDetails.Where(x => rejectOrders.All(t => t.OfferId != x.OfferId || (t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex)));
+                    var newOrderDetails = new List<OrderDetailDto>();
+                    newOrderDetails.AddRange(newConfirmOrders);
+                    newOrderDetails.AddRange(newRejectOrders);
+                    if (newOrderDetails.IsAny())
+                        await CreateDetails(id, connection, newOrderDetails);
+                   
+                }
                 if (order == null)
                 {
-                    id = await connection.QuerySingleAsync<int>("insert into goods_order(shipmentId) values(@shipmentId);SELECT CAST(SCOPE_IDENTITY() as int)", new { shipmentId = shipmentId });
-                    foreach (var confirmOrder in confirmOrderItems)
+                    id = await connection.QuerySingleAsync<int>("insert into goods_order(shipmentId,create) values(@shipmentId);SELECT CAST(SCOPE_IDENTITY() as int)", new
                     {
-                        await connection.ExecuteAsync("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
-                        {
-                            offerId = confirmOrder.OfferId,
-                            orderId = id,
-                            item_index = confirmOrder.ItemIndex,
-                            reason_type = (int)ReasonType.Empty,
-                            create = DateTime.UtcNow
-                        });
-                    }
-                    foreach (var rejectItem in rejectOrderItems)
-                    {
-                        await connection.ExecuteAsync("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
-                        {
-                            offerId = rejectItem.OfferId,
-                            orderId = id,
-                            item_index = rejectItem.ItemIndex,
-                            reason_type = (int)ReasonType.OUT_OF_STOCK,
-                            create = DateTime.UtcNow
-                        });
-                    }
+                        shipmentId = shipmentId, 
+                        create = DateTime.UtcNow
+                    });
+                    await CreateDetails(id, connection, orderDetails);
                 }
             }
             return id;
         }
-
+        private async Task CreateDetails(int orderId, SqlConnection connection, List<OrderDetailDto> orderDetails)
+        {
+            foreach (var orderDetail in orderDetails)
+            {
+                await connection.ExecuteAsync("insert into goods_order_details(offerId, orderId, item_index, reason_type) values(@offerId, @orderId, @item_index, @reason_type)", new
+                {
+                    offerId = orderDetail.OfferId,
+                    orderId = orderId,
+                    item_index = orderDetail.ItemIndex,
+                    reason_type = (int)orderDetail.ReasonType,
+                    create = DateTime.UtcNow
+                });
+            }
+        }
         public async Task<bool> Reject(string shipmentId, int orderId)
         {
             var orderItems = await OrderItems(orderId, ReasonType.OUT_OF_STOCK);
@@ -95,7 +136,6 @@ namespace YapartMarket.React.Services
             var isSent = await SendRejectRequest(order);
             return isSent;
         }
-
         public async Task<bool> Confirm(string shipmentId, int orderId)
         {
             var orderItems = await OrderItems(orderId, ReasonType.Empty);
@@ -103,14 +143,46 @@ namespace YapartMarket.React.Services
             var isSent = await SendConfirmRequest(order);
             return isSent;
         }
-
         public async Task<bool> Package(string shipmentId, int orderId)
         {
             var orderItems = await OrderItems(orderId, ReasonType.Empty);
-            var package = CreatePackage(shipmentId, orderItems);
-            var isSent = await SendConfirmRequest(package);
-            return isSent;
+            if (orderItems.IsAny())
+            {
+                var package = CreatePackage(shipmentId, orderItems);
+                var isSent = await SendPackageRequest(package);
+                return isSent;
+            }
+            return false;
         }
+
+        //private async Task SavePackage(string shipmentId, )
+        //{
+        //    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+        //    {
+        //        await connection.OpenAsync();
+        //        var order = await connection.QueryFirstOrDefaultAsync<GoodsOrder>(
+        //            "select * from goods_packing where shipmentId = @shipmentId", new { shipmentId = shipmentId });
+        //        if (order != null)
+        //        {
+        //            var packages = await connection.QueryAsync<Package>(
+        //                "select * from goods_packing where order_id = @order_id",
+        //                new
+        //                {
+        //                    order_id = order.Id,
+        //                });
+        //            //todo переделать
+        //            var newPackages = packages.Where(x => rejectOrders.All(t =>
+        //                t.OfferId != x.OfferId || (t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex)));
+        //            var newOrderDetails = new List<OrderDetailDto>();
+        //            newOrderDetails.AddRange(newConfirmOrders);
+        //            newOrderDetails.AddRange(newPackages);
+        //            if (newOrderDetails.IsAny())
+        //                await CreateDetails(id, connection, newOrderDetails);
+
+        //        }
+        //    }
+        //}
+
         private async Task<List<GoodsOrderItem>> OrderItems(int orderId, ReasonType reasonType)
         {
             var goodsOrderItems = new List<GoodsOrderItem>();
@@ -121,8 +193,7 @@ namespace YapartMarket.React.Services
             }
             return goodsOrderItems;
         }
-
-        private OrderViewModel CreatePackage(string shipmentId, List<GoodsOrderItem> orderItems)
+        private OrderViewModel CreatePackage(string shipmentId, List<GoodsOrderItem> orderItems) // 
         {
             var orderId = orderItems.First().OrderId;
             var orderItemsViewModels = new List<OrderItemViewModel>();
@@ -225,7 +296,6 @@ namespace YapartMarket.React.Services
             };
             return order;
         }
-
         private async Task<SuccessfulResponse> SendRequest(string url, string body)
         {
             var content = new StringContent(body, Encoding.UTF8, "application/json");
@@ -233,7 +303,6 @@ namespace YapartMarket.React.Services
             string resultContent = await result.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<SuccessfulResponse>(resultContent);
         }
-
         private async Task<bool> SendConfirmRequest(OrderViewModel order)
         {
             var body = JsonConvert.SerializeObject(order);

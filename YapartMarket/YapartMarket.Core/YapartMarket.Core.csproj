@@ -6,13 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DTO\Goods\**" />
-    <EmbeddedResource Remove="DTO\Goods\**" />
-    <None Remove="DTO\Goods\**" />
+    <Compile Remove="JsonConverters\**" />
+    <EmbeddedResource Remove="JsonConverters\**" />
+    <None Remove="JsonConverters\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="JsonConverters\" />
     <Folder Include="Models\Identiry\" />
   </ItemGroup>
 
