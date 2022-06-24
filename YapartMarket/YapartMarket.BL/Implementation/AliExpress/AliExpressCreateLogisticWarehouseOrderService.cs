@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -61,7 +62,8 @@ namespace YapartMarket.BL.Implementation.AliExpress
             _fullOrderInfoService = fullOrderInfoService;
             _productProductService = productProductService;
             _client = new DefaultTopClient(options.Value.HttpsEndPoint, options.Value.AppKey, options.Value.AppSecret, "Json");
-            _httpClient = factory.CreateClient("aliClient");
+            //_httpClient = factory.CreateClient("aliClient");
+            _httpClient = factory.CreateClient();
         }
 
         private void Refund(AliexpressLogisticsCreatewarehouseorderRequest.AddressdtosDomain addressesDomain, Address address)
@@ -180,8 +182,32 @@ namespace YapartMarket.BL.Implementation.AliExpress
             return response;
         }
 
+        public class SolutionServiceRoot
+        {
+            [JsonProperty("service_param")]
+            public SolutionService SolutionService { get; set; }
+            [JsonProperty("solution_code")]
+            public string SolutionCode { get; set; }
+        }
+        public class SolutionService
+        {
+            [JsonProperty("code")]
+            public string Code { get; set; }
+        }
+
+        public class Seller
+        {
+            [JsonProperty("seller_address_id")]
+            public long SellerAddressId { get; set; }
+        }
+
         public async Task CreateWarehouseAsync(long orderId)
         {
+
+            
+            //return JsonConvert.DeserializeObject<SuccessfulResponse>(resultContent);
+            //_testOutputHelper.WriteLine(resultContent);
+
             var orderDetails = await _orderDetailRepository.GetAsync("select * from order_details where order_id = @order_id", new { order_id = orderId });
             if (orderDetails.IsAny())
             {
@@ -200,6 +226,46 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 var orderProductsId = orderDetails.Select(x => x.ProductId).ToList();
                 var products = await _productProductService.GetProductFromAli(orderProductsId);
                 var items = new List<CainiaoGlobalLogisticOrderCreateRequest.OpenItemParamDomain>();
+
+                var dateTime = DateTime.UtcNow;
+                var singapore = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
+                var chinaTimeZone = TimeZoneInfo.ConvertTimeFromUtc(dateTime, singapore); //гггг-мм-дд ЧЧ:ММ:СС
+                var chinaTimeZoneString = chinaTimeZone.ToString("yyyy-MM-dd HH:mm:ss");
+
+                var dic = new Dictionary<string, string>();
+                dic.Add("method", "cainiao.global.solution.service.resource.query");
+                dic.Add("v", "2.0");
+                dic.Add("sign_method", "hmac");
+                dic.Add("app_key", _options.Value.AppKey);
+                dic.Add("format", "json");
+                dic.Add("timestamp", chinaTimeZoneString);
+                dic.Add("session", _options.Value.AccessToken);
+                dic.Add("sign", TopUtils.SignTopRequest(dic, _options.Value.AppSecret, "hmac"));
+                var senderParam = new Seller()
+                {
+                    SellerAddressId = sender.AddressId
+                };
+                var solutionService = new SolutionServiceRoot()
+                {
+                    SolutionService = new()
+                    {
+                        Code = "DOOR_PICKUP",
+                    },
+                    SolutionCode = warehouseService
+                };
+                var senderParamJson = JsonConvert.SerializeObject(senderParam);
+                var solutionServiceJson = JsonConvert.SerializeObject(solutionService);
+                dic.Add("seller_param", "{}");
+                dic.Add("sender_param", senderParamJson);
+                dic.Add("solution_service_res_param", solutionServiceJson);
+                var keyValuePairs = dic.OrderBy(x => x.Key);
+                var url = $"https://eco.taobao.com/router/rest?{string.Join("&", keyValuePairs.Select(kvp => $"{kvp.Key}={kvp.Value}"))}";
+                //var url = $"https://eco.taobao.com/router/rest?{HttpUtility.UrlEncode(string.Join("&", keyValuePairs.Select(kvp => $"{kvp.Key}={kvp.Value}")))}";
+
+                var content = new StringContent("", Encoding.UTF8, "application/json");
+                var result = await _httpClient.PostAsync(url, content);
+                string resultContent = await result.Content.ReadAsStringAsync();
+
                 foreach (var orderDetail in orderDetails)
                 {
                     var product = products.FirstOrDefault(x => x.ProductId == orderDetail.ProductId);
