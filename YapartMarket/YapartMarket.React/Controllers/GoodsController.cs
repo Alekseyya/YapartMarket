@@ -46,10 +46,10 @@ namespace YapartMarket.React.Controllers
                             await _goodsService.Confirm(shipmentId, orderId);
                             await _goodsService.Reject(shipmentId, orderId);
                         }
-                        var isPackage = await _goodsService.Package(shipmentId, orderId);
+                        var isPackage = await _goodsService.Package(shipmentId, orderId); //дописать ошибки, если она появятся
                         if (isPackage)
                         {
-
+                            await _goodsService.Shipment(shipmentId);
                         }
                     }
                 }

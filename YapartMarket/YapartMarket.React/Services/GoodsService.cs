@@ -15,6 +15,7 @@ using YapartMarket.Core.Models.Azure;
 using YapartMarket.Core.Models.Azure.Goods;
 using YapartMarket.React.Services.Interfaces;
 using YapartMarket.React.ViewModels.Goods;
+using YapartMarket.React.ViewModels.Goods.Shipment;
 
 namespace YapartMarket.React.Services
 {
@@ -149,40 +150,133 @@ namespace YapartMarket.React.Services
             if (orderItems.IsAny())
             {
                 var package = CreatePackage(shipmentId, orderItems);
+                var packageDto = new PackageDto();
+                var orderShipmentsViewModel = package.Data.Shipments.FirstOrDefault();
+                packageDto.ShipmentId = orderShipmentsViewModel.ShipmentId;
+                packageDto.OrderId = int.Parse(orderShipmentsViewModel.OrderCode);
+                foreach (var orderItemViewModel in orderShipmentsViewModel.Items)
+                {
+                    packageDto.Items.Add(new ()
+                    {
+                        ItemIndex = int.Parse(orderItemViewModel.ItemIndex),
+                        BoxIndex = orderItemViewModel.OrderBox.FirstOrDefault().BoxIndex,
+                        BoxCode = orderItemViewModel.OrderBox.FirstOrDefault().BoxCode
+                    });
+                }
+                await SavePackage(shipmentId, packageDto);
                 var isSent = await SendPackageRequest(package);
                 return isSent;
             }
             return false;
         }
+        public async Task<bool> Shipment(string shipmentId)
+        {
+            var orderShippingRoot = new OrderShippingRoot();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                var packingItems = await connection.QueryAsync<PackageItem>("select * from goods_packing_items where shipmentId = @shipmentId",
+                    new { shipmentId = shipmentId });
+                orderShippingRoot.Meta = new();
 
-        //private async Task SavePackage(string shipmentId, )
-        //{
-        //    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-        //    {
-        //        await connection.OpenAsync();
-        //        var order = await connection.QueryFirstOrDefaultAsync<GoodsOrder>(
-        //            "select * from goods_packing where shipmentId = @shipmentId", new { shipmentId = shipmentId });
-        //        if (order != null)
-        //        {
-        //            var packages = await connection.QueryAsync<Package>(
-        //                "select * from goods_packing where order_id = @order_id",
-        //                new
-        //                {
-        //                    order_id = order.Id,
-        //                });
-        //            //todo переделать
-        //            var newPackages = packages.Where(x => rejectOrders.All(t =>
-        //                t.OfferId != x.OfferId || (t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex)));
-        //            var newOrderDetails = new List<OrderDetailDto>();
-        //            newOrderDetails.AddRange(newConfirmOrders);
-        //            newOrderDetails.AddRange(newPackages);
-        //            if (newOrderDetails.IsAny())
-        //                await CreateDetails(id, connection, newOrderDetails);
+                var orderShipping = new OrderShipment();
+                orderShipping.ShipmentId = shipmentId;
+                orderShipping.Shipping = new()
+                {
+                    ShippingDate = DateTime.Now.ToString("s")
+                };
+                var boxes = new List<Box>();
+                foreach (var box in packingItems.Select(x => new { x.BoxIndex, x.BoxCode }))
+                {
+                    boxes.Add(new()
+                    {
+                        BoxIndex = box.BoxIndex,
+                        BoxCode = box.BoxCode,
+                    });
+                }
+                orderShipping.Boxes = boxes;
+                var shipments = new List<OrderShipment>();
+                shipments.Add(orderShipping);
+                orderShippingRoot.Shipping = new()
+                {
+                    Token = _configuration.GetSection("goodsTestToken").Value,
+                    Shipments = shipments
+                };
+            }
 
-        //        }
-        //    }
-        //}
-
+            var isResponse = false;
+            if (orderShippingRoot.Shipping.Shipments.IsAny())
+            {
+                isResponse = await SendShippingRequest(orderShippingRoot);
+            }
+            return isResponse;
+        }
+        private async Task SavePackage(string shipmentId, PackageDto packageDto)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                var order = await connection.QueryFirstOrDefaultAsync<GoodsOrder>(
+                    "select * from goods_packing where shipmentId = @shipmentId", new { shipmentId = shipmentId });
+                if (order != null)
+                {
+                    var package = await connection.QueryFirstOrDefaultAsync<Package>(
+                        "select * from goods_packing where shipment_id = @shipment_id",
+                        new
+                        {
+                            shipment_id = shipmentId,
+                        });
+                    if (package == null)
+                    {
+                        await connection.ExecuteAsync("insert into goods_packing(order_id, shipment_id, create) values(@order_id, @shipment_id, create)", new
+                        {
+                            order_id = order.Id,
+                            shipment_id = shipmentId,
+                            create = DateTime.UtcNow
+                        });
+                        foreach (var packageDtoItem in packageDto.Items)
+                        {
+                            await connection.ExecuteAsync("insert into goods_packing_items(item_index, box_index, box_code, digital_marks, shipment_id, create) " +
+                                                          "values(@item_index, @box_index, @box_code, @digital_marks, @shipment_id, @create)", new
+                            {
+                                item_index = packageDtoItem.ItemIndex,
+                                box_index = packageDtoItem.BoxIndex,
+                                box_code = packageDtoItem.BoxCode,
+                                shipment_id = shipmentId,
+                                digital_marks = packageDtoItem.DigitalMarks,
+                                create = DateTime.UtcNow
+                            });
+                        }
+                        
+                    }
+                    var packages = await connection.QueryAsync<PackageItem>(
+                        "select * from goods_packing_items where shipment_id = @shipment_id",
+                        new
+                        {
+                            shipment_id = shipmentId,
+                        });
+                    var newPackageItems = packageDto.Items.Where(x => packages.Any(t => t.ShipmentId != shipmentId));
+                    var updatePackageItems = packageDto.Items.Where(x=> 
+                        packages.Any(t=> t.ShipmentId == shipmentId && t.ItemIndex != x.ItemIndex || t.BoxCode != x.BoxCode || t.BoxIndex != x.BoxIndex));
+                    if (newPackageItems.IsAny())
+                    {
+                        foreach (var newPackageItem in newPackageItems)
+                        {
+                            await connection.ExecuteAsync("insert into goods_packing_items(item_index, box_index, box_code, digital_marks, shipment_id, create) " +
+                                                          "values(@item_index, @box_index, @box_code, @digital_marks, @shipment_id, @create)", new
+                            {
+                                item_index = newPackageItem.ItemIndex,
+                                box_index = newPackageItem.BoxIndex,
+                                box_code = newPackageItem.BoxCode,
+                                shipment_id = shipmentId,
+                                digital_marks = newPackageItem.DigitalMarks,
+                                create = DateTime.UtcNow
+                            });
+                        }
+                    }
+                }
+            }
+        }
         private async Task<List<GoodsOrderItem>> OrderItems(int orderId, ReasonType reasonType)
         {
             var goodsOrderItems = new List<GoodsOrderItem>();
@@ -307,6 +401,15 @@ namespace YapartMarket.React.Services
         {
             var body = JsonConvert.SerializeObject(order);
             var url = "/api/market/v1/orderService/order/confirm";
+            var response = await SendRequest(url, body);
+            if (response.Success == 1)
+                return true;
+            return false;
+        }
+        private async Task<bool> SendShippingRequest(OrderShippingRoot shipping)
+        {
+            var body = JsonConvert.SerializeObject(shipping);
+            var url = "/api/market/v1/orderService/order/shipping";
             var response = await SendRequest(url, body);
             if (response.Success == 1)
                 return true;
