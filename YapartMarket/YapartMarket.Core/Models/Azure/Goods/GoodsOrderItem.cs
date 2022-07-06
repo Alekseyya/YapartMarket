@@ -4,15 +4,15 @@ namespace YapartMarket.Core.Models.Azure.Goods
 {
     public class GoodsOrderItem
     {
-        [Column("id")]
+        [Column("Id")]
         public int Id { get; set; }
         [Column("offerId")]
         public string OfferId { get; set; }
         [Column("orderId")]
         public int OrderId { get; set; }
-        [Column("item_index")]
+        [Column("itemIndex")]
         public string ItemIndex { get; set; }
-        [Column("reason_type")]
+        [Column("reasonType")]
         public int ReasonType { get; set; }
     }
 }

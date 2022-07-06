@@ -5,11 +5,11 @@ namespace YapartMarket.Core.Models.Azure.Goods
 {
     public sealed class Package
     {
-        [Column("id")]
+        [Column("Id")]
         public int Id { get; set; }
-        [Column("order_id")]
+        [Column("orderId")]
         public int OrderId { get; set; }
-        [Column("shipment_id")]
+        [Column("shipmentId")]
         public string ShipmentId { get; set; }
         [Column("create")]
         public DateTime Create { get; set; }

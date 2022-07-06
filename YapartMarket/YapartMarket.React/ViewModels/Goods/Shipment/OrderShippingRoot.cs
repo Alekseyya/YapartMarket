@@ -19,7 +19,7 @@ namespace YapartMarket.React.ViewModels.Goods.Shipment
     {
         [JsonProperty("token")]
         public string Token { get; set; }
-
+        [JsonProperty("shipments")]
         public List<OrderShipment> Shipments { get; set; }
     }
 

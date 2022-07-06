@@ -10,8 +10,8 @@ namespace YapartMarket.React.Services.Interfaces
     {
         Task<List<OrderDetailDto>> GetOrders(OrderNewViewModel order);
         Task<bool> Confirm(string shipmentId, int orderId);
+        Task<bool> Shipment(string shipmentId);
         Task<bool> Reject(string shipmentId, int orderId);
-        Task<OrderShippingRoot> Shipment(string shipmentId);
         Task<bool> Package(string shipmentId, int orderId);
         Task<int> SaveOrder(string shipmentId, List<OrderDetailDto> orderDetails);
     }
