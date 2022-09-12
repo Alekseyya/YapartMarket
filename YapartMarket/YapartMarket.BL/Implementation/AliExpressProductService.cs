@@ -189,8 +189,8 @@ namespace YapartMarket.BL.Implementation
         {
             await _azureAliExpressProductRepository.Delete("DELETE FROM aliExpressProducts; DBCC CHECKIDENT('aliExpressProducts', RESEED, 0);");
             await ProcessDataFromAliExpress();
-            var aliExpressProducts = await _azureAliExpressProductRepository.GetAsync("select * from dbo.aliExpressProducts where updateAt <= @updateAt or sku is null",
-                new { updateAt = DateTimeOffset.Now.AddDays(-1).ToString("yyyy-MM-dd'T'HH:mm:ssK") });
+            var aliExpressProducts = await _azureAliExpressProductRepository.GetAsync("select * from dbo.aliExpressProducts where updatedAt <= @updatedAt or sku is null",
+                new { updatedAt = DateTimeOffset.Now.AddDays(-1).ToString("yyyy-MM-dd'T'HH:mm:ssK") });
             foreach (var aliExpressProduct in aliExpressProducts)
             {
                 if (aliExpressProduct.ProductId != null) 
