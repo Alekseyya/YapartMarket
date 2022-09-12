@@ -13,5 +13,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
         Task<IEnumerable<int>> InsertOutputAsync(string sql, IEnumerable<object> inserts);
         Task Update(string sql, object action);
         Task Update(object action);
+        Task Delete(string sql);
     }
 }

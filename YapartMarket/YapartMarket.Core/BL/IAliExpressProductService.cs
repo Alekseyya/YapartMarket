@@ -9,7 +9,8 @@ namespace YapartMarket.Core.BL
     public interface IAliExpressProductService
     {
         Task ProcessDataFromAliExpress();
-        void UpdateInventoryProducts(IEnumerable<Product> products);
+        Task ProcessUpdateProductsSku();
+        Task UpdateInventoryProducts(IEnumerable<Product> products);
         Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products);
         ProductInfoResult GetProductInfo(long productId);
         Task ProcessUpdateProduct(long productId);

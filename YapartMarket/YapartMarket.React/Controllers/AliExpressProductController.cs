@@ -28,22 +28,6 @@ namespace YapartMarket.React.Controllers
             _option = option.Value;
         }
 
-        [HttpPost]
-        [Route("processDataFromAliExpress")]
-        [Produces("application/json")]
-        public async Task<IActionResult> ProcessDataFromAliExpress()
-        {
-            try
-            {
-                await _aliExpressProductService.ProcessDataFromAliExpress();
-                await _aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
 
         [HttpPost]
         [Route("processUpdateExpressId")]
@@ -52,7 +36,7 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                await _aliExpressProductService.ProcessDataFromAliExpress();
+                await _aliExpressProductService.ProcessUpdateProductsSku();
                 await _aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
                 return Ok();
             }

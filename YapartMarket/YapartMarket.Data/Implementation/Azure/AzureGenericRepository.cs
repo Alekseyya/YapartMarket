@@ -198,6 +198,15 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
+        public virtual async Task Delete(string sql)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                await connection.ExecuteAsync(sql);
+            }
+        }
+
         public virtual async Task Update(object action)
         {
             var updateSQL = Activator.CreateInstance<T>().UpdateString(_tableName);

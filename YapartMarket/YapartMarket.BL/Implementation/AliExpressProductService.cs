@@ -46,19 +46,21 @@ namespace YapartMarket.BL.Implementation
             _logger = logger;
             _aliExpressOptions = options.Value;
         }
-        public void UpdateInventoryProducts(IEnumerable<Product> products)
+        public async Task UpdateInventoryProducts(IEnumerable<Product> products)
         {
-            try
+            ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
+            var counter = 0;
+            var take = 20;
+            do
             {
-                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-                AliexpressSolutionBatchProductInventoryUpdateRequest req = new AliexpressSolutionBatchProductInventoryUpdateRequest();
-                for (int i = 0; i < products.Count(); i += 20)
+                try
                 {
-                    var takeProducts = products.Skip(i).Take(20);
-                    if (takeProducts.Any())
+                    var req = new AliexpressSolutionBatchProductInventoryUpdateRequest();
+                    var takenProducts = products.Skip(counter).Take(take);
+                    if (takenProducts.IsAny())
                     {
                         var reqMultipleProductUpdateList = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain>();
-                        foreach (var takeProduct in takeProducts)
+                        foreach (var takeProduct in takenProducts)
                         {
                             var objectProductId = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain();
                             reqMultipleProductUpdateList.Add(objectProductId);
@@ -73,21 +75,34 @@ namespace YapartMarket.BL.Implementation
 
                         req.MutipleProductUpdateList_ = reqMultipleProductUpdateList;
                         var request = client.Execute(req, _aliExpressOptions.AccessToken);
-                        if (request.Body.TryParseJson(out AliExpressBatchProductInventoryUpdateResponseDTO responseDto))
+                        var body = request.Body;
+                        if (body.TryParseJson(out AliExpressBatchProductInventoryUpdateResponseDTO result))
                         {
-                            //todo записать в лог ошибку
+                            counter += take;
+                            continue;
+                        }
+                        if (body.TryParseJson(out AliExpressError error))
+                        {
+                            _logger.LogError($"Request UpdateInventoryProducts. Message :{error.AliExpressErrorMessage.Message}. SubMessage : {error.AliExpressErrorMessage.SubMessage}");
                         }
 
-                        if (request.Body.TryParseJson(out AliExpressError error)){}
-                        //todo записать в лог ошибку
-
                     }
+                    else
+                        break;
                 }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+                catch (WebException ex)
+                {
+                    if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.Timeout)
+                    {
+                        await Task.Delay(2000);
+                    }
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    continue;
+                }
+            } while (true);
         }
 
         public async Task ProcessDataFromAliExpress()
@@ -106,7 +121,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         CurrentPage = currentPage,
                         ProductStatusType = "onSelling",
-                        PageSize = 99
+                        PageSize = 99,
                     };
                     req.AeopAEProductListQuery_ = obj1;
                     var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
@@ -168,6 +183,19 @@ namespace YapartMarket.BL.Implementation
                 break;
             } while (true);
             return listProductInfo;
+        }
+
+        public async Task ProcessUpdateProductsSku()
+        {
+            await _azureAliExpressProductRepository.Delete("DELETE FROM aliExpressProducts; DBCC CHECKIDENT('aliExpressProducts', RESEED, 0);");
+            await ProcessDataFromAliExpress();
+            var aliExpressProducts = await _azureAliExpressProductRepository.GetAsync("select * from dbo.aliExpressProducts where updateAt <= @updateAt or sku is null",
+                new { updateAt = DateTimeOffset.Now.AddDays(-1).ToString("yyyy-MM-dd'T'HH:mm:ssK") });
+            foreach (var aliExpressProduct in aliExpressProducts)
+            {
+                if (aliExpressProduct.ProductId != null) 
+                    await ProcessUpdateProduct(aliExpressProduct.ProductId.Value);
+            }
         }
 
         public async Task ProcessUpdateProduct(long productId)
