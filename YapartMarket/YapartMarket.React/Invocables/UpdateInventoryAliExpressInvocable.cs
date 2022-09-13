@@ -23,7 +23,7 @@ namespace YapartMarket.React.Invocables
             var products = await _aliExpressProductService.ListProductsForUpdateInventory();
             Console.WriteLine("обновление остатков");
             _logger.LogInformation("обновление остатков!");
-            _aliExpressProductService.UpdateInventoryProducts(products);
+            await _aliExpressProductService.UpdateInventoryProducts(products);
         }
     }
 }
