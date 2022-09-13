@@ -120,7 +120,7 @@ namespace YapartMarket.React.Controllers
             try
             {
                var products = await _aliExpressProductService.ListProductsForUpdateInventory();
-               _aliExpressProductService.UpdateInventoryProducts(products);
+               await _aliExpressProductService.UpdateInventoryProducts(products);
                 return Ok();
             }
             catch (Exception e)
