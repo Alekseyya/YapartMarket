@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using AutoMapper;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using YapartMarket.Core.BL;
-using YapartMarket.Core.Data.Interfaces.Access;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO.Yandex;
 using YapartMarket.Core.Models;
@@ -29,44 +22,26 @@ namespace YapartMarket.React.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAzureProductRepository _productRepository;
 
-        private readonly List<YapartMarket.Core.Models.Product> _products;
         public ProductController(IMapper mapper, IConfiguration configuration, IAzureProductRepository productRepository)
         {
-            //_accessProductRepository = accessProductRepository;
             _mapper = mapper;
             _configuration = configuration;
             _productRepository = productRepository;
-            _products = new List<YapartMarket.Core.Models.Product>()
-            {
-                new YapartMarket.Core.Models.Product()
-                {
-                    Id = 1, Article = "No-Po-1",
-                    Descriptions = "First",
-                    Brand = new Brand(){Name = "Norplast", Picture = new Picture(){Path ="\\No-Po-1.png" }},
-                    Price = (decimal) 15.6
-                },
-                new YapartMarket.Core.Models.Product()
-                {
-                    Id = 2, Article = "NO-1231", Descriptions = "Second",
-                    Brand = new Brand(){Name = "Norplast", Picture = new Picture(){Path = "\\NO-1231.png"}},
-                    Price = (decimal) 13.2
-                }
-            };
         }
 
 
         [HttpGet]
         [Route("products")]
         [Produces("application/json")]
-        public IActionResult GetAzureProducts()
+        public async Task<IActionResult> GetAzureProducts()
         {
             try
             {
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     var sql = "select * from dbo.products";
-                    connection.Open();
-                    var products = connection.Query<Core.Models.Azure.Product>(sql).ToList();
+                    await connection.OpenAsync();
+                    var products = await connection.QueryAsync<Core.Models.Azure.Product>(sql);
                     return Ok(products);
                 }
             }
@@ -87,7 +62,7 @@ namespace YapartMarket.React.Controllers
                 await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     //Пройтись по всем товарам, если хоть одного нету или количество меньше того что есть на сервере = отменить заказа
-                    connection.Open();
+                    await connection.OpenAsync();
                     foreach (var orderItem in orderDto.OrderInfoDto.OrderItemsDto)
                     {
                         var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new { sku = orderItem.OfferId, count = orderItem.Count });
@@ -123,7 +98,10 @@ namespace YapartMarket.React.Controllers
         {
             if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
-            if (_configuration.GetValue<string>("auth-token") != authToken && _configuration.GetValue<string>("auth-token-rog") != authToken)
+            var yapartToken = _configuration.GetValue<string>("auth-token");
+            var yapartRogToken = _configuration.GetValue<string>("auth-token-rog");
+            var yapartExpressToken = _configuration.GetValue<string>("auth-token-yapart-express");
+            if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken)
                 return StatusCode(403);
             if (cartDto != null)
             {
@@ -136,9 +114,9 @@ namespace YapartMarket.React.Controllers
                             CartItems = new List<CartItemViewModel>()
                         }
                     };
-                    await using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
-                        connection.Open();
+                        await connection.OpenAsync();
                         foreach (var cartItemDto in cartDto.Cart.CartItems)
                         {
                             var isDelivery = false;
@@ -181,7 +159,6 @@ namespace YapartMarket.React.Controllers
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                     {
                         await connection.OpenAsync();
-                        //var products = await connection.QueryAsync<Core.Models.Azure.Product>("select * from products");
                         var take = 2000;
                         var skip = 0;
                         var productsByInsertSkuInDb = new List<Core.Models.Azure.Product>();
@@ -195,15 +172,6 @@ namespace YapartMarket.React.Controllers
                         } while (true);
                         var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
                         var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
-
-                        //var setCountEmptyProducts = products.Where(x => itemsDto.Products.All(t => t.Sku != x.Sku)).ToList();
-                        //setCountEmptyProducts.ForEach(x=>
-                        //{
-                        //    x.Count = 0;
-                        //    x.UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
-                        //});
-                        //if (setCountEmptyProducts.Any())
-                        //    await _productRepository.BulkUpdateCountData(setCountEmptyProducts);
                         if (updateProducts.Any())
                         {
                             var result = updateProducts.Select(x=> new Core.Models.Azure.Product()
@@ -242,16 +210,17 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("stocks")]
         [Produces("application/json")]
-        public IActionResult Stocks([FromBody] StockDto stockDto)
+        public async Task<IActionResult> Stocks([FromBody] StockDto stockDto)
         {
             if (stockDto == null)
                 return BadRequest();
             var listSkuInfo = new List<SkuInfoDto>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                connection.Open();
-                var productsFromDb = connection.Query<Core.Models.Azure.Product>("select * from dbo.products").ToList();
-                foreach (var productFromDb in productsFromDb.Where(x => stockDto.Skus.Any(t => x.Sku.Equals(t))))
+                await connection.OpenAsync();
+                var stocksSku = stockDto.Skus;
+                var productsFromDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from dbo.products where sku IN @skus", new {skus = stocksSku});
+                foreach (var productFromDb in productsFromDb)
                 {
                     listSkuInfo.Add(new SkuInfoDto
                     {
@@ -267,19 +236,6 @@ namespace YapartMarket.React.Controllers
                 }
             }
             return Ok(new StocksSkuDto() { Skus = listSkuInfo });
-        }
-
-        [HttpGet]
-        [Route("ListProducts")]
-        public ActionResult ListProducts()
-        {
-            return Ok(_mapper.Map<List<ProductViewModel>>(_products));
-        }
-
-        [HttpGet]
-        public ProductViewModel GetProductById(int id)
-        {
-            return _mapper.Map<ProductViewModel>(_products.FirstOrDefault(x => x.Id == id));
         }
     }
 }
