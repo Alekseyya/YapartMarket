@@ -101,7 +101,8 @@ namespace YapartMarket.React.Controllers
             var yapartToken = _configuration.GetValue<string>("auth-token");
             var yapartRogToken = _configuration.GetValue<string>("auth-token-rog");
             var yapartExpressToken = _configuration.GetValue<string>("auth-token-yapart-express");
-            if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken)
+            var yapartYarkoExpressToken = _configuration.GetValue<string>("auth-token-yapart-yarko-express");
+            if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken && yapartYarkoExpressToken != authToken)
                 return StatusCode(403);
             if (cartDto != null)
             {
