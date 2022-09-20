@@ -17,9 +17,7 @@ namespace YapartMarket.React.Invocables
         }
         public async Task Invoke()
         {
-            _logger.LogInformation("Получение данных о продуктах с AliExpress");
-            await _aliExpressProductService.ProcessDataFromAliExpress();
-            _logger.LogInformation("Обновление productAliExpressId в таблице Product");
+            await _aliExpressProductService.ProcessUpdateProductsSku();
             await _aliExpressProductService.ProcessUpdateDatabaseAliExpressProductId();
         }
     }

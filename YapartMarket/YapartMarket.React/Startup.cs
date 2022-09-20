@@ -199,10 +199,8 @@ namespace YapartMarket.React
                 scheduler.OnWorker("UpdateInventoryProductInAliExpress");
                 scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();
 
-                //scheduler.OnWorker("UpdateProductIdFromAliExpress");
-                //scheduler.Schedule<UpdateProductIdFromAliExpressInvocable>().DailyAt(20, 00);
-
-                
+                scheduler.OnWorker("UpdateProductIdFromAliExpress");
+                scheduler.Schedule<UpdateProductIdFromAliExpressInvocable>().Weekly();
             }); 
         }
     }
