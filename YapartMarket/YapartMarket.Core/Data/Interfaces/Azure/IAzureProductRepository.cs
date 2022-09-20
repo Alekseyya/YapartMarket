@@ -7,5 +7,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
     public interface IAzureProductRepository : IAzureQueriesGenericRepository<Product>, IAzureCommandGenericRepository<Product>
     {
         Task BulkUpdateCountData(List<Product> list);
+        Task BulkUpdateTakeTime(List<Product> list);
     }
 }

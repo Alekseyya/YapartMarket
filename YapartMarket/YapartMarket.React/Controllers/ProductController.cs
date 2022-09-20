@@ -9,7 +9,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO.Yandex;
-using YapartMarket.Core.Models;
+using YapartMarket.Core.Models.Azure;
 using YapartMarket.React.ViewModels;
 
 namespace YapartMarket.React.Controllers
@@ -41,7 +41,7 @@ namespace YapartMarket.React.Controllers
                 {
                     var sql = "select * from dbo.products";
                     await connection.OpenAsync();
-                    var products = await connection.QueryAsync<Core.Models.Azure.Product>(sql);
+                    var products = await connection.QueryAsync<Product>(sql);
                     return Ok(products);
                 }
             }
@@ -73,7 +73,7 @@ namespace YapartMarket.React.Controllers
                         }
                     }
                 }
-                return Ok(isAccepted ? (object)new OrderViewModel() { OrderInfoViewModel = new OrderInfoViewModel() { Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString() } } : new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = "OUT_OF_DATE" });
+                return Ok(isAccepted ? new OrderViewModel { OrderInfoViewModel = new OrderInfoViewModel { Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString() } } : new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = "OUT_OF_DATE" });
             }
             return BadRequest();
         }
@@ -108,9 +108,9 @@ namespace YapartMarket.React.Controllers
             {
                 if (cartDto.Cart.CartItems != null)
                 {
-                    var cartViewModel = new CartViewModel()
+                    var cartViewModel = new CartViewModel
                     {
-                        Cart = new CartInfoViewModel()
+                        Cart = new CartInfoViewModel
                         {
                             CartItems = new List<CartItemViewModel>()
                         }
@@ -122,7 +122,7 @@ namespace YapartMarket.React.Controllers
                         {
                             var isDelivery = false;
                             var count = 0;
-                            var productInDb = await connection.QueryFirstOrDefaultAsync<Core.Models.Azure.Product>("select * from products where sku = @sku",
+                            var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku",
                                 new { sku = cartItemDto.OfferId });
                             if (productInDb != null)
                             {
@@ -130,7 +130,7 @@ namespace YapartMarket.React.Controllers
                                 count = productInDb.Count >= cartItemDto.Count ? cartItemDto.Count : productInDb.Count;
                             }
 
-                            cartViewModel.Cart.CartItems.Add(new CartItemViewModel()
+                            cartViewModel.Cart.CartItems.Add(new CartItemViewModel
                             {
                                 FeedId = cartItemDto.FeedId,
                                 OfferId = cartItemDto.OfferId,
@@ -162,20 +162,20 @@ namespace YapartMarket.React.Controllers
                         await connection.OpenAsync();
                         var take = 2000;
                         var skip = 0;
-                        var productsByInsertSkuInDb = new List<Core.Models.Azure.Product>();
+                        var productsByInsertSkuInDb = new List<Product>();
                         do
                         {
                             var takeSkus = itemsDto.Products.Select(x=>x.Sku).Skip(skip).Take(take);
                             skip += take;
                             if(!takeSkus.Any())
                                 break;
-                            productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Core.Models.Azure.Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
+                            productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
                         } while (true);
                         var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
                         var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
                         if (updateProducts.Any())
                         {
-                            var result = updateProducts.Select(x=> new Core.Models.Azure.Product()
+                            var result = updateProducts.Select(x=> new Product
                             {
                                 Sku = x.Sku,
                                 Count = x.Count,
@@ -220,7 +220,7 @@ namespace YapartMarket.React.Controllers
             {
                 await connection.OpenAsync();
                 var stocksSku = stockDto.Skus;
-                var productsFromDb = await connection.QueryAsync<Core.Models.Azure.Product>("select * from dbo.products where sku IN @skus", new {skus = stocksSku});
+                var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new {skus = stocksSku});
                 foreach (var productFromDb in productsFromDb)
                 {
                     listSkuInfo.Add(new SkuInfoDto
@@ -235,8 +235,14 @@ namespace YapartMarket.React.Controllers
                         }
                     });
                 }
+                var result = productsFromDb.Select(x => new Product
+                {
+                    Sku = x.Sku,
+                    TakeTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                }).ToList();
+                await _productRepository.BulkUpdateTakeTime(result);
             }
-            return Ok(new StocksSkuDto() { Skus = listSkuInfo });
+            return Ok(new StocksSkuDto { Skus = listSkuInfo });
         }
     }
 }

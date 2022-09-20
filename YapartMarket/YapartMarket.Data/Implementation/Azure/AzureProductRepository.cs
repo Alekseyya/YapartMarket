@@ -61,5 +61,47 @@ namespace YapartMarket.Data.Implementation.Azure
                 }
             }
         }
+        public async Task BulkUpdateTakeTime(List<Product> list)
+        {
+            var dt = new DataTable(_tableName);
+            dt = ConvertToDataTable(list);
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", conn))
+                {
+                    try
+                    {
+                        await conn.OpenAsync();
+                        await command.ExecuteNonQueryAsync();
+
+                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                        {
+                            bulkcopy.BulkCopyTimeout = 6600;
+                            bulkcopy.DestinationTableName = "products_tmpTakeTime";
+                            bulkcopy.ColumnMappings.Clear();
+                            bulkcopy.ColumnMappings.Add("sku", "sku");
+                            bulkcopy.ColumnMappings.Add("takeTime", "takeTime");
+                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
+                            bulkcopy.Close();
+                        }
+
+
+                        command.CommandTimeout = 3000;
+                        command.CommandText = "UPDATE P SET P.takeTime = T.takeTime FROM products AS P INNER JOIN products_tmpTakeTime AS T ON P.sku = T.sku ;DROP TABLE products_tmpTakeTime;";
+                        await command.ExecuteNonQueryAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle exception properly
+                        throw ex;
+                    }
+                    finally
+                    {
+                        await conn.CloseAsync();
+                    }
+                }
+            }
+        }
     }
 }
