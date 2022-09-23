@@ -9,6 +9,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO.Yandex;
+using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.React.ViewModels;
 
@@ -214,6 +215,7 @@ namespace YapartMarket.React.Controllers
         {
             if (itemsDto != null)
             {
+                var productExpress = new ProductExpressInfoViewModel();
                 try
                 {
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
@@ -230,6 +232,15 @@ namespace YapartMarket.React.Controllers
                                 break;
                             productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
                         } while (true);
+                        var missingProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
+                        if (missingProducts.IsAny())
+                        {
+                            productExpress.MissingProducts = missingProducts.Select(x => new ProductExpressViewModel()
+                            {
+                                Sku = x.Sku,
+                                Count = x.Count
+                            }).ToList();
+                        }
                         var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.CountExpress != x.Count)).ToList();
                         if (updateProducts.Any())
                         {
@@ -240,6 +251,11 @@ namespace YapartMarket.React.Controllers
                                 UpdateExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                             }).ToList();
                             await _productRepository.BulkUpdateCountExpressData(result);
+                            productExpress.UpdateProducts = updateProducts.Select(x => new ProductExpressViewModel()
+                            {
+                                Sku = x.Sku,
+                                Count = x.Count
+                            }).ToList();
                         }
                     }
                 }
@@ -247,7 +263,7 @@ namespace YapartMarket.React.Controllers
                 {
                     return BadRequest(e.Message);
                 }
-                return Ok();
+                return Ok(productExpress);
             }
             return BadRequest();
         }
