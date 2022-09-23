@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace YapartMarket.Core.Models.Azure
@@ -24,7 +23,12 @@ namespace YapartMarket.Core.Models.Azure
         public string UpdatedAt { get; set; }
         [Column("takeTime")]
         public string TakeTime { get; set; }
-
+        [Column("countExpress")]
+        public int CountExpress { get; set; }
+        [Column("updateExpress")]
+        public string UpdateExpress { get; set; }
+        [Column("takeTimeExpress")]
+        public string TakeTimeExpress { get; set; }
         public AliExpressProduct AliExpressProduct { get; set; }
     }
 }
