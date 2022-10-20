@@ -291,6 +291,7 @@ namespace YapartMarket.React.Controllers
                 var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new {skus = stocksSku});
                 foreach (var productFromDb in productsFromDb)
                 {
+                    var currentDateTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
                     var skuInfo = new SkuInfoDto
                     {
                         Sku = productFromDb.Sku,
@@ -301,7 +302,7 @@ namespace YapartMarket.React.Controllers
                             {
                                 Type = nameof(ProductType.FIT),
                                 Count = yapartYarkoExpressToken == authToken ? productFromDb.CountExpress : productFromDb.Count,
-                                UpdatedAt = productFromDb.UpdatedAt
+                                UpdatedAt = currentDateTime
                             }
                         }
                     };
