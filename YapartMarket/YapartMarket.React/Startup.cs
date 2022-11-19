@@ -193,14 +193,14 @@ namespace YapartMarket.React
                 //scheduler.Schedule(() => Console.WriteLine("Hourly on Mondays.")).EverySeconds(3);
 
                 //scheduler.OnWorker("UpdateOrdersFromAliExpress");
-                scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryFiveMinutes();
+                //scheduler.Schedule<UpdateOrdersFromAliExpressInvocable>().EveryFiveMinutes();
 
 
-                scheduler.OnWorker("UpdateInventoryProductInAliExpress");
-                scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();
+                //scheduler.OnWorker("UpdateInventoryProductInAliExpress");
+                //scheduler.Schedule<UpdateInventoryAliExpressInvocable>().Hourly();
 
-                scheduler.OnWorker("UpdateProductIdFromAliExpress");
-                scheduler.Schedule<UpdateProductIdFromAliExpressInvocable>().Weekly();
+                //scheduler.OnWorker("UpdateProductIdFromAliExpress");
+                //scheduler.Schedule<UpdateProductIdFromAliExpressInvocable>().Weekly();
             }); 
         }
     }

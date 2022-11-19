@@ -46,5 +46,6 @@
         public string PassAliExpressCode { get; set; }
 
         public string HttpsEndPoint { get; set; }
+        public string HttpsBatchEndPoint { get; set; }
     }
 }

@@ -13,9 +13,10 @@ namespace YapartMarket.Core.BL
         Task UpdateInventoryProducts(IEnumerable<Product> products);
         Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products);
         ProductInfoResult GetProductInfo(long productId);
+        Task ProcessUpdateProducts(IReadOnlyList<long> productIds);
         Task ProcessUpdateProduct(long productId);
         Task ProcessUpdateDatabaseAliExpressProductId();
         Task<IEnumerable<Product>> ListProductsForUpdateInventory();
-        Task<List<ProductInfoResult>> GetProductFromAli(List<long> productIds);
+        Task<List<ProductInfoResult>> GetProductsFromAli(IReadOnlyList<long> productIds);
     }
 }

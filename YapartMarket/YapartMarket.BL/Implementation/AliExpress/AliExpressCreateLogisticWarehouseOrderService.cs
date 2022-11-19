@@ -224,7 +224,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 var refund = refundAddresses.First();
                 var pickup = pickupAddresses.First();
                 var orderProductsId = orderDetails.Select(x => x.ProductId).ToList();
-                var products = await _productProductService.GetProductFromAli(orderProductsId);
+                var products = await _productProductService.GetProductsFromAli(orderProductsId);
                 var items = new List<CainiaoGlobalLogisticOrderCreateRequest.OpenItemParamDomain>();
 
                 var dateTime = DateTime.UtcNow;
@@ -383,7 +383,7 @@ namespace YapartMarket.BL.Implementation.AliExpress
                 var refund = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.RefundSellerAddressList.RefundSellerAddresses.First();
                 var pickup = JsonConvert.DeserializeObject<SenderRoot>(rspSender.Body).Sender.PickupSellerAddressList.PickupSellerAddresses.First();
                 var orderProductsId = orderDetails.Select(x => x.ProductId).ToList();
-                var products = await _productProductService.GetProductFromAli(orderProductsId);
+                var products = await _productProductService.GetProductsFromAli(orderProductsId);
                 var itemsInOrder = new List<ItemParam>();
                 foreach (var orderDetail in orderDetails)
                 {
