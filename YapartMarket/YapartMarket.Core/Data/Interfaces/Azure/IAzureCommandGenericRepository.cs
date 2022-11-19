@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace YapartMarket.Core.Data.Interfaces.Azure
@@ -14,5 +15,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
         Task Update(string sql, object action);
         Task Update(object action);
         Task Delete(string sql);
+        DataTable ConvertToDataTable<T>(IEnumerable<T> data);
     }
 }

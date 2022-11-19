@@ -6,6 +6,7 @@ using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using YapartMarket.Core.DTO.Yandex;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.React.ViewModels;
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -142,7 +144,7 @@ namespace YapartMarket.React.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.StackTrace);
+                return BadRequest(e.Message + "\n" + e.StackTrace);
             }
             return StatusCode(200);
         }
