@@ -18,6 +18,53 @@ namespace YapartMarket.Data.Implementation.Azure
             _tableName = tableName;
             _connectionString = connectionString;
         }
+        public async Task BulkUpdateProductId(IReadOnlyList<Product> products)
+        {
+            var dt = new DataTable(_tableName);
+            dt = ConvertToDataTable(products);
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_productId (
+sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+aliExpressProductId bigint NULL,
+updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", conn))
+                {
+                    try
+                    {
+                        await conn.OpenAsync();
+                        await command.ExecuteNonQueryAsync();
+
+                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                        {
+                            bulkcopy.BulkCopyTimeout = 6600;
+                            bulkcopy.DestinationTableName = "products_productId";
+                            bulkcopy.ColumnMappings.Clear();
+                            bulkcopy.ColumnMappings.Add("sku", "sku");
+                            bulkcopy.ColumnMappings.Add("aliExpressProductId", "aliExpressProductId");
+                            bulkcopy.ColumnMappings.Add("updatedAt", "updatedAt");
+                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
+                            bulkcopy.Close();
+                        }
+
+
+                        command.CommandTimeout = 3000;
+                        command.CommandText = @"UPDATE P SET P.aliExpressProductId = T.aliExpressProductId, P.updatedAt = T.updatedAt
+FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TABLE products_productId;";
+                        await command.ExecuteNonQueryAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle exception properly
+                        throw ex;
+                    }
+                    finally
+                    {
+                        conn.Close();
+                    }
+                }
+            }
+        }
         public async Task BulkUpdateCountData(List<Product> list)
         {
             var dt = new DataTable(_tableName);

@@ -51,8 +51,7 @@ namespace YapartMarket.BL.Implementation
                 try
                 {
                     var req = new AliexpressSolutionOrderGetRequest();
-                    AliexpressSolutionOrderGetRequest.OrderQueryDomain obj1 =
-                        new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
+                    var obj1 = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
                     obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
                     obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
                     if (orderStatusList != null)
@@ -68,8 +67,7 @@ namespace YapartMarket.BL.Implementation
                     if (result.success)
                     {
                         if (result.target_list.Orders.IsAny())
-                            aliExpressOrderList.AddRange(orderRootDto!.aliexpress_solution_order_get_response.result
-                                .target_list.Orders);
+                            aliExpressOrderList.AddRange(orderRootDto!.aliexpress_solution_order_get_response.result.target_list.Orders);
                         break;
                     }
                 }

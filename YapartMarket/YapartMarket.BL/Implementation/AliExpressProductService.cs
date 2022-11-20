@@ -332,28 +332,24 @@ namespace YapartMarket.BL.Implementation
             });
             if (modifiesProducts.IsAny())
             {
-                var updateList = productsInfo.Select(x => new
+                var updateList = productsInfo.Select(x => new AliExpressProduct()
                 {
-                    sku = x.ProductInfoSku?.GlobalProductSkus?.FirstOrDefault()?.SkuCode,
-                    category_id = x.CategoryId,
-                    currency_code = x.ProductInfoSku?.GlobalProductSkus?.FirstOrDefault()?.CurrencyCode,
-                    group_id = x.GroupId,
-                    gross_weight = x.GrossWeight,
-                    package_height = x.PackageHeight,
-                    package_length = x.PackageLength,
-                    package_width = x.PackageWidth,
-                    product_price = decimal.Parse(x.ProductPrice, CultureInfo.InvariantCulture),
-                    product_status_type = x.ProductStatusType,
-                    product_unit = x.ProductUnit,
-                    updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                    productId = x.ProductId
+                    Sku = x.ProductInfoSku?.GlobalProductSkus?.FirstOrDefault()?.SkuCode,
+                    CategoryId = x.CategoryId,
+                    CurrencyCode = x.ProductInfoSku?.GlobalProductSkus?.FirstOrDefault()?.CurrencyCode,
+                    GroupId = x.GroupId,
+                    GrossWeight = x.GrossWeight,
+                    PackageHeight = x.PackageHeight,
+                    PackageLength = x.PackageLength,
+                    PackageWidth = x.PackageWidth,
+                    ProductPrice = decimal.Parse(x.ProductPrice, CultureInfo.InvariantCulture),
+                    ProductStatusType = x.ProductStatusType,
+                    ProductUnit = x.ProductUnit,
+                    UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                    ProductId = x.ProductId
 
                 });
-                await _azureAliExpressProductRepository.Update(
-                    "update aliExpressProducts set sku = @sku, category_id = @category_id, currency_code = @currency_code, group_id = @group_id, gross_weight =@gross_weight, package_height = @package_height, package_length = @package_length, package_width = @package_width," +
-                    "product_price = @product_price, product_status_type = @product_status_type, product_unit = @product_unit, updatedAt = @updatedAt" +
-                    "  where productId = @productId",
-                    updateList);
+                await _azureAliExpressProductRepository.BulkUpdateData(updateList.ToList());
             }
         }
         public async Task ModifiedProductProperties(IReadOnlyList<ProductInfoResult> productsInfo)
@@ -499,8 +495,7 @@ namespace YapartMarket.BL.Implementation
         {
             var updateProducts = await GetProductWhereAliExpressProductIdIsNull();
             if (updateProducts.Any())
-               await UpdateAliExpressProductId(updateProducts);
-
+                await _azureProductRepository.BulkUpdateProductId(updateProducts.ToList());
         }
 
         public async Task<IEnumerable<Product>> GetProductWhereAliExpressProductIdIsNull()
@@ -522,26 +517,6 @@ namespace YapartMarket.BL.Implementation
                 return productsInDb;
             }
         }
-
-        private async Task UpdateAliExpressProductId(IEnumerable<Product> updateProducts)
-        {
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-            {
-                await connection.OpenAsync();
-                foreach (var updateProduct in updateProducts)
-                {
-                    await connection.ExecuteAsync(
-                        "update products set aliExpressProductId = @aliExpressProductId, updatedAt = @updatedAt where sku = @sku",
-                        new
-                        {
-                            aliExpressProductId = updateProduct.AliExpressProductId,
-                            updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                            sku = updateProduct.Sku
-                        });
-                }
-            }
-        }
-
         public ProductInfoResult GetProductInfo(long productId)
         {
             ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");

@@ -10,5 +10,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
         Task BulkUpdateCountExpressData(List<Product> list);
         Task BulkUpdateTakeTime(List<Product> list);
         Task BulkUpdateExpressTakeTime(List<Product> list);
+        Task BulkUpdateProductId(IReadOnlyList<Product> products);
     }
 }
