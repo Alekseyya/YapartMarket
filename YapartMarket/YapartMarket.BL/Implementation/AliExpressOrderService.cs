@@ -175,10 +175,5 @@ namespace YapartMarket.BL.Implementation
             }
             return orderUpdates;
         }
-
-        public OrderRootDto DeserializeAliExpressOrderList(string json)
-        {
-            return JsonConvert.DeserializeObject<OrderRootDto>(json);
-        }
     }
 }
