@@ -2,12 +2,21 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
-using System.Text;
 
 namespace YapartMarket.Core.Extensions
 {
     public static class EnumHelper<T>
     {
+        public static IReadOnlyList<string> AllItems()
+        {
+            var items = new List<string>();
+            foreach (var name in Enum.GetNames(typeof(T)))
+            {
+                items.Add(name);
+            }
+            return items;
+        }
+
         public static IDictionary<string, T> GetValues(bool ignoreCase)
         {
             var enumValues = new Dictionary<string, T>();

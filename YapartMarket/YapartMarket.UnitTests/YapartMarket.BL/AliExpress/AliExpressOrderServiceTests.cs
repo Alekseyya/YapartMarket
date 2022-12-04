@@ -12,6 +12,7 @@ using Xunit;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Mapper;
@@ -57,9 +58,17 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         public void QueryOrderDetail_Deserialize()
         {
             //arrange
+            var startDay = new DateTime(2022, 11, 01).StartOfDay();
+            var endDay = new DateTime(2022, 11, 04).EndOfDay();
+            var orderStatusList = new List<OrderStatus>()
+            {
+                OrderStatus.SELLER_PART_SEND_GOODS,
+                OrderStatus.FINISH,
+                OrderStatus.WAIT_SELLER_SEND_GOODS
+            };
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockMapper.Object);
             //act
-            var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 09,01).StartOfDay(), DateTime.Today.EndOfDay());
+            var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(startDay, endDay, orderStatusList);
             //assert
             Assert.NotNull(aliExpressOrderList);
         }

@@ -1,6 +1,6 @@
 ﻿namespace YapartMarket.Core.DateStructures
 {
-    public enum OrderStatus
+    public enum OrderStatus : short
     {
         /// <summary>
         /// Ожидание оплаты покупателем
@@ -45,7 +45,9 @@
         /// <summary>
         /// Выполнение заказа нужно запрашивать отдельно
         /// </summary>
-        FINISH = 10
+        FINISH = 10,
+        //Все возможные значения
+        ANY = 11,
     }
     /// <summary>
     /// Статус заморозки товара
