@@ -9,6 +9,7 @@ using YapartMarket.Data;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.Core.Config;
+using YapartMarket.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,8 @@ builder.Services.AddTransient<IAliExpressOrderRepository>(m => new AliExpressOrd
 builder.Services.AddTransient<IAliExpressOrderDetailRepository>(m => new AliExpressOrderDetailRepository("dbo.order_details", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
 
 builder.Services.Configure<AliExpressOptions>(builder.Configuration.GetSection(AliExpressOptions.AliExpress));
+
+builder.Services.AddSingleton(typeof(Deserializer<IReadOnlyList<AliExpressOrder>>), s => new OrderDeserializer());
 
 var app = builder.Build();
 

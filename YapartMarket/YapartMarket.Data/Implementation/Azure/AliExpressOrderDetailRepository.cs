@@ -41,7 +41,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         product_unit_price = orderDetail.ProductUnitPrice,
                         send_goods_operator = orderDetail.SendGoodsOperator,
                         show_status = orderDetail.ShowStatus,
-                        goods_prepare_time = orderDetail.GoodsPrepareTime,
+                        goods_prepare_time = orderDetail.GoodsPrepareDays,
                         total_count_product_amount = orderDetail.TotalProductAmount,
                         updated = DateTime.Now,
                         created = DateTime.Now
@@ -75,7 +75,7 @@ namespace YapartMarket.Data.Implementation.Azure
                         product_unit_price = orderDetail.ProductUnitPrice,
                         send_goods_operator = orderDetail.SendGoodsOperator,
                         show_status = orderDetail.ShowStatus,
-                        goods_prepare_time = orderDetail.GoodsPrepareTime,
+                        goods_prepare_time = orderDetail.GoodsPrepareDays,
                         total_count_product_amount = orderDetail.TotalProductAmount,
                         created = DateTime.Now,
                         updated = DateTime.Now

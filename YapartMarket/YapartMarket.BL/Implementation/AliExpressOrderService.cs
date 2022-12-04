@@ -6,6 +6,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -28,15 +29,17 @@ namespace YapartMarket.BL.Implementation
         private readonly ILogger<AliExpressOrderService> _logger;
         private readonly IAliExpressOrderRepository _orderRepository;
         private readonly IAliExpressOrderDetailRepository _orderDetailRepository;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMapper _mapper;
         private readonly AliExpressOptions _aliExpressOptions;
 
         public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAliExpressOrderRepository orderRepository,
-            IAliExpressOrderDetailRepository orderDetailRepository, IMapper mapper)
+            IAliExpressOrderDetailRepository orderDetailRepository, IServiceScopeFactory scopeFactory, IMapper mapper)
         {
             _logger = logger;
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
+            _scopeFactory = scopeFactory;
             _mapper = mapper;
             _aliExpressOptions = options.Value;
         }
@@ -51,13 +54,13 @@ namespace YapartMarket.BL.Implementation
                 try
                 {
                     var req = new AliexpressSolutionOrderGetRequest();
-                    var obj1 = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
-                    obj1.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                    obj1.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                    obj1.OrderStatusList = orderStatusList?.Select(x => x.ToString()).ToList() ?? EnumHelper<OrderStatus>.AllItems().ToList();
-                    obj1.PageSize = 20;
-                    obj1.CurrentPage = currentPage;
-                    req.Param0_ = obj1;
+                    var orderQuery = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
+                    orderQuery.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
+                    orderQuery.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
+                    orderQuery.OrderStatusList = orderStatusList?.Select(x => x.ToString()).ToList() ?? EnumHelper<OrderStatus>.AllItems().ToList();
+                    orderQuery.PageSize = 20;
+                    orderQuery.CurrentPage = currentPage;
+                    req.Param0_ = orderQuery;
                     var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
                     var orderRootDto = JsonConvert.DeserializeObject<OrderRootDto>(rsp.Body);
                     if (orderRootDto == null)
@@ -72,7 +75,7 @@ namespace YapartMarket.BL.Implementation
                 }
                 catch (WebException ex)
                 {
-                    if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.Timeout)
+                    if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.RequestCanceled)
                     {
                         await Task.Delay(2000);
                     }

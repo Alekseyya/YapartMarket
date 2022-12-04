@@ -27,7 +27,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("show_status")]
         public OrderStatus ShowStatus { get; set; }
         [Column("goods_prepare_time")]
-        public int GoodsPrepareTime { get; set; }
+        public int GoodsPrepareDays { get; set; }
         [Column("total_count_product_amount")]
         public decimal TotalProductAmount { get; set; }
         [Column("created")]

@@ -30,7 +30,7 @@ namespace YapartMarket.Core.Mapper
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.send_goods_operator))
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.ShowStatus,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.show_status))
-                .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.GoodsPrepareTime,
+                .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.GoodsPrepareDays,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.goods_prepare_time))
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.TotalProductAmount,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => Convert.ToDecimal(x.total_product_amount.amount, new CultureInfo("en-US"))));
