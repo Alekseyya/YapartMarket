@@ -8,8 +8,10 @@ namespace YapartMarket.Core
 {
     public sealed class OrderDeserializer : OrderMessageDeserializer<IReadOnlyList<AliExpressOrder>>
     {
-        LogisticsStatus GetLogisticStatus(string status)
+        LogisticsStatus GetLogisticStatus(string? status)
         {
+            if (status == null)
+                return LogisticsStatus.UNKNOWN;
             return status.ToLower() switch
             {
                 "wait_seller_send_goods" => LogisticsStatus.WAIT_SELLER_SEND_GOODS,
@@ -20,8 +22,10 @@ namespace YapartMarket.Core
             };
         }
 
-        BizType GetBizType(string status)
+        BizType GetBizType(string? status)
         {
+            if(status == null)
+                return BizType.UNKNOWN;
             return status.ToLower() switch
             {
                 "ae_common" => BizType.AE_COMMON,
@@ -32,6 +36,8 @@ namespace YapartMarket.Core
 
         OrderStatus GetOrderStatus(string orderStatus)
         {
+            if(orderStatus == null)
+                return OrderStatus.UNKNOWN;
             return orderStatus.ToLower() switch
             {
                 "place_order_success" => OrderStatus.PLACE_ORDER_SUCCESS,
@@ -48,8 +54,10 @@ namespace YapartMarket.Core
             };
         }
 
-        FundStatus GetFundStatus(string status)
+        FundStatus GetFundStatus(string? status)
         {
+            if(status == null)
+                return FundStatus.UNKNOWN;
             return status.ToLower() switch
             {
                 "not_pay" => FundStatus.NOT_PAY,
@@ -59,6 +67,8 @@ namespace YapartMarket.Core
         }
         FrozenStatus GetFrozenStatus(string status)
         {
+            if(status == null)
+                return FrozenStatus.UNKNOWN;
             return status.ToLower() switch
             {
                 "no_frozen" => FrozenStatus.NO_FROZEN,
@@ -68,6 +78,8 @@ namespace YapartMarket.Core
 
         ShipperType GetShipperType(string shipperType)
         {
+            if(shipperType == null)
+                return ShipperType.UNKNOWN;
             return shipperType.ToLower() switch
             {
                 "seller_send_goods" => ShipperType.SELLER_SEND_GOODS,

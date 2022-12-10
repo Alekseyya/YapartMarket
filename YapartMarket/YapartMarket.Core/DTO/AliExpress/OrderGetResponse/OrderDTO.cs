@@ -222,7 +222,7 @@ namespace YapartMarket.Core.DTO.AliExpress.OrderGetResponse
     public class TargetList
     {
         [JsonProperty("order_dto")]
-        public List<OrderDto> Orders { get; set; }
+        public List<OrderDto> order_dto { get; set; }
     }
 
     public class TotalProductAmount

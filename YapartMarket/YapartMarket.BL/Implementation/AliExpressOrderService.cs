@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Top.Api;
 using Top.Api.Request;
+using YapartMarket.Core;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
@@ -20,6 +21,7 @@ using YapartMarket.Core.DTO;
 using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
+using static System.Net.Mime.MediaTypeNames;
 
 [assembly: InternalsVisibleTo("UnitTests")]
 namespace YapartMarket.BL.Implementation
@@ -44,11 +46,11 @@ namespace YapartMarket.BL.Implementation
             _aliExpressOptions = options.Value;
         }
         
-        public async Task<List<OrderDto>> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
+        public async Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
         {
             var currentPage = 1;
             ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-            var aliExpressOrderList = new List<OrderDto>();
+            var aliExpressOrderList = new List<AliExpressOrder>();
             do
             {
                 try
@@ -62,29 +64,26 @@ namespace YapartMarket.BL.Implementation
                     orderQuery.CurrentPage = currentPage;
                     req.Param0_ = orderQuery;
                     var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-                    var orderRootDto = JsonConvert.DeserializeObject<OrderRootDto>(rsp.Body);
-                    if (orderRootDto == null)
-                        return null;
-                    var result = orderRootDto.aliexpress_solution_order_get_response.result;
-                    if (result.success)
+
+                    using (var scope = _scopeFactory.CreateScope())
                     {
-                        if (result.target_list.Orders.IsAny())
-                            aliExpressOrderList.AddRange(orderRootDto!.aliexpress_solution_order_get_response.result.target_list.Orders);
-                        break;
+                        var deserialize = scope.ServiceProvider.GetRequiredService<Deserializer<IReadOnlyList<AliExpressOrder>>>();
+                        var order = deserialize.Deserialize(rsp.Body);
+                        if (order.IsAny())
+                            aliExpressOrderList.AddRange(order.ToList());
+                        else
+                            break;
                     }
                 }
                 catch (WebException ex)
                 {
                     if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.RequestCanceled)
-                    {
                         await Task.Delay(2000);
-                    }
-
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    continue;;
+                    continue;
                 }
                 currentPage++;
             } while (true);

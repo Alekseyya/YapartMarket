@@ -49,11 +49,11 @@ namespace YapartMarket.Core
             if (orderRootMessage == null)
                 throw new FormatException("OrderRoot can't be deserialized to null.");
             var result = orderRootMessage.aliexpress_solution_order_get_response.result;
-            if (result.success)
+            if (!result.success)
                 throw new FormatException("Order can't be success.");
             var orderList = new List<OrderDto>();
-            if (result.target_list.Orders.IsAny())
-                orderList.AddRange(orderRootMessage!.aliexpress_solution_order_get_response.result.target_list.Orders);
+            if (result.target_list.order_dto.IsAny())
+                orderList.AddRange(orderRootMessage!.aliexpress_solution_order_get_response.result.target_list.order_dto);
                 //ValidateJson(result, orderRootMessage);
             return CreateInstanceFromMessage(orderList);
         }

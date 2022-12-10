@@ -114,7 +114,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //act
             var aliExpressOrder = JsonConvert.DeserializeObject<OrderRootDto>(json);
             Assert.NotNull(aliExpressOrder);
-            Assert.NotNull(aliExpressOrder.aliexpress_solution_order_get_response.result.target_list.Orders);
+            Assert.NotNull(aliExpressOrder.aliexpress_solution_order_get_response.result.target_list.order_dto);
         }
 
         [Fact]
@@ -250,7 +250,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
             //arrange
             var aliExpressOrder = JsonConvert.DeserializeObject<OrderRootDto>(_jsonOrderExpample);
             Assert.NotNull(aliExpressOrder);
-            Assert.Equal(BizType.AE_COMMON.ToString(), aliExpressOrder.aliexpress_solution_order_get_response.result.target_list.Orders.FirstOrDefault().biz_type);
+            Assert.Equal(BizType.AE_COMMON.ToString(), aliExpressOrder.aliexpress_solution_order_get_response.result.target_list.order_dto.FirstOrDefault().biz_type);
         }
 
         //[Fact]

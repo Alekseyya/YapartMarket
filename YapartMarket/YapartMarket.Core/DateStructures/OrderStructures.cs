@@ -47,7 +47,7 @@
         /// </summary>
         FINISH = 10,
         //Все возможные значения
-        ANY = 11,
+        UNKNOWN = 11,
     }
     /// <summary>
     /// Статус заморозки товара
@@ -55,7 +55,8 @@
     public enum FrozenStatus
     {
         NO_FROZEN,
-        IN_FROZEN
+        IN_FROZEN,
+        UNKNOWN
     }
     /// <summary>
     /// Статус проблемы заказа
@@ -64,7 +65,8 @@
     {
         NO_ISSUE,
         IN_ISSUE,
-        END_ISSUE
+        END_ISSUE,
+        UNKNOWN
     }
 
     public enum ShipperType
@@ -76,14 +78,16 @@
         /// <summary>
         /// Доставка со склада
         /// </summary>
-        WAREHOUSE_SEND_GOODS
+        WAREHOUSE_SEND_GOODS,
+        UNKNOWN
     }
 
     public enum FundStatus
     {
         NOT_PAY,
         PAY_SUCCESS,
-        WAIT_SELLER_CHECK
+        WAIT_SELLER_CHECK,
+        UNKNOWN
     }
     
     public enum LogisticsStatus
@@ -92,13 +96,15 @@
         SELLER_SEND_PART_GOODS,
         SELLER_SEND_GOODS,
         BUYER_ACCEPT_GOODS,
-        NO_LOGISTICS
+        NO_LOGISTICS,
+        UNKNOWN
     }
 
     public enum BizType
     {
         AE_COMMON,
         AE_TRIAL,
-        AE_RECHARGE
+        AE_RECHARGE,
+        UNKNOWN
     }
 }

@@ -138,9 +138,8 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                var aliExpressOrderDTO = await _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-8).StartOfDay(), DateTime.Now.AddDays(+1).EndOfDay());
-                var aliExpressOrders = _mapper.Map<List<OrderDto>, List<AliExpressOrder>>(aliExpressOrderDTO);
-                await _aliExpressOrderService.AddOrders(aliExpressOrders);
+                var aliExpressOrders = await _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-8).StartOfDay(), DateTime.Now.AddDays(+1).EndOfDay());
+                await _aliExpressOrderService.AddOrders(aliExpressOrders.ToList());
             }
             catch (Exception e)
             {

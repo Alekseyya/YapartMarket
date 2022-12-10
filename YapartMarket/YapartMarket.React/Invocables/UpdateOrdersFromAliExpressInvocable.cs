@@ -62,27 +62,26 @@ namespace YapartMarket.React.Invocables
             var dateTimeNow = DateTime.UtcNow;
             try
             {
-                var ordersDTO = await _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay()); 
-                if (ordersDTO.IsAny())
+                var orders = await _aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-1).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay()); 
+                if (orders.IsAny())
                 {
                     _logger.LogInformation("Получены заказы");
                     Debug.WriteLine("Получены заказы");
-                    var aliExpressOrders = _mapper.Map<List<OrderDto>, List<AliExpressOrder>>(ordersDTO);
                     _logger.LogInformation("Сохранение новых заказов");
-                    await _aliExpressOrderService.AddOrders(aliExpressOrders);
-                    if (aliExpressOrders.Any())
+                    await _aliExpressOrderService.AddOrders(orders.ToList());
+                    if (orders.Any())
                     {
                         _logger.LogInformation("Запись адреса получателя");
-                        foreach (var aliExpressOrder in aliExpressOrders)
+                        foreach (var order in orders)
                         {
-                            var orderReceiptDto = await _aliExpressOrderReceiptInfoService.GetReceiptInfo(aliExpressOrder.OrderId);
-                            _logger.LogInformation($"OrderId : {aliExpressOrder.OrderId}");
-                            await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(aliExpressOrder.OrderId, orderReceiptDto);
+                            var orderReceiptDto = await _aliExpressOrderReceiptInfoService.GetReceiptInfo(order.OrderId);
+                            _logger.LogInformation($"OrderId : {order.OrderId}");
+                            await _aliExpressOrderReceiptInfoService.InsertOrderReceipt(order.OrderId, orderReceiptDto);
 
-                            _logger.LogInformation($"Получение логистического номера заказа {aliExpressOrder.OrderId}");
-                            var logisticOrderDetail = _aliExpressLogisticOrderDetailService.GetLogisticOrderDetailRequest(aliExpressOrder.OrderId);
+                            _logger.LogInformation($"Получение логистического номера заказа {order.OrderId}");
+                            var logisticOrderDetail = _aliExpressLogisticOrderDetailService.GetLogisticOrderDetailRequest(order.OrderId);
                             await _aliExpressLogisticOrderDetailService.ProcessLogisticsOrderDetailAsync(logisticOrderDetail);
-                            var orderDetails = aliExpressOrder.AliExpressOrderDetails;
+                            var orderDetails = order.AliExpressOrderDetails;
                             foreach (var orderDetail in orderDetails)
                             {
                                 await _aliExpressProductService.ProcessUpdateProduct(orderDetail.ProductId);

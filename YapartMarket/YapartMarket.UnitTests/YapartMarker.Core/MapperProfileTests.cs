@@ -399,7 +399,7 @@ namespace YapartMarket.UnitTests.YapartMarker.Core
     }
 }";
             var deserializeJson = JsonConvert.DeserializeObject<OrderRootDto>(json);
-            var orders = deserializeJson.aliexpress_solution_order_get_response.result.target_list.Orders;
+            var orders = deserializeJson.aliexpress_solution_order_get_response.result.target_list.order_dto;
             //Act
             var aliExpressOrders = _mapper.Map<List<OrderDto>, List<AliExpressOrder>>(orders);
             //Assert
