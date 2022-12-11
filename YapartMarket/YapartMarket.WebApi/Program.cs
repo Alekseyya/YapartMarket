@@ -41,6 +41,8 @@ builder.Services.Configure<AliExpressOptions>(builder.Configuration.GetSection(A
 
 builder.Services.AddSingleton(typeof(Deserializer<IReadOnlyList<AliExpressOrder>>), s => new OrderDeserializer());
 
+builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

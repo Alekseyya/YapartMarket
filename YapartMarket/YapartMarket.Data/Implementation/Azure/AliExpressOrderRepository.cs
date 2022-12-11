@@ -36,22 +36,17 @@ namespace YapartMarket.Data.Implementation.Azure
                     await connection.OpenAsync();
                     var orders = aliExpressOrders.Select(aliExpressOrder => new
                     {
-                        seller_signer_fullname = aliExpressOrder.SellerSignerFullName,
-                        seller_login_id = aliExpressOrder.SellerLoginId,
+                        seller_signer_fullname = aliExpressOrder.BuyerName,
                         order_id = aliExpressOrder.OrderId,
-                        logistics_status = aliExpressOrder.LogisticsStatus,
-                        biz_type = aliExpressOrder.BizType,
-                        gmt_pay_time = aliExpressOrder.GmtPayTime,
-                        end_reason = aliExpressOrder.EndReason,
+                        gmt_pay_time = aliExpressOrder.PaidAt,
                         updated = DateTime.Now,
                         created = (string)null,
                         total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                         total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
                         order_status = aliExpressOrder.OrderStatus,
-                        gmt_create = aliExpressOrder.GmtCreate,
-                        gmt_update = aliExpressOrder.GmtUpdate,
-                        fund_status = aliExpressOrder.FundStatus,
-                        frozen_status = aliExpressOrder.FrozenStatus,
+                        gmt_create = aliExpressOrder.CreateAt,
+                        gmt_update = aliExpressOrder.UpdateAt,
+                        fund_status = aliExpressOrder.PaymentStatus,
                         id = aliExpressOrder.Id
                     });
                     await connection.ExecuteAsync(updateOrder, orders);
@@ -87,7 +82,7 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                             orderEntry.AliExpressOrderDetails.Add(orderDetail);
                             return orderEntry;
                         },
-                        new { gmt_create_start = start, gmt_create_end = end, order_status = (int)OrderStatus.WAIT_SELLER_SEND_GOODS },
+                        new { gmt_create_start = start, gmt_create_end = end, order_status = 1 },
                         splitOn: "order_id"); //, product_id
 
                     foreach (var order in orderInDb)
@@ -123,22 +118,17 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
                     {
                         await connection.QuerySingleAsync<int>(insertOrder, new
                         {
-                            seller_signer_fullname = aliExpressOrder.SellerSignerFullName,
-                            seller_login_id = aliExpressOrder.SellerLoginId,
+                            seller_signer_fullname = aliExpressOrder.BuyerName,
                             order_id = aliExpressOrder.OrderId,
-                            logistics_status = aliExpressOrder.LogisticsStatus,
-                            biz_type = aliExpressOrder.BizType,
-                            gmt_pay_time = aliExpressOrder.GmtPayTime,
-                            end_reason = aliExpressOrder.EndReason,
+                            gmt_pay_time = aliExpressOrder.PaidAt,
                             created = DateTime.Now,
                             updated = (DateTime?)null,
                             total_product_count = aliExpressOrder.TotalProductCount, //сумма всех продуктов
                             total_pay_amount = aliExpressOrder.TotalPayAmount, //цена всех продуктов
                             order_status = aliExpressOrder.OrderStatus,
-                            gmt_create = aliExpressOrder.GmtCreate,
-                            gmt_update = aliExpressOrder.GmtUpdate,
-                            fund_status = aliExpressOrder.FundStatus,
-                            frozen_status = aliExpressOrder.FrozenStatus
+                            gmt_create = aliExpressOrder.CreateAt,
+                            gmt_update = aliExpressOrder.UpdateAt,
+                            fund_status = aliExpressOrder.PaymentStatus,
                         });
                     }
                     catch (Exception ex)

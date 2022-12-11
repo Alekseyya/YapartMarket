@@ -19,6 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Topsdk">
+      <HintPath>Topsdk.dll</HintPath>
+    </Reference>
     <Reference Include="topsdk-net-core">
       <HintPath>topsdk-net-core.dll</HintPath>
     </Reference>

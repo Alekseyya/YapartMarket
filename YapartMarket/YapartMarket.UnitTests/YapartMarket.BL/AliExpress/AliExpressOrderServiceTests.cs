@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -10,10 +13,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using Moq.Protected;
 using Top.Api;
 using Top.Api.Request;
 using Top.Api.Response;
 using Xunit;
+using YapartMarket.BL;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core;
 using YapartMarket.Core.Config;
@@ -23,6 +28,7 @@ using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Mapper;
 using YapartMarket.Core.Models.Azure;
+using YapartMarket.Core.Models.Raw;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL
 {
@@ -36,6 +42,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         private Mock<IMapper> _mockMapper;
         private IMapper _mapper;
         private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+        private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
 
         public AliExpressOrderServiceTests()
         {
@@ -48,6 +55,9 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
                 AppSecret = _configuration["AliExpress:AppSecret"],
                 AccessToken = _configuration["AliExpress:AccessToken"],
                 HttpsEndPoint = _configuration["AliExpress:HttpsEndPoint"],
+                GetOrderList = _configuration["AliExpress:GetOrderList"],
+                Url = _configuration["AliExpress:Url"],
+                AuthToken = _configuration["AliExpress:AuthToken"]
             });
             _mockLogger = new Mock<ILogger<AliExpressOrderService>>();
             _mockAzureAliExpressOrderRepository = new Mock<IAliExpressOrderRepository>();
@@ -72,7 +82,14 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
                 .Returns(serviceScopeFactory.Object);
 
             _mockServiceScopeFactory = serviceScopeFactory;
+            var mockFactory = new Mock<IHttpClientFactory>();
 
+            var client = new HttpClient();
+            client.BaseAddress = new Uri(_aliExpressOption.Value.Url);
+            client.DefaultRequestHeaders.Add("x-auth-token", _aliExpressOption.Value.AuthToken);
+            mockFactory.Setup(_ => _.CreateClient("aliExpress")).Returns(client);
+
+            _mockHttpClientFactory = mockFactory;
             var mockMapper = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile(new AliExpressOrderProfile());
@@ -85,224 +102,121 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         {
             //arrange
             var body = @"{
-    ""aliexpress_solution_order_get_response"": {
-        ""result"": {
-            ""current_page"": 1,
-            ""error_code"": ""0"",
-            ""error_message"": ""操作成功"",
-            ""page_size"": 20,
-            ""success"": true,
-            ""target_list"": {
-                ""order_dto"": [
-                    {
-                        ""biz_type"": ""AE_COMMON"",
-                        ""buyer_login_id"": ""ru900785188"",
-                        ""buyer_signer_fullname"": ""Artem Zhurkin"",
-                        ""end_reason"": ""buyer_confirm_goods"",
-                        ""frozen_status"": ""NO_FROZEN"",
-                        ""fund_status"": ""PAY_SUCCESS"",
-                        ""gmt_create"": ""2022-11-09 08:36:07"",
-                        ""gmt_pay_time"": ""2022-11-09 08:36:12"",
-                        ""gmt_update"": ""2022-11-18 05:35:25"",
-                        ""has_request_loan"": false,
-                        ""issue_status"": ""NO_ISSUE"",
-                        ""logisitcs_escrow_fee_rate"": """",
-                        ""order_id"": 5090889302950999,
-                        ""order_status"": ""FINISH"",
-                        ""payment_type"": ""MIXEDCARD"",
-                        ""phone"": false,
-                        ""product_list"": {
-                            ""order_product_dto"": [
-                                {
-                                    ""can_submit_issue"": false,
-                                    ""child_id"": 5090889302960999,
-                                    ""delivery_time"": ""6-6"",
-                                    ""freight_commit_day"": ""22"",
-                                    ""goods_prepare_time"": 3,
-                                    ""issue_status"": ""NO_ISSUE"",
-                                    ""logistics_amount"": {
-                                        ""amount"": ""0.00"",
-                                        ""currency_code"": ""RUB""
-                                    },
-                                    ""logistics_service_name"": ""Почта Росcии (AliExpress): Пункт выдачи в города"",
-                                    ""logistics_type"": ""MYMALL_PUDO_CITY"",
-                                    ""money_back3x"": false,
-                                    ""order_id"": 5090889302960999,
-                                    ""product_count"": 1,
-                                    ""product_id"": 1005002891808191,
-                                    ""product_img_url"": ""http:\/\/ae01.alicdn.com\/kf\/Aeae66d7a227c46a5922bd73a051fa198U.jpg"",
-                                    ""product_name"": ""Брызговики задние SKODA KODIAQ, 2017-, 2 шт. (standart), NLFD.45.08.E13"",
-                                    ""product_snap_url"": ""\/\/www.aliexpress.com\/snapshot\/null.html?orderId=5090889302960999"",
-                                    ""product_unit"": ""piece"",
-                                    ""product_unit_price"": {
-                                        ""amount"": ""1073.00"",
-                                        ""currency_code"": ""RUB""
-                                    },
-                                    ""send_goods_operator"": ""SELLER_SEND_GOODS"",
-                                    ""show_status"": ""FINISH"",
-                                    ""sku_code"": ""NLFD.45.08.E13"",
-                                    ""son_order_status"": ""FINISH"",
-                                    ""total_product_amount"": {
-                                        ""amount"": ""1073.00"",
-                                        ""currency_code"": ""RUB""
-                                    }
-                                }
-                            ]
-                        },
-                        ""seller_login_id"": ""ru1404462327cets"",
-                        ""seller_operator_login_id"": ""ru1404462327cets"",
-                        ""seller_signer_fullname"": ""Rogonskiy Store""
-                    },
-                    {
-                        ""biz_type"": ""AE_COMMON"",
-                        ""buyer_login_id"": ""ru1092558138"",
-                        ""buyer_signer_fullname"": ""Aleksey Chernigovskiy"",
-                        ""end_reason"": ""pay_timeout"",
-                        ""frozen_status"": ""NO_FROZEN"",
-                        ""fund_status"": ""NOT_PAY"",
-                        ""gmt_create"": ""2022-11-08 19:01:15"",
-                        ""gmt_update"": ""2022-11-08 19:32:06"",
-                        ""has_request_loan"": false,
-                        ""issue_status"": ""NO_ISSUE"",
-                        ""logisitcs_escrow_fee_rate"": """",
-                        ""order_id"": 5090538061285340,
-                        ""order_status"": ""FINISH"",
-                        ""phone"": false,
-                        ""product_list"": {
-                            ""order_product_dto"": [
-                                {
-                                    ""can_submit_issue"": false,
-                                    ""child_id"": 5090538061295340,
-                                    ""delivery_time"": ""11-13"",
-                                    ""freight_commit_day"": ""31"",
-                                    ""goods_prepare_time"": 3,
-                                    ""issue_status"": ""NO_ISSUE"",
-                                    ""logistics_amount"": {
-                                        ""amount"": ""0.00"",
-                                        ""currency_code"": ""RUB""
-                                    },
-                                    ""logistics_service_name"": ""Почта Росcии (AliExpress): Пункт выдачи в города"",
-                                    ""logistics_type"": ""MYMALL_PUDO_CITY"",
-                                    ""money_back3x"": false,
-                                    ""order_id"": 5090538061295340,
-                                    ""product_count"": 2,
-                                    ""product_id"": 1005003590247185,
-                                    ""product_img_url"": ""http:\/\/ae01.alicdn.com\/kf\/Af5a52fe361054ddaa57ce104742b36b5Y.jpg"",
-                                    ""product_name"": ""Wing for trailer mound R13, nll.80.98.000rt NLL 80 98 000rt"",
-                                    ""product_snap_url"": ""\/\/www.aliexpress.com\/snapshot\/null.html?orderId=5090538061295340"",
-                                    ""product_unit"": ""piece"",
-                                    ""product_unit_price"": {
-                                        ""amount"": ""803.70"",
-                                        ""currency_code"": ""RUB""
-                                    },
-                                    ""send_goods_operator"": ""SELLER_SEND_GOODS"",
-                                    ""show_status"": ""FINISH"",
-                                    ""sku_code"": ""NLL.80.98.000RT"",
-                                    ""son_order_status"": ""FINISH"",
-                                    ""total_product_amount"": {
-                                        ""amount"": ""1607.40"",
-                                        ""currency_code"": ""RUB""
-                                    }
-                                }
-                            ]
-                        },
-                        ""seller_login_id"": ""ru1404462327cets"",
-                        ""seller_operator_login_id"": ""ru1404462327cets"",
-                        ""seller_signer_fullname"": ""Rogonskiy Store""
-                    },
-                    {
-                        ""biz_type"": ""AE_COMMON"",
-                        ""buyer_login_id"": ""ru2743239039yayae"",
-                        ""buyer_signer_fullname"": ""9501 user"",
-                        ""end_reason"": ""buyer_confirm_goods"",
-                        ""frozen_status"": ""NO_FROZEN"",
-                        ""fund_status"": ""PAY_SUCCESS"",
-                        ""gmt_create"": ""2022-11-08 02:10:48"",
-                        ""gmt_pay_time"": ""2022-11-08 02:11:43"",
-                        ""gmt_update"": ""2022-11-24 07:01:54"",
-                        ""has_request_loan"": false,
-                        ""issue_status"": ""NO_ISSUE"",
-                        ""logisitcs_escrow_fee_rate"": """",
-                        ""order_id"": 5090565331666012,
-                        ""order_status"": ""FINISH"",
-                        ""payment_type"": ""MIXEDCARD"",
-                        ""phone"": false,
-                        ""product_list"": {
-                            ""order_product_dto"": [
-                                {
-                                    ""can_submit_issue"": false,
-                                    ""child_id"": 5090565331676012,
-                                    ""delivery_time"": ""5-7"",
-                                    ""freight_commit_day"": ""23"",
-                                    ""goods_prepare_time"": 3,
-                                    ""issue_status"": ""NO_ISSUE"",
-                                    ""logistics_amount"": {
-                                        ""amount"": ""0.00"",
-                                        ""currency_code"": ""RUB""
-                                    },
-                                    ""logistics_service_name"": ""Почта Роcсии (AliExpress): Курьером в города"",
-                                    ""logistics_type"": ""MYMALL_DOOR_CITY"",
-                                    ""money_back3x"": false,
-                                    ""order_id"": 5090565331676012,
-                                    ""product_count"": 1,
-                                    ""product_id"": 1005004039048742,
-                                    ""product_img_url"": ""http:\/\/ae01.alicdn.com\/kf\/A147c4ca814674d579bda41ea42ea9008j.jpg"",
-                                    ""product_name"": ""Protection and PPC for Honda Fit 2007-2012, 1,3;1,5 gasoline, at FWD;4WD, right steering, nlz.18.25.030 NLZ 18 25 030"",
-                                    ""product_snap_url"": ""\/\/www.aliexpress.com\/snapshot\/null.html?orderId=5090565331676012"",
-                                    ""product_unit"": ""piece"",
-                                    ""product_unit_price"": {
-                                        ""amount"": ""4348.80"",
-                                        ""currency_code"": ""RUB""
-                                    },
-                                    ""send_goods_operator"": ""SELLER_SEND_GOODS"",
-                                    ""show_status"": ""FINISH"",
-                                    ""sku_code"": ""NLZ.18.25.030"",
-                                    ""son_order_status"": ""FINISH"",
-                                    ""total_product_amount"": {
-                                        ""amount"": ""4348.80"",
-                                        ""currency_code"": ""RUB""
-                                    }
-                                }
-                            ]
-                        },
-                        ""seller_login_id"": ""ru1404462327cets"",
-                        ""seller_operator_login_id"": ""ru1404462327cets"",
-                        ""seller_signer_fullname"": ""Rogonskiy Store""
-                    }
-                ]
-            },
-            ""total_count"": 3,
-            ""total_page"": 1
-        },
-        ""request_id"": ""15sgqh35qaep4""
-    }
-}";
-            var startDay = new DateTime(2022, 11, 08).StartOfDay();
-            var endDay = new DateTime(2022, 11, 09).EndOfDay();
-            var orderStatusList = new List<OrderStatus>()
+    ""data"": {
+        ""total_count"": 1,
+        ""orders"": [
             {
-                OrderStatus.SELLER_PART_SEND_GOODS,
-                OrderStatus.FINISH,
-                OrderStatus.WAIT_SELLER_SEND_GOODS
-            };
-            var mockItopClient = new Mock<ITopClient>();
-            mockItopClient.Setup(x => x.Execute(It.IsAny<AliexpressSolutionOrderGetRequest>()))
-                .Returns(new Top.Api.Response.AliexpressSolutionOrderGetResponse() { Body = body });
+                ""id"": 2212094469888866,
+                ""created_at"": ""2022-12-09T20:57:26.606005+00:00"",
+                ""paid_at"": ""2022-12-09T20:57:37.450422+00:00"",
+                ""updated_at"": ""2022-12-09T20:57:38.502102+00:00"",
+                ""status"": ""Created"",
+                ""payment_status"": ""Hold"",
+                ""delivery_status"": ""Init"",
+                ""delivery_address"": ""Россия, Нижегородская обл, Арзамас г, ПМС-73,3,24, 607220"",
+                ""antifraud_status"": ""Passed"",
+                ""buyer_country_code"": ""RU"",
+                ""buyer_name"": ""Кукушкин Сергей Викторович "",
+                ""order_display_status"": ""WaitSendGoods"",
+                ""buyer_phone"": ""+79200358382"",
+                ""order_lines"": [
+                    {
+                        ""id"": 2212095463331348,
+                        ""item_id"": ""1005002891582458"",
+                        ""sku_id"": ""12000029610583328"",
+                        ""sku_code"": ""CHERY.S.6314003"",
+                        ""name"": ""Подкрылок с шумоизоляцией CHERY Tiggo 5, 2014-2016,  (задний левый), CHERY.S.6314003"",
+                        ""img_url"": ""https://ae04.alicdn.com/kf/S6ac980cb81ee417c9c20e9b312b4809e8.jpg_50x50.jpg"",
+                        ""item_price"": 34000,
+                        ""quantity"": 1.0,
+                        ""total_amount"": 32980,
+                        ""properties"": [
+                            ""Autofamily"",
+                            ""100000015"",
+                            ""sell_by_piece"",
+                            ""1"",
+                            ""0.650"",
+                            ""30"",
+                            ""10"",
+                            ""20""
+                        ],
+                        ""buyer_comment"": null,
+                        ""height"": 10.0,
+                        ""weight"": 650.0,
+                        ""width"": 20.0,
+                        ""length"": 30.0,
+                        ""issue_status"": ""NoDispute"",
+                        ""promotions"": [
+                            {
+                                ""ae_promotion_id"": 5000000071015191,
+                                ""ae_activity_id"": 5000000071015191,
+                                ""code"": null,
+                                ""promotion_type"": ""FlexiCoin"",
+                                ""discount"": 1020,
+                                ""discount_currency"": ""RUB"",
+                                ""original_discount"": 1020,
+                                ""original_discount_currency"": ""RUB"",
+                                ""promotion_target"": ""Sale"",
+                                ""budget_sponsor"": ""Seller""
+                            }
+                        ],
+                        ""order_line_fees"": null
+                    }
+                ],
+                ""total_amount"": 64559,
+                ""seller_comment"": null,
+                ""fully_prepared"": false,
+                ""finish_reason"": null,
+                ""cut_off_date"": null,
+                ""cut_off_date_histories"": null,
+                ""shipping_deadline"": null,
+                ""next_cut_off_date"": null,
+                ""pre_split_postings"": null,
+                ""logistic_orders"": null,
+                ""commission"": null
+            }
+        ]
+    },
+    ""error"": null
+}";
+            var startDay = new DateTime(2022, 12, 08).StartOfDay();
+            var endDay = new DateTime(2022, 12, 09).EndOfDay();
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption,
-                _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockMapper.Object);
+                _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
+           
             //act
-            var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(startDay, endDay, orderStatusList);
+            var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(startDay, endDay);
             //assert
             Assert.NotNull(aliExpressOrderList);
             Assert.True(aliExpressOrderList.Result.Count == 3);
         }
+        //[Fact]
+        //public void QueryOrderDetail1_Deserialize()
+        //{
+        //    //arrange
+        //    var startDay = new DateTime(2022, 12, 03).StartOfDay();
+        //    var endDay = new DateTime(2022, 11, 09).EndOfDay();
+        //    var orderStatusList = new List<OrderStatus>()
+        //    {
+        //        OrderStatus.SELLER_PART_SEND_GOODS,
+        //        OrderStatus.FINISH,
+        //        OrderStatus.WAIT_SELLER_SEND_GOODS
+        //    };
+        //    var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption,
+        //        _mockAzureAliExpressOrderRepository.Object, _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
+        //    //act
+        //    var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(startDay, endDay, orderStatusList);
+        //    //assert
+        //    Assert.NotNull(aliExpressOrderList);
+        //    Assert.True(aliExpressOrderList.Result.Count == 3);
+        //}
 
         [Fact]
         public void QueryOrderDetail_ReturnEmptyOrder()
         {
             //arrange
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object,
-                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockMapper.Object);
+                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
             //act
             var aliExpressOrderList = aliExpressOrderService.QueryOrderDetail(new DateTime(2021, 01, 01).StartOfDay(), new DateTime(2021, 01, 01).EndOfDay());
             //assert
@@ -314,7 +228,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         {
             //arrange
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object,
-                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockMapper.Object);
+                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
             var dateTimeNow = DateTime.UtcNow;
             //act
             var aliExpressOrderList = await aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
@@ -327,7 +241,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             //arrange
             var orderId = 5029342366925571;
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object, 
-                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockMapper.Object);
+                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
             var dateTimeNow = DateTime.UtcNow;
             //act
             var aliExpressOrderList = await aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-2).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay());
@@ -397,7 +311,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
         {
             //arrange
             var aliExpressOrderService = new AliExpressOrderService(_mockLogger.Object, _aliExpressOption, _mockAzureAliExpressOrderRepository.Object,
-                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockMapper.Object);
+                _mockAzureAliExpressOrderDetailRepository.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
             var dateTimeNow = DateTime.UtcNow;
             var orderFromAli =  (await aliExpressOrderService.QueryOrderDetail(dateTimeNow.AddDays(-20).StartOfDay(), dateTimeNow.AddDays(+1).EndOfDay())).Where(x=>x.OrderId == 5013832858011459).ToList();
             //act

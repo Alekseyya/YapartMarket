@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using YapartMarket.BL;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO.Goods;
 using YapartMarket.Core.Extensions;

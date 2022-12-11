@@ -18,4 +18,10 @@
     <ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Topsdk">
+      <HintPath>Topsdk.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

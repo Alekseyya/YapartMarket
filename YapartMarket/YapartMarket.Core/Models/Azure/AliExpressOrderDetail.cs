@@ -21,9 +21,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("product_name")]
         public string ProductName { get; set; }
         [Column("product_unit_price")]
-        public decimal ProductUnitPrice { get; set; }
-        [Column("send_goods_operator")]
-        public ShipperType SendGoodsOperator { get; set; }
+        public decimal ItemPrice { get; set; }
         [Column("show_status")]
         public OrderStatus ShowStatus { get; set; }
         [Column("goods_prepare_time")]

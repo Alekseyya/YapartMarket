@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Reflection;
 
 namespace YapartMarket.Core.Extensions
@@ -12,7 +13,8 @@ namespace YapartMarket.Core.Extensions
             var items = new List<string>();
             foreach (var name in Enum.GetNames(typeof(T)))
             {
-                items.Add(name);
+                if(name != "UNKNOWN")
+                    items.Add(name);
             }
             return items;
         }

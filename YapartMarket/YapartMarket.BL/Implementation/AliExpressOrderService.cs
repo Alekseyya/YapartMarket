@@ -1,92 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Top.Api;
-using Top.Api.Request;
 using YapartMarket.Core;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DateStructures;
-using YapartMarket.Core.DTO;
-using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
-using static System.Net.Mime.MediaTypeNames;
+using YapartMarket.Core.Models.Raw;
 
 [assembly: InternalsVisibleTo("UnitTests")]
 namespace YapartMarket.BL.Implementation
 {
-    public class AliExpressOrderService : IAliExpressOrderService
+    public class AliExpressOrderService : SendRequest<GetOrderList>, IAliExpressOrderService
     {
         private readonly ILogger<AliExpressOrderService> _logger;
         private readonly IAliExpressOrderRepository _orderRepository;
         private readonly IAliExpressOrderDetailRepository _orderDetailRepository;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IMapper _mapper;
         private readonly AliExpressOptions _aliExpressOptions;
+        private readonly HttpClient _httpClient;
 
         public AliExpressOrderService(ILogger<AliExpressOrderService> logger, IOptions<AliExpressOptions> options, IAliExpressOrderRepository orderRepository,
-            IAliExpressOrderDetailRepository orderDetailRepository, IServiceScopeFactory scopeFactory, IMapper mapper)
+            IAliExpressOrderDetailRepository orderDetailRepository, IServiceScopeFactory scopeFactory, IHttpClientFactory factory)
         {
             _logger = logger;
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
             _scopeFactory = scopeFactory;
-            _mapper = mapper;
             _aliExpressOptions = options.Value;
+            _httpClient = factory.CreateClient("aliExpress");
+            _httpClient.DefaultRequestHeaders.Add("x-auth-token", options.Value.AuthToken);
         }
         
         public async Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
         {
-            var currentPage = 1;
-            ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-            var aliExpressOrderList = new List<AliExpressOrder>();
-            do
-            {
-                try
-                {
-                    var req = new AliexpressSolutionOrderGetRequest();
-                    var orderQuery = new AliexpressSolutionOrderGetRequest.OrderQueryDomain();
-                    orderQuery.CreateDateEnd = endDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                    orderQuery.CreateDateStart = startDateTime?.ToString("yyy-MM-dd HH:mm:ss");
-                    orderQuery.OrderStatusList = orderStatusList?.Select(x => x.ToString()).ToList() ?? EnumHelper<OrderStatus>.AllItems().ToList();
-                    orderQuery.PageSize = 20;
-                    orderQuery.CurrentPage = currentPage;
-                    req.Param0_ = orderQuery;
-                    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
 
-                    using (var scope = _scopeFactory.CreateScope())
-                    {
-                        var deserialize = scope.ServiceProvider.GetRequiredService<Deserializer<IReadOnlyList<AliExpressOrder>>>();
-                        var order = deserialize.Deserialize(rsp.Body);
-                        if (order.IsAny())
-                            aliExpressOrderList.AddRange(order.ToList());
-                        else
-                            break;
-                    }
-                }
-                catch (WebException ex)
-                {
-                    if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.RequestCanceled)
-                        await Task.Delay(2000);
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    continue;
-                }
-                currentPage++;
-            } while (true);
+            var getOrderRequest = new GetOrderList()
+            {
+                date_start = startDateTime?.ToString("yyy-MM-dd HH:mm:ss"),
+                date_end = endDateTime?.ToString("yyy-MM-dd HH:mm:ss"),
+                page = 1,
+                page_size = 99
+            };
+            var result = await Request(getOrderRequest, _aliExpressOptions.GetOrderList, _httpClient);
+            var aliExpressOrderList = new List<AliExpressOrder>();
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var deserialize = scope.ServiceProvider.GetRequiredService<Deserializer<IReadOnlyList<AliExpressOrder>>>();
+                var order = deserialize.Deserialize(result);
+                if (order.IsAny())
+                    aliExpressOrderList.AddRange(order.ToList());
+            }
             return aliExpressOrderList;
         }
         /// <summary>
@@ -127,7 +99,7 @@ namespace YapartMarket.BL.Implementation
             {
                 var modifyOrderDetails = orderDetailHasInDb.Where(x => orderDetails.Any(t =>
                     t.OrderId == x.OrderId
-                    && t.ProductCount != x.ProductCount && t.ProductUnitPrice != x.ProductUnitPrice && t.SendGoodsOperator != x.SendGoodsOperator
+                    && t.ProductCount != x.ProductCount && t.ItemPrice != x.ItemPrice 
                     && t.ShowStatus != x.ShowStatus && t.TotalProductAmount != x.TotalProductAmount));
                 if (modifyOrderDetails.IsAny())
                     await _orderDetailRepository.Update(modifyOrderDetails);
@@ -158,12 +130,9 @@ namespace YapartMarket.BL.Implementation
             var orderUpdates = aliExpressOrderList.Where(x => ordersInDb.Any(orderDb =>
                     orderDb.OrderId == x.OrderId &&
                     (orderDb.OrderStatus != x.OrderStatus ||
-                    orderDb.LogisticsStatus != x.LogisticsStatus ||
-                    orderDb.BizType != x.BizType ||
                     orderDb.TotalProductCount != x.TotalProductCount ||
                     orderDb.TotalPayAmount != x.TotalPayAmount ||
-                    orderDb.FundStatus != x.FundStatus ||
-                    orderDb.FrozenStatus != x.FrozenStatus)
+                    orderDb.PaymentStatus != x.PaymentStatus)
             )).ToList();
 
             foreach (var orderInDb in ordersInDb)

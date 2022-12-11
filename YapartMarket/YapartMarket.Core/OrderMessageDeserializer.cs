@@ -4,6 +4,7 @@ using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using System.Collections.Generic;
 using YapartMarket.Core.Extensions;
 using System.Globalization;
+using YapartMarket.Core.Models.Raw;
 
 namespace YapartMarket.Core
 {
@@ -24,17 +25,22 @@ namespace YapartMarket.Core
                 return result;
             return null;
         }
-
-        protected int GetInt(string value)
+        protected decimal GetDecimal(int value)
         {
-            if (int.TryParse(value, out var result))
+            var stringValue = value.ToString();
+            return decimal.Parse(stringValue.Insert(stringValue.Length - 2, ","));
+        }
+
+        protected long GetLong(string value)
+        {
+            if(long.TryParse(value, out long result))
                 return result;
             return 0;
         }
 
-        protected decimal GetDecimal(string value)
+        protected int GetInt(string value)
         {
-            if (decimal.TryParse(value, NumberStyles.None, new CultureInfo("en-US"), out var result))
+            if (int.TryParse(value, out var result))
                 return result;
             return 0;
         }
@@ -45,15 +51,13 @@ namespace YapartMarket.Core
                 WriteIndented = true,
                 PropertyNameCaseInsensitive = true
             };
-            var orderRootMessage = JsonSerializer.Deserialize<OrderRootDto>(data, jsonSerializerOptions);
+            var orderRootMessage = JsonSerializer.Deserialize<OrderRoot>(data, jsonSerializerOptions);
             if (orderRootMessage == null)
                 throw new FormatException("OrderRoot can't be deserialized to null.");
-            var result = orderRootMessage.aliexpress_solution_order_get_response.result;
-            if (!result.success)
-                throw new FormatException("Order can't be success.");
-            var orderList = new List<OrderDto>();
-            if (result.target_list.order_dto.IsAny())
-                orderList.AddRange(orderRootMessage!.aliexpress_solution_order_get_response.result.target_list.order_dto);
+            var result = orderRootMessage.data.orders;
+            var orderList = new List<Order>();
+            if (result.IsAny())
+                orderList.AddRange(result);
                 //ValidateJson(result, orderRootMessage);
             return CreateInstanceFromMessage(orderList);
         }
@@ -71,6 +75,6 @@ namespace YapartMarket.Core
         //        //Log.WriteException(ex, correlationId, "sourceMessage:" + textInputMessage, LogLevel.Warning);
         //    }
         //}
-        protected abstract T CreateInstanceFromMessage(IReadOnlyList<OrderDto> orders);
+        protected abstract T CreateInstanceFromMessage(IReadOnlyList<Order> orders);
     }
 }

@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using YapartMarket.Core.BL;
-using YapartMarket.Core.BL.AliExpress;
-using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.WebApi.Model.AliExpress;
+using YapartMarket.WebApi.Services;
 
 namespace YapartMarket.WebApi.Controllers
 {
@@ -28,9 +27,10 @@ namespace YapartMarket.WebApi.Controllers
         {
             try
             {
-                var ordersByDay = await _aliExpressOrderService.GetOrders(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.EndOfDay());
+                var ordersByDay = await _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.EndOfDay());
+                var orderService = new OrderService();
                 if (ordersByDay.IsAny())
-                    return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<Order>>(ordersByDay));
+                    return Ok(orderService.Convert(ordersByDay));
                 return Ok();
             }
             catch (Exception e)
