@@ -5,11 +5,13 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -17,35 +19,45 @@ using Newtonsoft.Json.Linq;
 using Top.Api;
 using Top.Api.Request;
 using Top.Api.Response;
+using YapartMarket.Core;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.DTO.AliExpress;
+using YapartMarket.Core.DTO.AliExpress.FullOrderInfo;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
+using YapartMarket.Core.Models.Raw;
+using Product = YapartMarket.Core.Models.Azure.Product;
 
 namespace YapartMarket.BL.Implementation
 {
-    public class AliExpressProductService : IAliExpressProductService // todo разбить интерфейс на части
+    public class AliExpressProductService : SendRequest<ProductRoot>, IAliExpressProductService // todo разбить интерфейс на части
     {
         private readonly IAzureAliExpressProductRepository _azureAliExpressProductRepository;
         private readonly IAzureProductRepository _azureProductRepository;
         private readonly IProductPropertyRepository _productPropertyRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AliExpressProductService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly AliExpressOptions _aliExpressOptions;
+        private readonly HttpClient _httpClient;
 
         public AliExpressProductService(IAzureAliExpressProductRepository azureAliExpressProductRepository, IAzureProductRepository azureProductRepository,
             IProductPropertyRepository productPropertyRepository,
-            IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
+            IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger,
+            IServiceScopeFactory scopeFactory, IHttpClientFactory factory)
         {
             _azureAliExpressProductRepository = azureAliExpressProductRepository;
             _azureProductRepository = azureProductRepository;
             _productPropertyRepository = productPropertyRepository;
             _configuration = configuration;
             _logger = logger;
+            _scopeFactory = scopeFactory;
             _aliExpressOptions = options.Value;
+            _httpClient = factory.CreateClient("aliExpress");
+            _httpClient.DefaultRequestHeaders.Add("x-auth-token", options.Value.AuthToken);
         }
         public async Task UpdateInventoryProducts(IEnumerable<Product> products)
         {
@@ -104,6 +116,71 @@ namespace YapartMarket.BL.Implementation
                     continue;
                 }
             } while (true);
+        }
+
+        public async Task<UpdateStocksResponse> UpdateProduct(IReadOnlyList<Product> products)
+        {
+            var productsResult = new ProductRoot()
+            {
+                products = new List<Core.Models.Raw.Product>()
+            };
+            foreach (var product in products)
+            {
+                productsResult.products.Add(new()
+                {
+                    product_id = product.AliExpressProductId.ToString(),
+                    skus = new List<Sku>()
+                    {
+                        new Sku()
+                        {
+                            sku_code = product.Sku,
+                            inventory = product.Count.ToString()
+                        }
+                    }
+                });
+            }
+
+            var skip = 0;
+            var count = products.Count;
+            var response = new UpdateStocksResponse();
+            while (skip < count)
+            {
+                try
+                {
+                    var tmpProduct = new ProductRoot()
+                    {
+                        products = productsResult.products.Skip(skip).Take(1000).ToList()
+                    };
+                    var result = await Request(tmpProduct, _aliExpressOptions.UpdateStocks, _httpClient);
+                    var responseTmp = JsonConvert.DeserializeObject<UpdateStocksResponse>(result);
+                    if(responseTmp != null && responseTmp.results != null && responseTmp.results.Any(x=>!x.ok))
+                        response.results.AddRange(responseTmp.results.Where(x=>!x.ok).ToList());
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+                skip += 1000;
+            }
+            return response;
+        }
+        public async Task<UpdateStocksResponse> ProcessUpdateStocks()
+        {
+            var products = new List<Product>();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
+                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku",
+                    (product, aliExpressProduct) =>
+                    {
+                        product.AliExpressProduct = aliExpressProduct;
+                        return product;
+                    }, splitOn: "productId");
+                products.AddRange(productsInDb);
+            }
+
+            return await UpdateProduct(products);
         }
 
         public async Task ProcessDataFromAliExpress()

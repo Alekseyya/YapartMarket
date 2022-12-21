@@ -13,11 +13,13 @@ namespace YapartMarket.WebApi.Controllers
     public class AliExpressController : ControllerBase
     {
         private readonly IAliExpressOrderService _aliExpressOrderService;
+        private readonly IAliExpressProductService _productService;
         private readonly IMapper _mapper;
 
-        public AliExpressController(IAliExpressOrderService aliExpressOrderService, IMapper mapper)
+        public AliExpressController(IAliExpressOrderService aliExpressOrderService, IAliExpressProductService productService, IMapper mapper)
         {
             _aliExpressOrderService = aliExpressOrderService;
+            _productService = productService;
             _mapper = mapper;
         }
         [HttpGet]
@@ -69,7 +71,15 @@ namespace YapartMarket.WebApi.Controllers
                 return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<Order>>(ordersByDay));
             return Ok();
         }
-        
+        [HttpGet]
+        [Route("updateStocks")]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateStocks()
+        {
+            var response = await _productService.ProcessUpdateStocks();
+            return Ok(response);
+        }
+
         [HttpPost]
         [Route("downloadNewOrders")]
         public async Task<IActionResult> DownloadNewOrders()

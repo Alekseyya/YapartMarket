@@ -10,6 +10,8 @@ using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.Core.Config;
 using YapartMarket.Core;
+using Microsoft.Extensions.Configuration;
+using YapartMarket.Core.Models.Raw;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,16 +29,15 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var configuration = new MapperConfiguration(cfg =>
-{
-    cfg.CreateMap<AliExpressOrder, Order>();
-});
 builder.Services.AddAutoMapper(typeof(OrderProfile));
 builder.Services.AddTransient<IAliExpressOrderService, AliExpressOrderService>();
+builder.Services.AddTransient<IAliExpressProductService, AliExpressProductService>();
 
+builder.Services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
+builder.Services.AddTransient<IProductPropertyRepository>(m => new ProductPropertiesRepository("dbo.ali_product_properties", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
+builder.Services.AddTransient<IAzureAliExpressProductRepository>(m => new AzureAliExpressProductRepository("aliExpressProducts", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
 builder.Services.AddTransient<IAliExpressOrderRepository>(m => new AliExpressOrderRepository(new Logger<AliExpressOrderRepository>(new LoggerFactory()), "dbo.orders", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
 builder.Services.AddTransient<IAliExpressOrderDetailRepository>(m => new AliExpressOrderDetailRepository("dbo.order_details", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
-
 builder.Services.Configure<AliExpressOptions>(builder.Configuration.GetSection(AliExpressOptions.AliExpress));
 
 builder.Services.AddSingleton(typeof(Deserializer<IReadOnlyList<AliExpressOrder>>), s => new OrderDeserializer());
