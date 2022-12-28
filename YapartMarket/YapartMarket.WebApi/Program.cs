@@ -1,17 +1,15 @@
-using AutoMapper;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.WebApi.Mapper.AliExpress;
-using YapartMarket.WebApi.Model.AliExpress;
 using Microsoft.EntityFrameworkCore;
 using YapartMarket.Data;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.Core.Config;
 using YapartMarket.Core;
-using Microsoft.Extensions.Configuration;
-using YapartMarket.Core.Models.Raw;
+using Quartz;
+using YapartMarket.WebApi.Job;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +41,21 @@ builder.Services.Configure<AliExpressOptions>(builder.Configuration.GetSection(A
 builder.Services.AddSingleton(typeof(Deserializer<IReadOnlyList<AliExpressOrder>>), s => new OrderDeserializer());
 
 builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+    var jobKey = new JobKey("DemoJob");
+    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
+
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("DemoJob-trigger")
+        .WithCronSchedule("0 */4 * * * ?"));
+
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 
