@@ -1,13 +1,15 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
+using Dapper.Contrib.Extensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
@@ -16,19 +18,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Npgsql;
 using Top.Api;
 using Top.Api.Request;
 using Top.Api.Response;
-using YapartMarket.Core;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.DTO.AliExpress;
-using YapartMarket.Core.DTO.AliExpress.FullOrderInfo;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.Core.Models.Raw;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Product = YapartMarket.Core.Models.Azure.Product;
 
 namespace YapartMarket.BL.Implementation
@@ -181,6 +183,127 @@ namespace YapartMarket.BL.Implementation
             }
 
             return await UpdateProduct(products);
+        }
+
+        public async Task UpdateProductFromSql()
+        {
+            var products = new List<Product>();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                products.AddRange(await connection.QueryAsync<Product>(@"select * from products"));
+            }
+            var productGoods = new List<Core.DTO.Goods.Product>();
+            foreach (var product in products)
+            {
+                var id = Guid.NewGuid();
+                var updateAt = GetDateTime(product.UpdatedAt);
+                var takedDateTime = GetDateTime(product.TakeTime);
+                var takedExpressDateTime = GetDateTime(product.TakeTimeExpress);
+                var updateExpressDateTime = GetDateTime(product.UpdateExpress);
+                productGoods.Add(new()
+                {
+                    Id = id,
+                    Sku = product.Sku,
+                    Amount = product.Count,
+                    UpdateAt = updateAt,
+                    AmountExpress = product.CountExpress,
+                    TakedDateTime = takedDateTime,
+                    TakedExpressDateTime = takedExpressDateTime,
+                    UpdatedExpressAt = updateExpressDateTime
+                });
+            }
+            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    foreach (var product in productGoods)
+                    {
+                        var sql = @"insert into ""products"" (""id"", ""sku"", ""amount"", ""updateAt"", ""amountExpress"", ""takedDateTime"", ""takedExpressDateTime"", ""updateExpressAt"") 
+values(@id, @sku, @amount, @updateAt, @amountExpress, @takedDateTime, @takedExpressDateTime, @updateExpressAt)";
+                        await connection.ExecuteAsync(sql, new 
+                        { 
+                            id = product.Id,
+                            sku = product.Sku,
+                            amount = product.Amount,
+                            updateAt = product.UpdateAt,
+                            amountExpress = product.AmountExpress,
+                            takedDateTime = product.TakedDateTime,
+                            takedExpressDateTime = product.TakedExpressDateTime,
+                            updateExpressAt = product.UpdatedExpressAt
+                        });
+
+                    }
+                    transaction.Commit();
+                }
+            }
+        }
+
+        protected static DateTime? GetDateTime(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return null;
+            if (DateTime.TryParse(value, out var result))
+                return result;
+            if (DateTime.TryParseExact(value, "yyyyMMddTHHmmss.FFFFFF", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
+                return result;
+            if (DateTime.TryParseExact(value, "yyyyMMddTHHmmssZ", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
+                return result;
+            if (DateTime.TryParseExact(value, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
+                return result;
+            if (DateTime.TryParseExact(value, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                return result;
+            return null;
+        }
+
+        public DataTable ConvertToDataTable<T>(IEnumerable<T> data)
+        {
+            var properties = typeof(T).GetProperties();
+            DataTable table = new DataTable();
+            foreach (var property in properties)
+            {
+                if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+                    continue;
+
+                // Skip methods without a public setter
+                if (property.GetSetMethod() == null)
+                    continue;
+
+                // Skip methods specifically ignored
+                if (property.IsDefined(typeof(ComputedAttribute), false))
+                    continue;
+                if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                    continue;
+                var name = property.GetCustomAttribute<ColumnAttribute>()?.Name;
+                if (!string.IsNullOrEmpty(name))
+                    table.Columns.Add(name, Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType);
+            }
+
+            foreach (T item in data)
+            {
+                DataRow row = table.NewRow();
+                foreach (var property in properties)
+                {
+                    if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+                        continue;
+
+                    // Skip methods without a public setter
+                    if (property.GetSetMethod() == null)
+                        continue;
+
+                    // Skip methods specifically ignored
+                    if (property.IsDefined(typeof(ComputedAttribute), false))
+                        continue;
+                    if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                        continue;
+                    var name = property.GetCustomAttribute<ColumnAttribute>()?.Name;
+                    if (!string.IsNullOrEmpty(name))
+                        row[name] = property.GetValue(item) ?? DBNull.Value;
+                }
+                table.Rows.Add(row);
+            }
+            return table;
         }
 
         public async Task ProcessDataFromAliExpress()

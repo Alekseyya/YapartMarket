@@ -1,24 +1,13 @@
 ﻿using Dapper;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Net.Http;
+using Npgsql;
 using System.Text;
-using System.Threading.Tasks;
-using YapartMarket.BL;
-using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO.Goods;
 using YapartMarket.Core.Extensions;
-using YapartMarket.Core.Models.Azure;
-using YapartMarket.Core.Models.Azure.Goods;
-using YapartMarket.React.Services.Interfaces;
-using YapartMarket.React.ViewModels.Goods;
-using YapartMarket.React.ViewModels.Goods.Shipment;
+using YapartMarket.WebApi.Services.Interfaces;
+using YapartMarket.WebApi.ViewModel.Goods;
 
-namespace YapartMarket.React.Services
+namespace YapartMarket.WebApi.Services
 {
     public class GoodsService : IGoodsService
     {
@@ -31,14 +20,34 @@ namespace YapartMarket.React.Services
             _httpClient = factory.CreateClient("goodsClient");
         }
 
-        public Task<bool> Confirm(string shipmentId, int orderId)
+        public async Task<Order?> GetOrderAsync(OrderNewViewModel orderViewModel)
         {
-            throw new NotImplementedException();
-        }
+            var orderDetails = new List<OrderItem>();
+            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            {
+                await connection.OpenAsync();
+                var shipmentId = orderViewModel.OrderNewDataViewModel.Shipments[0].ShipmentId;
+                var sql = @"select * from public.order o inner join public.orderItem od on o.Id = od.orderId where o.shipmentId = @shipmentId";
+                var ordeer = await connection.QueryAsync<Order>("select * from public.order");
+                var orderDetails1 = await connection.QueryAsync<OrderItem>("select * from public.orderitem");
+                var orderDictionary = new Dictionary<Guid, Order>();
+                var order = await connection.QueryAsync<Order, OrderItem, Order>(sql, (order, orderDetail) =>
+                {
+                    if (!orderDictionary.TryGetValue(order.Id, out Order docEntry))
+                    {
+                        docEntry = order;
+                        docEntry.OrderDetails = new List<OrderItem>();
+                        orderDictionary.Add(docEntry.Id, docEntry);
+                    }
 
-        public Task<List<OrderItem>> GetOrders(OrderNewViewModel order)
-        {
-            throw new NotImplementedException();
+                    if (orderDetail != null) docEntry.OrderDetails.Add(orderDetail);
+                    docEntry.OrderDetails = docEntry.OrderDetails.Distinct().ToList();
+
+                    return docEntry;
+                }, splitOn: "orderid", param: new { shipmentId });
+
+                return order.FirstOrDefault();
+            }
         }
 
         public Task<bool> Package(string shipmentId, int orderId)
@@ -51,58 +60,83 @@ namespace YapartMarket.React.Services
             throw new NotImplementedException();
         }
 
-        public Task<int> SaveOrder(string shipmentId, List<OrderItem> orderDetails)
+        public async Task SaveOrderAsync(OrderNewViewModel orderViewModel)
         {
-            throw new NotImplementedException();
+            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+
+                    var shipment = orderViewModel.OrderNewDataViewModel.Shipments.First();
+                    var order = await connection.QueryAsync<Order>(@"select * from ""order"" where ""shipmentId"" = @shipmentid", new { shipmentId = shipment.ShipmentId });
+                    if (!order.IsAny())
+                    {
+                        var shipmentDate = DateTime.Parse(shipment.ShipmentDate);
+                        var orderId = Guid.NewGuid();
+                        var addOrderSql = @$"insert into ""order""(""id"", ""shipmentId"", ""shipmentDate"") values(@orderId, @shipmentid, @shipmentdate)";
+                        await connection.ExecuteAsync(addOrderSql, new
+                        {
+                            orderId = orderId,
+                            shipmentId = shipment.ShipmentId,
+                            shipmentDate = shipmentDate
+                        });
+                        var orderDetails = shipment.Items.Select(x => new
+                        {
+                            id = Guid.NewGuid(),
+                            orderId = orderId,
+                            itemIndex = int.Parse(x.ItemIndex),
+                            goodsId = x.GoodsId,
+                            offerId = x.OfferId,
+                            itemName = x.ItemName,
+                            price = x.Price,
+                            finalPrice = x.FinalPrice,
+                            quantity = x.Quantity
+                        });
+                        var addOrderDetailSql = $@"insert into ""orderItem""(""id"", ""orderId"", ""itemIndex"", ""goodsId"", ""offerId"", ""itemName"", ""price"", ""finalPrice"", ""quantity"") 
+values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalPrice, @quantity)";
+                        await connection.ExecuteAsync(addOrderDetailSql, orderDetails);
+                        transaction.Commit();
+                    }
+                }
+            }
+        }
+
+        public async Task ConfirmOrReject(string? shipmentId)
+        {
+            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            {
+                await connection.OpenAsync();
+                var order = await connection.QueryFirstAsync<Order>(@"select * from ""order"" where ""shipmentId"" = @shipmentid", new { shipmentId = shipmentId });
+                if (order != null)
+                {
+                    var orderId = order.Id;
+                    var orderItems = await connection.QueryAsync<OrderItem>(@"select * from ""orderItem"" where ""orderId"" = @orderId", new { orderId });
+                    var items = orderItems.Select(x => x.OfferId).ToList();
+                    var confirmProducts = await connection.QueryAsync<Product>(@"select * from ""products"" where ""sku"" IN @sku", new { sku = items });
+                    var confirmItems = orderItems.Where(x => confirmProducts.Any(t => t.Sku.ToLower() == x.OfferId.ToLower()));
+                    var distinctItems = orderItems.Where(x => !confirmProducts.Any(t => t.Sku.ToLower() == x.OfferId.ToLower()));
+                    if(confirmItems.Any() && distinctItems.Any())
+                    {
+
+                    }
+                    if (confirmItems.Any() && !distinctItems.Any())
+                    {
+                        Confirm(shipmentId, confirmItems.ToList());
+                    }
+                    if(!confirmItems.Any() && distinctItems.Any())
+                    {
+
+                    }
+
+                }
+            }
         }
 
         public Task<bool> Shipment(string shipmentId)
         {
             throw new NotImplementedException();
         }
-        //public async Task<List<OrderDetail>> GetOrders(OrderNewViewModel order)
-        //{
-        //    var orderDetails = new List<OrderDetail>();
-        //    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-        //    {
-        //        await connection.OpenAsync();
-        //        var orderItems = order.OrderNewDataViewModel.Shipments[0].Items;
-        //        var groupOrderItems = orderItems.GroupBy(x => x.OfferId).Select(x => new { OfferId = x.Key, Count = x.Count() });
-
-        //        foreach (var orderItem in groupOrderItems)
-        //        {
-        //            var product = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku", new { sku = orderItem.OfferId });
-        //            if (product.Count >= orderItem.Count)
-        //                orderDetails.AddRange(Convert(orderItems.Where(x => x.OfferId == orderItem.OfferId).ToList(), ReasonType.Empty));
-        //            else
-        //            {
-        //                var rejectItems = orderItem.Count - product.Count;
-        //                var confirmItems = orderItem.Count - rejectItems;
-        //                var confirmOrderDetails = orderItems.Where(x => x.OfferId == orderItem.OfferId).Take(confirmItems).ToList();
-        //                var rejectOrderDetails = orderItems.Where(x => x.OfferId == orderItem.OfferId).TakeLast(rejectItems).ToList();
-        //                orderDetails.AddRange(Convert(confirmOrderDetails.AsReadOnly(), ReasonType.Empty));
-        //                orderDetails.AddRange(Convert(rejectOrderDetails.AsReadOnly(), ReasonType.OUT_OF_STOCK));
-        //            }
-        //        }
-        //    }
-        //    return orderDetails;
-        //}
-
-        //private IReadOnlyList<OrderDetail> Convert(IReadOnlyList<OrderNewShipmentItem> orderNewShipmentItems, ReasonType reasonType)
-        //{
-        //    var orderDetails = new List<OrderDetail>();
-        //    foreach (var orderNewShipmentItem in orderNewShipmentItems)
-        //    {
-        //        orderDetails.Add(new()
-        //        {
-        //            OfferId = orderNewShipmentItem.OfferId,
-        //            GoodsId = orderNewShipmentItem.GoodsId,
-        //            ItemIndex = orderNewShipmentItem.ItemIndex,
-        //            ReasonType = reasonType
-        //        });
-        //    }
-        //    return orderDetails.AsReadOnly();
-        //}
         //public async Task<int> SaveOrder(string shipmentId, List<OrderDetail> orderDetails)
         //{
         //    int id = default;
@@ -127,15 +161,15 @@ namespace YapartMarket.React.Services
         //            var newOrderDetails = new List<OrderDetail>();
         //            if (confirmOrders.IsAny())
         //            {
-        //                var newConfirmOrders = orderDetails.Where(x=>x.ReasonType == ReasonType.Empty).Where(x => confirmOrders.All(t =>  t.OfferId != x.OfferId || (t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex))).ToList();
+        //                var newConfirmOrders = orderDetails.Where(x => x.ReasonType == ReasonType.Empty).Where(x => confirmOrders.All(t => t.OfferId != x.OfferId || t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex)).ToList();
         //                if (newConfirmOrders.IsAny())
         //                    newOrderDetails.AddRange(newConfirmOrders);
         //            }
         //            else
-        //                newOrderDetails.AddRange(orderDetails.Where(x=>x.ReasonType == ReasonType.Empty));
+        //                newOrderDetails.AddRange(orderDetails.Where(x => x.ReasonType == ReasonType.Empty));
         //            if (rejectOrders.IsAny())
         //            {
-        //                var newRejectOrders = orderDetails.Where(x => x.ReasonType == ReasonType.OUT_OF_STOCK).Where(x => rejectOrders.All(t => t.OfferId != x.OfferId || (t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex))).ToList();
+        //                var newRejectOrders = orderDetails.Where(x => x.ReasonType == ReasonType.OUT_OF_STOCK).Where(x => rejectOrders.All(t => t.OfferId != x.OfferId || t.OfferId == x.OfferId && t.ItemIndex != x.ItemIndex)).ToList();
         //                if (newRejectOrders.IsAny())
         //                    newOrderDetails.AddRange(newRejectOrders);
         //            }
@@ -149,7 +183,7 @@ namespace YapartMarket.React.Services
         //        }
         //        id = await connection.QuerySingleAsync<int>("insert into goods_order(shipmentId) values(@shipmentId);SELECT CAST(SCOPE_IDENTITY() as int)", new
         //        {
-        //            shipmentId = shipmentId
+        //            shipmentId
         //        });
         //        await CreateDetails(id, connection, orderDetails);
         //    }
@@ -162,7 +196,7 @@ namespace YapartMarket.React.Services
         //        await connection.ExecuteAsync("insert into goods_order_details(offerId, orderId, itemIndex, reasonType) values(@offerId, @orderId, @itemIndex, @reasonType)", new
         //        {
         //            offerId = orderDetail.OfferId,
-        //            orderId = orderId,
+        //            orderId,
         //            itemIndex = orderDetail.ItemIndex,
         //            reasonType = (int)orderDetail.ReasonType
         //        });
@@ -175,13 +209,37 @@ namespace YapartMarket.React.Services
         //    var isSent = await SendRejectRequest(order);
         //    return isSent;
         //}
-        //public async Task<bool> Confirm(string shipmentId, int orderId)
-        //{
-        //    var orderItems = await OrderItems(orderId, ReasonType.Empty);
-        //    var order = CreateOrderConfirm(shipmentId, orderItems);
-        //    var isSent = await SendConfirmRequest(order);
-        //    return isSent;
-        //}
+        public async Task Confirm(string shipmentId, IReadOnlyList<OrderItem> orderItems)
+        {
+            var items = new List<Item>();
+            foreach (var orderItem in orderItems)
+            {
+                items.Add(new()
+                {
+                    itemIndex = orderItem.IntemIndex,
+                    offerId = orderItem.OfferId
+                });
+            }
+            var confirm = new Confirm()
+            {
+                data = new()
+                {
+                    token = _configuration.GetSection("goodsTestToken").Value,
+                    shipments = new List<Shipment>()
+                    {
+                        new()
+                        {
+                            shipmentId = shipmentId,
+                            orderCode = shipmentId,
+                            items = items
+                        }
+                    }
+                },
+                meta = new()
+            };
+            var json = System.Text.Json.JsonSerializer.Serialize(confirm);
+            await SendConfirmRequest(json);
+        }
         //public async Task<bool> Package(string shipmentId, int orderId)
         //{
         //    var orderItems = await OrderItems(orderId, ReasonType.Empty);
@@ -195,7 +253,7 @@ namespace YapartMarket.React.Services
         //        packageDto.Items = new();
         //        foreach (var orderItemViewModel in orderShipmentsViewModel.Items)
         //        {
-        //            packageDto.Items.Add(new ()
+        //            packageDto.Items.Add(new()
         //            {
         //                ItemIndex = int.Parse(orderItemViewModel.ItemIndex),
         //                BoxIndex = orderItemViewModel.OrderBox.FirstOrDefault().BoxIndex,
@@ -215,7 +273,7 @@ namespace YapartMarket.React.Services
         //    {
         //        await connection.OpenAsync();
         //        var packingItems = await connection.QueryAsync<PackageItem>("select * from goods_packing_items where shipmentId = @shipmentId",
-        //            new { shipmentId = shipmentId });
+        //            new { shipmentId });
         //        orderShippingRoot.Meta = new();
 
         //        var orderShipping = new OrderShipment();
@@ -256,14 +314,14 @@ namespace YapartMarket.React.Services
         //    {
         //        await connection.OpenAsync();
         //        var order = await connection.QueryFirstOrDefaultAsync<GoodsOrder>(
-        //            "select * from goods_order where shipmentId = @shipmentId", new { shipmentId = shipmentId });
+        //            "select * from goods_order where shipmentId = @shipmentId", new { shipmentId });
         //        if (order != null)
         //        {
         //            var package = await connection.QueryFirstOrDefaultAsync<Package>(
         //                "select * from goods_packing where shipmentId = @shipmentId",
         //                new
         //                {
-        //                    shipmentId = shipmentId,
+        //                    shipmentId,
         //                });
         //            if (package == null)
         //            {
@@ -271,20 +329,20 @@ namespace YapartMarket.React.Services
         //                packingId = await connection.ExecuteAsync("insert into goods_packing(orderId, shipmentId) values(@orderId, @shipmentId);SELECT CAST(SCOPE_IDENTITY() as int)", new
         //                {
         //                    orderId = order.Id,
-        //                    shipmentId = shipmentId
+        //                    shipmentId
         //                });
         //                foreach (var packageDtoItem in packageDto.Items)
         //                {
         //                    await connection.ExecuteAsync("insert into goods_packing_items(itemIndex, boxIndex, boxCode, digitalMarks, shipmentId, packingId) " +
         //                                                  "values(@itemIndex, @boxIndex, @boxCode, @digitalMarks, @shipmentId, @packingId)", new
-        //                    {
-        //                        itemIndex = packageDtoItem.ItemIndex,
-        //                        boxIndex = packageDtoItem.BoxIndex,
-        //                        boxCode = packageDtoItem.BoxCode,
-        //                        shipmentId = shipmentId,
-        //                        digitalMarks = packageDtoItem.DigitalMarks,
-        //                        packingId = packingId
-        //                    });
+        //                                                  {
+        //                                                      itemIndex = packageDtoItem.ItemIndex,
+        //                                                      boxIndex = packageDtoItem.BoxIndex,
+        //                                                      boxCode = packageDtoItem.BoxCode,
+        //                                                      shipmentId,
+        //                                                      digitalMarks = packageDtoItem.DigitalMarks,
+        //                                                      packingId
+        //                                                  });
         //                }
 
         //            }
@@ -294,7 +352,7 @@ namespace YapartMarket.React.Services
         //                    "select * from goods_packing_items where shipmentId = @shipmentId",
         //                    new
         //                    {
-        //                        shipmentId = shipmentId,
+        //                        shipmentId,
         //                    });
         //                var newPackageItems = packageDto.Items.Where(x => packages.Any(t => t.ShipmentId != shipmentId));
         //                var updatePackageItems = packageDto.Items.Where(x =>
@@ -305,13 +363,13 @@ namespace YapartMarket.React.Services
         //                    {
         //                        await connection.ExecuteAsync("insert into goods_packing_items(itemIndex, boxIndex, boxCode, digitalMarks, shipmentId, packingId) " +
         //                                                      "values(@itemIndex, @boxIndex, @boxCode, @digitalMarks, @shipmentId, @packingId)", new
-        //                        {
-        //                            item_index = newPackageItem.ItemIndex,
-        //                            box_index = newPackageItem.BoxIndex,
-        //                            box_code = newPackageItem.BoxCode,
-        //                            shipment_id = shipmentId,
-        //                            digital_marks = newPackageItem.DigitalMarks
-        //                        });
+        //                                                      {
+        //                                                          item_index = newPackageItem.ItemIndex,
+        //                                                          box_index = newPackageItem.BoxIndex,
+        //                                                          box_code = newPackageItem.BoxCode,
+        //                                                          shipment_id = shipmentId,
+        //                                                          digital_marks = newPackageItem.DigitalMarks
+        //                                                      });
         //                    }
         //                }
         //            }
@@ -324,7 +382,7 @@ namespace YapartMarket.React.Services
         //    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
         //    {
         //        await connection.OpenAsync();
-        //        goodsOrderItems = (List<GoodsOrderItem>)await connection.QueryAsync<GoodsOrderItem>("select * from goods_order_details where orderId = @orderId and reasonType = @reasonType", new { orderId = orderId, reasonType = (int)reasonType });
+        //        goodsOrderItems = (List<GoodsOrderItem>)await connection.QueryAsync<GoodsOrderItem>("select * from goods_order_details where orderId = @orderId and reasonType = @reasonType", new { orderId, reasonType = (int)reasonType });
         //    }
         //    return goodsOrderItems;
         //}
@@ -399,6 +457,11 @@ namespace YapartMarket.React.Services
         //    };
         //    return order;
         //}
+
+        public Task<bool> Confirm(string shipmentId, int orderId)
+        {
+            throw new NotImplementedException();
+        }
         //private OrderViewModel CreateOrderReject(string shipmentId, List<GoodsOrderItem> orderItems)
         //{
         //    var orderItemViewModels = new List<OrderItemViewModel>();
@@ -431,22 +494,18 @@ namespace YapartMarket.React.Services
         //    };
         //    return order;
         //}
-        //private async Task<SuccessfulResponse> SendRequest(string url, string body)
-        //{
-        //    var content = new StringContent(body, Encoding.UTF8, "application/json");
-        //    var result = await _httpClient.PostAsync(url, content);
-        //    string resultContent = await result.Content.ReadAsStringAsync();
-        //    return JsonConvert.DeserializeObject<SuccessfulResponse>(resultContent);
-        //}
-        //private async Task<bool> SendConfirmRequest(OrderViewModel order)
-        //{
-        //    var body = JsonConvert.SerializeObject(order);
-        //    var url = "/api/market/v1/orderService/order/confirm";
-        //    var response = await SendRequest(url, body);
-        //    if (response.Success == 1)
-        //        return true;
-        //    return false;
-        //}
+        private async Task<SuccessfulResponse> SendRequest(string url, string body)
+        {
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+            var result = await _httpClient.PostAsync(url, content);
+            string resultContent = await result.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<SuccessfulResponse>(resultContent);
+        }
+        private async Task SendConfirmRequest(string json)
+        {
+            var url = "/api/market/v1/orderService/order/confirm";
+            var response = await SendRequest(url, json);
+        }
         //private async Task<bool> SendShippingRequest(OrderShippingRoot shipping)
         //{
         //    var body = JsonConvert.SerializeObject(shipping);
@@ -474,5 +533,34 @@ namespace YapartMarket.React.Services
         //        return true;
         //    return false;
         //}
+    }
+
+    public class Data
+    {
+        public string token { get; set; }
+        public List<Shipment> shipments { get; set; }
+    }
+
+    public class Item
+    {
+        public int itemIndex { get; set; }
+        public string offerId { get; set; }
+    }
+
+    public class Meta
+    {
+    }
+
+    public class Confirm
+    {
+        public Data data { get; set; }
+        public Meta meta { get; set; }
+    }
+
+    public class Shipment
+    {
+        public string shipmentId { get; set; }
+        public string orderCode { get; set; }
+        public List<Item> items { get; set; }
     }
 }

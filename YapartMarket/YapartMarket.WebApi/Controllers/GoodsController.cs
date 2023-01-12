@@ -1,28 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.Extensions;
-using YapartMarket.React.Services.Interfaces;
-using YapartMarket.React.ViewModels.Goods;
+using YapartMarket.WebApi.Services.Interfaces;
+using YapartMarket.WebApi.ViewModel.Goods;
 
-namespace YapartMarket.React.Controllers
+namespace YapartMarket.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class GoodsController : Controller
+    public sealed class GoodsController : Controller
     {
-        private readonly IConfiguration _configuration;
-        private readonly IGoodsService _goodsService;
+        private IConfiguration _configuration;
+        private IGoodsService _goodsService;
 
         public GoodsController(IConfiguration configuration, IGoodsService goodsService)
         {
             _configuration = configuration;
             _goodsService = goodsService;
         }
-
         [HttpPost]
         [Route("order/new")]
         [Produces("application/json")]
@@ -31,8 +26,8 @@ namespace YapartMarket.React.Controllers
             if (order != null)
             {
                 var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
-                var orders = await _goodsService.GetOrders(order);
-                //var orderId = await _goodsService.SaveOrder(shipmentId, orders);
+                var orders = await _goodsService.GetOrderAsync(order);
+                await _goodsService.SaveOrderAsync(order);
                 //if (orderId != default)
                 //{
                 //    if (orders.IsAny())

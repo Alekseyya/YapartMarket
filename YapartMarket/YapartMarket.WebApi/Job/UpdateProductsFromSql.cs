@@ -3,17 +3,17 @@ using YapartMarket.Core.BL;
 
 namespace YapartMarket.WebApi.Job
 {
-    public sealed class UpdateInventoryJon : IJob
+    public sealed class UpdateProductsFromSql : IJob
     {
         private readonly IAliExpressProductService _productService;
 
-        public UpdateInventoryJon(IAliExpressProductService productService)
+        public UpdateProductsFromSql(IAliExpressProductService productService)
         {
             _productService = productService;
         }
         public async Task Execute(IJobExecutionContext context)
         {
-            await _productService.ProcessUpdateStocks();
+            await _productService.UpdateProductFromSql();
         }
     }
 }

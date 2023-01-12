@@ -11,6 +11,7 @@ namespace YapartMarket.Core.BL
     public interface IAliExpressProductService
     {
         Task<UpdateStocksResponse> ProcessUpdateStocks();
+        Task UpdateProductFromSql();
         Task ProcessDataFromAliExpress();
         Task ProcessUpdateProductsSku();
         Task UpdateInventoryProducts(IEnumerable<Product> products);

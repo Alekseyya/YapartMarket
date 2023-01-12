@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace YapartMarket.React.ViewModels.Goods
+namespace YapartMarket.WebApi.ViewModel.Goods
 {
     public class OrderNewShipmentItem
     {
@@ -10,6 +10,10 @@ namespace YapartMarket.React.ViewModels.Goods
         public string OfferId { get; set; }
         [JsonPropertyName("itemIndex")]
         public string ItemIndex { get; set; }
+        [JsonPropertyName("itemName")]
+        public string ItemName { get; set; }
+        [JsonPropertyName("finalPrice")]
+        public int FinalPrice { get; set; }
         [JsonPropertyName("price")]
         public int Price { get; set; }
         [JsonPropertyName("quantity")]

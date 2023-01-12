@@ -8,11 +8,11 @@ namespace YapartMarket.React.Services.Interfaces
 {
     public interface IGoodsService
     {
-        Task<List<OrderDetailDto>> GetOrders(OrderNewViewModel order);
+        Task<List<OrderItem>> GetOrders(OrderNewViewModel order);
         Task<bool> Confirm(string shipmentId, int orderId);
         Task<bool> Shipment(string shipmentId);
         Task<bool> Reject(string shipmentId, int orderId);
         Task<bool> Package(string shipmentId, int orderId);
-        Task<int> SaveOrder(string shipmentId, List<OrderDetailDto> orderDetails);
+        Task<int> SaveOrder(string shipmentId, List<OrderItem> orderDetails);
     }
 }
