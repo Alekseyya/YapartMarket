@@ -1,15 +1,14 @@
 ﻿using YapartMarket.Core.DTO.Goods;
 using YapartMarket.WebApi.ViewModel.Goods;
+using YapartMarket.WebApi.ViewModel.Goods.Cancel;
 
 namespace YapartMarket.WebApi.Services.Interfaces
 {
     public interface IGoodsService
     {
+        Task CancelAsync(Cancel cancelOrder);
         Task<Order?> GetOrderAsync(OrderNewViewModel orderViewModel);
-        Task<bool> Confirm(string shipmentId, int orderId);
-        Task<bool> Shipment(string shipmentId);
-        Task<bool> Reject(string shipmentId, int orderId);
-        Task<bool> Package(string shipmentId, int orderId);
+        Task ProcessConfirmOrRejectAsync(string? shipmentId);
         Task SaveOrderAsync(OrderNewViewModel orderViewModel);
     }
 }

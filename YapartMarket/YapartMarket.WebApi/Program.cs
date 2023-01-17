@@ -46,6 +46,7 @@ builder.Services.Configure<AliExpressOptions>(builder.Configuration.GetSection(A
 builder.Services.AddTransient<IGoodsService, GoodsService>();
 
 builder.Services.AddSingleton(typeof(Deserializer<IReadOnlyList<AliExpressOrder>>), s => new OrderDeserializer());
+builder.Services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.goodsteam.tech"));
 
 builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
 
