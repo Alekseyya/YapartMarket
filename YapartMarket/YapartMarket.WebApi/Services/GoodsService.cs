@@ -21,19 +21,15 @@ namespace YapartMarket.WebApi.Services
             _configuration = configuration;
             _httpClient = factory.CreateClient("goodsClient");
         }
-
         public async Task<Order?> GetOrderAsync(OrderNewViewModel orderViewModel)
         {
-            var orderDetails = new List<OrderItem>();
             using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
             {
                 await connection.OpenAsync();
                 var shipmentId = orderViewModel.OrderNewDataViewModel.Shipments[0].ShipmentId;
                 var sql = @"select * from public.order o inner join public.orderItem od on o.Id = od.orderId where o.shipmentId = @shipmentId";
-                var ordeer = await connection.QueryAsync<Order>("select * from public.order");
-                var orderDetails1 = await connection.QueryAsync<OrderItem>("select * from public.orderitem");
                 var orderDictionary = new Dictionary<Guid, Order>();
-                var order = await connection.QueryAsync<Order, OrderItem, Order>(sql, (order, orderDetail) =>
+                var orderResult = await connection.QueryAsync<Order, OrderItem, Order>(sql, (order, orderDetail) =>
                 {
                     if (!orderDictionary.TryGetValue(order.Id, out Order docEntry))
                     {
@@ -48,10 +44,9 @@ namespace YapartMarket.WebApi.Services
                     return docEntry;
                 }, splitOn: "orderid", param: new { shipmentId });
 
-                return order.FirstOrDefault();
+                return orderResult.FirstOrDefault();
             }
         }
-
         public async Task PackageAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
             var items = new List<ViewModel.Goods.Packing.Item>();
@@ -91,7 +86,6 @@ namespace YapartMarket.WebApi.Services
             var json = System.Text.Json.JsonSerializer.Serialize(package);
             await SendPackageRequestAsync(json);
         }
-
         public async Task RejectAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
             var items = new List<ViewModel.Goods.Reject.Item>();
@@ -139,8 +133,9 @@ namespace YapartMarket.WebApi.Services
                     {
                         var cancelDateTime = DateTime.Now;
                         var orderId = order.Id;
-                        var updateSql = @"update ""orderItem"" set ""cancel"" = true where ""orderId"" = @orderId and ""itemIndex"" = @itemIndex and ""goodsId"" = @goodsId";
-                        var canceledOrderTmp = canceledOrder.items.Select(x=> new { itemIndex = x.itemIndex, goodsId = x.goodsId });
+                        var updateSql = @"update ""orderItem"" set ""cancel"" = true where ""orderId"" = @orderId and ""itemIndex"" = @itemIndex and ""goodsId"" = @goodsId
+and ""cancelDateTime"" = @cancelDateTime;";
+                        var canceledOrderTmp = canceledOrder.items.Select(x=> new { itemIndex = x.itemIndex, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
                         foreach (var cancelOrderTmp in canceledOrderTmp)
                         {
                             var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from ""orderItem"" where ""itemIndex"" = @itemIndex and ""goodsId"" = @goodsId", cancelOrderTmp);
@@ -228,7 +223,6 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 }
             }
         }
-
         public async Task ShipmentAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
             var date = DateTime.UtcNow.AddDays(1);
@@ -298,7 +292,6 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             var json = System.Text.Json.JsonSerializer.Serialize(confirm);
             await SendConfirmRequestAsync(json);
         }
-        
         public Task<bool> Confirm(string shipmentId, int orderId)
         {
             throw new NotImplementedException();

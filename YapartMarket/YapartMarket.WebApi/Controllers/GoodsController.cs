@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using YapartMarket.Core.DateStructures;
-using YapartMarket.Core.Extensions;
 using YapartMarket.WebApi.Services.Interfaces;
 using YapartMarket.WebApi.ViewModel.Goods;
 using YapartMarket.WebApi.ViewModel.Goods.Cancel;
@@ -11,12 +9,10 @@ namespace YapartMarket.WebApi.Controllers
     [Route("api/[controller]")]
     public sealed class GoodsController : Controller
     {
-        private IConfiguration _configuration;
         private IGoodsService _goodsService;
 
-        public GoodsController(IConfiguration configuration, IGoodsService goodsService)
+        public GoodsController(IGoodsService goodsService)
         {
-            _configuration = configuration;
             _goodsService = goodsService;
         }
         [HttpPost]
@@ -27,7 +23,6 @@ namespace YapartMarket.WebApi.Controllers
             if (order != null)
             {
                 var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
-                var orders = await _goodsService.GetOrderAsync(order);
                 await _goodsService.SaveOrderAsync(order);
                 await _goodsService.ProcessConfirmOrRejectAsync(shipmentId);
                 return Ok(new SuccessfulResponse()

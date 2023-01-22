@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using Dapper.Contrib.Extensions;
@@ -218,26 +219,39 @@ namespace YapartMarket.BL.Implementation
                 await connection.OpenAsync();
                 using (var transaction = connection.BeginTransaction())
                 {
-                    foreach (var product in productGoods)
+                    await connection.ExecuteAsync(@"truncate table ""products""");
+                    var i = 0;
+                    var take = 900;
+                    while (true)
                     {
-                        var sql = @"insert into ""products"" (""id"", ""sku"", ""amount"", ""updateAt"", ""amountExpress"", ""takedDateTime"", ""takedExpressDateTime"", ""updateExpressAt"") 
-values(@id, @sku, @amount, @updateAt, @amountExpress, @takedDateTime, @takedExpressDateTime, @updateExpressAt)";
-                        await connection.ExecuteAsync(sql, new 
-                        { 
-                            id = product.Id,
-                            sku = product.Sku,
-                            amount = product.Amount,
-                            updateAt = product.UpdateAt,
-                            amountExpress = product.AmountExpress,
-                            takedDateTime = product.TakedDateTime,
-                            takedExpressDateTime = product.TakedExpressDateTime,
-                            updateExpressAt = product.UpdatedExpressAt
-                        });
-
+                        var takeGoods = productGoods.Skip(i).Take(take);
+                        
+                        if (takeGoods.Any())
+                        {
+                            var insertQuery = GenerateInsertQuery(takeGoods.ToList());
+                            await connection.ExecuteAsync(insertQuery);
+                            i += take;
+                        }
+                        else
+                            break;
                     }
                     transaction.Commit();
                 }
             }
+        }
+
+        public string GenerateInsertQuery(IReadOnlyList<Core.DTO.Goods.Product> products)
+        {
+            var insertQuery = new StringBuilder(@"INSERT INTO ""products""");
+            insertQuery.Append(@"(""id"", ""sku"", ""amount"", ""updateAt"")");
+            insertQuery.Append(" VALUES ");
+            products.ToList().ForEach(x =>
+            {
+               insertQuery.Append($"('{Guid.NewGuid()}', '{x.Sku}', {x.Amount}, '{x.UpdateAt.Value.ToString("yyy-MM-dd HH:mm:ss.fff")}'),");
+            });
+            //Удалить последнюю запятую
+            insertQuery.Remove(insertQuery.Length - 1, 1).Append(";");
+            return insertQuery.ToString();
         }
 
         protected static DateTime? GetDateTime(string? value)
