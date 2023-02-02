@@ -5,7 +5,7 @@ using YapartMarket.WebApi.Model.AliExpress;
 
 namespace YapartMarket.WebApi.Mapper.AliExpress
 {
-    internal sealed class OrderProfile : Profile
+    public sealed class OrderProfile : Profile
     {
         public OrderProfile()
         {

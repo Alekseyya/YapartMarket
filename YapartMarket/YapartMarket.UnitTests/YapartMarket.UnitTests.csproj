@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
@@ -22,14 +24,15 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\YapartMarket.BL\YapartMarket.BL.csproj" />
-    <ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
-    <ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
-    <ProjectReference Include="..\YapartMarket.Parser\YapartMarket.Parser.csproj" />
-    <ProjectReference Include="..\YapartMarket.React\YapartMarket.React.csproj" />
-    <ProjectReference Include="..\YapartMarket.WebApi\YapartMarket.WebApi.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="YapartMarket.WebApi" />
+		<ProjectReference Include="..\YapartMarket.BL\YapartMarket.BL.csproj" />
+		<ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
+		<ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
+		<ProjectReference Include="..\YapartMarket.Parser\YapartMarket.Parser.csproj" />
+		<ProjectReference Include="..\YapartMarket.React\YapartMarket.React.csproj" />
+		<ProjectReference Include="..\YapartMarket.WebApi\YapartMarket.WebApi.csproj" />
+	</ItemGroup>
 
   <ItemGroup>
     <Reference Include="topsdk-net-core">

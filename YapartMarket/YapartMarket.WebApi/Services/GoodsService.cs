@@ -152,7 +152,7 @@ and ""cancelDateTime"" = @cancelDateTime;";
             using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
             {
                 await connection.OpenAsync();
-                using (var transaction = connection.BeginTransaction())
+                using (var transaction = await connection.BeginTransactionAsync())
                 {
 
                     var shipment = orderViewModel.OrderNewDataViewModel.Shipments.First();
@@ -199,8 +199,8 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 {
                     var orderId = order.Id;
                     var orderItems = await connection.QueryAsync<OrderItem>(@"select * from ""orderItem"" where ""orderId"" = @orderId", new { orderId });
-                    var items = orderItems.Select(x => x.OfferId).ToList();
-                    var confirmProducts = await connection.QueryAsync<Product>(@"select * from ""products"" where ""sku"" IN @sku", new { sku = items });
+                    var items = orderItems!.Select(x => x.OfferId).ToList();
+                    var confirmProducts = await connection.QueryAsync<Product>(@"select * from ""products"" where ""sku"" = ANY(@skus)", new { skus = items });
                     var confirmItems = orderItems.Where(x => confirmProducts.Any(t => t.Sku.ToLower() == x.OfferId.ToLower()));
                     var rejectItems = orderItems.Where(x => !confirmProducts.Any(t => t.Sku.ToLower() == x.OfferId.ToLower()));
                     if(confirmItems.Any() && rejectItems.Any())

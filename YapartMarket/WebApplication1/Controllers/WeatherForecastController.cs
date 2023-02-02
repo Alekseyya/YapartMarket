@@ -1,12 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using YapartMarket.WebApi.Services.Interfaces;
-using YapartMarket.WebApi.ViewModel.Goods;
 
-namespace YapartMarket.WebApi.Controllers
+namespace WebApplication1.Controllers
 {
-    /// <summary>
-    /// Wheather
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -16,23 +11,13 @@ namespace YapartMarket.WebApi.Controllers
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     };
 
-        private IGoodsService _goodsService;
         private readonly ILogger<WeatherForecastController> _logger;
 
-        /// <summary>
-        /// as
-        /// </summary>
-        /// <param name="goodsService"></param>
-        /// <param name="logger"></param>
-        public WeatherForecastController(IGoodsService goodsService, ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
             _logger = logger;
-            _goodsService = goodsService;
         }
-        /// <summary>
-        /// GetWeatherForecast
-        /// </summary>
-        /// <returns></returns>
+
         [HttpGet]
         [Route("GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
@@ -44,6 +29,13 @@ namespace YapartMarket.WebApi.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        [HttpPost]
+        [Route("order/PostWeatherForecast")]
+        public string[] Post()
+        {
+            return Summaries;
         }
     }
 }

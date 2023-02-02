@@ -5,33 +5,55 @@ using YapartMarket.WebApi.ViewModel.Goods.Cancel;
 
 namespace YapartMarket.WebApi.Controllers
 {
+    /// <summary>
+    /// Goods
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public sealed class GoodsController : Controller
+    [Produces("application/json")]
+    public sealed class GoodsController : ControllerBase
     {
         private IGoodsService _goodsService;
 
+        /// <inheritdoc />
         public GoodsController(IGoodsService goodsService)
         {
             _goodsService = goodsService;
         }
+        /// <summary>
+        /// Add new order
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("order/new")]
         [Produces("application/json")]
-        public async Task<IActionResult> NewOrder([FromBody] OrderNewViewModel order)
+        public async Task<IActionResult> New([FromBody] OrderNewViewModel order)
         {
-            if (order != null)
+            try
             {
-                var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
-                await _goodsService.SaveOrderAsync(order);
-                await _goodsService.ProcessConfirmOrRejectAsync(shipmentId);
-                return Ok(new SuccessfulResponse()
+                if (order != null)
                 {
-                    Success = 1
-                });
+                    var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
+                    await _goodsService.SaveOrderAsync(order);
+                    await _goodsService.ProcessConfirmOrRejectAsync(shipmentId);
+                    return Ok(new SuccessfulResponse()
+                    {
+                        Success = 1
+                    });
+                }
+                return BadRequest("1111");
             }
-            return BadRequest();
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
+        /// <summary>
+        /// Cancel order
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("order/cancel")]
         [Produces("application/json")]

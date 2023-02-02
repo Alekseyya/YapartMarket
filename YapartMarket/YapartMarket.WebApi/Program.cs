@@ -15,6 +15,8 @@ using Quartz;
 using Dapper;
 using YapartMarket.Core.DTO.Goods;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,20 +97,8 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-    });
-}
-
+app.UseSwagger();
+app.UseSwaggerUI(option => option.SwaggerEndpoint("/swagger/v1/swagger.json", "YapartStore v1"));
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
