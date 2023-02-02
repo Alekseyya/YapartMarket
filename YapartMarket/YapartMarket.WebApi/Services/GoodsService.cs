@@ -8,6 +8,7 @@ using YapartMarket.Core.Extensions;
 using YapartMarket.WebApi.Services.Interfaces;
 using YapartMarket.WebApi.ViewModel.Goods;
 using YapartMarket.WebApi.ViewModel.Goods.Cancel;
+using YapartMarket.WebApi.ViewModel.Goods.Confirm;
 
 namespace YapartMarket.WebApi.Services
 {
@@ -189,6 +190,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             }
         }
 
+        /// <inheritdoc />
         public async Task ProcessConfirmOrRejectAsync(string? shipmentId)
         {
             using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
@@ -296,12 +298,12 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
         {
             throw new NotImplementedException();
         }
-        private async Task<SuccessfulResponse> SendRequestAsync(string url, string body)
+        private async Task<ConfirmResponse> SendRequestAsync(string url, string body)
         {
             var content = new StringContent(body, Encoding.UTF8, "application/json");
             var result = await _httpClient.PostAsync(url, content);
             string resultContent = await result.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<SuccessfulResponse>(resultContent);
+            return JsonConvert.DeserializeObject<ConfirmResponse>(resultContent);
         }
         private async Task SendConfirmRequestAsync(string json)
         {

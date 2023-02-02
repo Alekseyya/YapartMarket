@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace YapartMarket.React.ViewModels.Goods;
+namespace YapartMarket.WebApi.ViewModel.Goods;
 
-public class SuccessfullData
+public class Data
 {
     [JsonPropertyName("result")]
     public int Result { get; set; }

@@ -65,33 +65,33 @@ builder.Services.AddQuartz(q =>
 
 });
 //Todo Add correct
-SqlMapper.SetTypeMap(
-    typeof(Order),
-    new CustomPropertyTypeMap(
-        typeof(Order),
-        (type, columnName) =>
-            type.GetProperties().FirstOrDefault(prop =>
-                prop.GetCustomAttributes(false)
-                    .OfType<ColumnAttribute>()
-                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
-SqlMapper.SetTypeMap(
-    typeof(OrderItem),
-    new CustomPropertyTypeMap(
-        typeof(OrderItem),
-        (type, columnName) =>
-            type.GetProperties().FirstOrDefault(prop =>
-                prop.GetCustomAttributes(false)
-                    .OfType<ColumnAttribute>()
-                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
-SqlMapper.SetTypeMap(
-    typeof(YapartMarket.Core.DTO.Goods.Product),
-    new CustomPropertyTypeMap(
-        typeof(OrderItem),
-        (type, columnName) =>
-            type.GetProperties().FirstOrDefault(prop =>
-                prop.GetCustomAttributes(false)
-                    .OfType<ColumnAttribute>()
-                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
+//SqlMapper.SetTypeMap(
+//    typeof(Order),
+//    new CustomPropertyTypeMap(
+//        typeof(Order),
+//        (type, columnName) =>
+//            type.GetProperties().FirstOrDefault(prop =>
+//                prop.GetCustomAttributes(false)
+//                    .OfType<ColumnAttribute>()
+//                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
+//SqlMapper.SetTypeMap(
+//    typeof(OrderItem),
+//    new CustomPropertyTypeMap(
+//        typeof(OrderItem),
+//        (type, columnName) =>
+//            type.GetProperties().FirstOrDefault(prop =>
+//                prop.GetCustomAttributes(false)
+//                    .OfType<ColumnAttribute>()
+//                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
+//SqlMapper.SetTypeMap(
+//    typeof(YapartMarket.Core.DTO.Goods.Product),
+//    new CustomPropertyTypeMap(
+//        typeof(OrderItem),
+//        (type, columnName) =>
+//            type.GetProperties().FirstOrDefault(prop =>
+//                prop.GetCustomAttributes(false)
+//                    .OfType<ColumnAttribute>()
+//                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
 
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 

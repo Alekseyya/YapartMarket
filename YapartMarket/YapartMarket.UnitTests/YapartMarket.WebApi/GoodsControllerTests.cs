@@ -33,9 +33,9 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
                     {
                         ""itemIndex"": ""1"",
                         ""goodsId"": ""100022889385"",
-                        ""offerId"": ""114211"",
+                        ""offerId"": ""85030-0"",
                         ""itemId"": ""46465851903"",
-                        ""itemName"": ""Коврик в багажник автомобиля для Infiniti Norplast (NPA00-T33-730)"",
+                        ""itemName"": ""Концентрат для стеклоочистителей 1:10 // 1000 мл - лимон"",
                         ""price"": 1098,
                         ""finalPrice"": 1098,
                         ""discounts"": [],
@@ -96,7 +96,7 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
             var responseMessage = await client.SendAsync(httpRequestMessage).ConfigureAwait(true);
             //Assert
             var message = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
-            Assert.Equal("", message);
+            Assert.True(message.Contains("success"));
             Assert.Equal(responseMessage.StatusCode, HttpStatusCode.OK);
         }
         class MyWebApplication : WebApplicationFactory<Program>
