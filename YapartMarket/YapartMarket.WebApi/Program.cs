@@ -7,11 +7,9 @@ using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.Core.Config;
 using YapartMarket.Core;
-using YapartMarket.WebApi.Job;
 using Microsoft.EntityFrameworkCore;
 using YapartMarket.WebApi.Services;
 using YapartMarket.WebApi.Services.Interfaces;
-using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 
