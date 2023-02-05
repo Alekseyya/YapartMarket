@@ -1,15 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Data.OleDb;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using Dapper;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-using YapartMarket.Core.AccessModels;
 using YapartMarket.Data;
 using YapartMarket.Data.Implementation.Access;
 using YapartMarket.Parser.Data.Models;

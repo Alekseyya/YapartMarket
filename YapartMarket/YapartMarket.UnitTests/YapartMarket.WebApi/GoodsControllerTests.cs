@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
-using Microsoft.Extensions.Hosting;
 
 namespace YapartMarket.UnitTests.YapartMarket.WebApi
 {
@@ -98,14 +97,6 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
             var message = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
             Assert.Equal(responseMessage.StatusCode, HttpStatusCode.OK);
             Assert.True(message.Contains("success"));
-        }
-        class MyWebApplication : WebApplicationFactory<Program>
-        {
-            protected override IHost CreateHost(IHostBuilder builder)
-            {
-                // shared extra set up goes here
-                return base.CreateHost(builder);
-            }
         }
     }
 }

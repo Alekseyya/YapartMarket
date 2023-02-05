@@ -1,8 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-
-namespace YapartMarket.Data
+﻿namespace YapartMarket.Data
 {
     //public static class ModelBuilderExtensions
     //{

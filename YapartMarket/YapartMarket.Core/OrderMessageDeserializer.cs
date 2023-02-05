@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System;
-using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using System.Collections.Generic;
 using YapartMarket.Core.Extensions;
 using System.Globalization;

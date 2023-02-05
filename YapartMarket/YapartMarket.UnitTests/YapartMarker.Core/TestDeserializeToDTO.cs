@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -7,7 +6,6 @@ using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.DTO.AliExpress;
 using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
-using YapartMarket.Core.Models;
 
 namespace YapartMarket.UnitTests.YapartMarker.Core
 {

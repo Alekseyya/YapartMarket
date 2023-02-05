@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Text.Json.Serialization;
-using YapartMarket.WebApi.ViewModel.Goods;
 
 namespace YapartMarket.WebApi.ViewModel.Goods
 {

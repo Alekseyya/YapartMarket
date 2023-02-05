@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
-using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;

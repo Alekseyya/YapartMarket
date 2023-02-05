@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using YapartMarket.Core.BL;
-using YapartMarket.Core.Models;
 using YapartMarket.MainApp.ViewModels;
 
 namespace YapartMarket.MainApp.Controllers

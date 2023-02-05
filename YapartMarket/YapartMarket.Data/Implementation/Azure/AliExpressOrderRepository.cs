@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 

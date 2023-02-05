@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using YapartMarket.Core.DTO.AliExpress;
+﻿using System.Threading.Tasks;
 
 namespace YapartMarket.Core.BL
 {

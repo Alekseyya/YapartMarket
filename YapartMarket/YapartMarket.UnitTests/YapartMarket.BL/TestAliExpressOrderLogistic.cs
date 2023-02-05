@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -14,7 +11,6 @@ using YapartMarket.BL.Implementation;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Mapper;
-using YapartMarket.Data.Implementation.Azure;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL
 {

@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-using YapartMarket.BL.Implementation;
 using YapartMarket.BL.Implementation.AliExpress;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;

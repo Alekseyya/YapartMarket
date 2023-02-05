@@ -9,19 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
 using Top.Api.Util;
 using Xunit;
 using Xunit.Abstractions;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.React.ViewModels.Goods;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL.AliExpress
 {

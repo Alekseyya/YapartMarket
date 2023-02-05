@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace YapartMarket.Data
+﻿namespace YapartMarket.Data
 {
     public class AppSettings
     {

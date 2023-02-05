@@ -1,8 +1,5 @@
-﻿using System;
-using System.Reflection;
-using AutoMapper;
+﻿using AutoMapper;
 using YapartMarket.Core.DateStructures;
-using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.React.ViewModels;
 

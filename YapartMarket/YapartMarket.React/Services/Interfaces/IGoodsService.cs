@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using YapartMarket.Core.DTO.Goods;
 using YapartMarket.React.ViewModels.Goods;
-using YapartMarket.React.ViewModels.Goods.Shipment;
 
 namespace YapartMarket.React.Services.Interfaces
 {

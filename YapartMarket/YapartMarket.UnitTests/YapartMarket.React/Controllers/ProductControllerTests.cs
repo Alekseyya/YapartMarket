@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,7 +13,6 @@ using Xunit;
 using Xunit.Abstractions;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO.Yandex;
-using YapartMarket.Core.Models.Azure;
 using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.React.Controllers;
 

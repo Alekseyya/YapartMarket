@@ -9,10 +9,7 @@ using Top.Api;
 using Top.Api.Request;
 using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;
-using YapartMarket.Core.DTO;
-using YapartMarket.Core.DTO.AliExpress;
 using YapartMarket.Core.DTO.AliExpress.FullOrderInfo;
-using YapartMarket.Core.Extensions;
 
 namespace YapartMarket.BL.Implementation.AliExpress
 {

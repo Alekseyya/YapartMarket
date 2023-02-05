@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
-using YapartMarket.BL.Implementation;
 using YapartMarket.BL.Implementation.AliExpress;
 using YapartMarket.Core.Config;
 

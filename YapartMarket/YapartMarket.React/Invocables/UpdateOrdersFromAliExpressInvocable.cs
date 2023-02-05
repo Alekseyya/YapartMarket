@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,11 +7,8 @@ using Coravel.Invocable;
 using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.BL.AliExpress;
-using YapartMarket.Core.DTO;
-using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Exceptions;
 using YapartMarket.Core.Extensions;
-using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.React.Invocables
 {

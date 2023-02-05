@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace YapartMarket.React.ViewModels
 {

@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using YapartMarket.Core.DateStructures;
-using YapartMarket.Core.Extensions;
 using YapartMarket.React.Services.Interfaces;
 using YapartMarket.React.ViewModels.Goods;
 

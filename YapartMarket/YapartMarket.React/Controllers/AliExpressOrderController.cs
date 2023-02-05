@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -8,12 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.BL.AliExpress;
-using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.React.Invocables;
 using YapartMarket.React.ViewModels;
-using OrderDto = YapartMarket.Core.DTO.AliExpress.OrderGetResponse.OrderDto;
 
 namespace YapartMarket.React.Controllers
 {

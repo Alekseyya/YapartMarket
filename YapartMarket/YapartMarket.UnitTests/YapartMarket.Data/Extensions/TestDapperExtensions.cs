@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Xunit;
+﻿using Xunit;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 

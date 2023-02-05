@@ -2,33 +2,22 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Moq.Protected;
-using Top.Api;
-using Top.Api.Request;
-using Top.Api.Response;
 using Xunit;
-using YapartMarket.BL;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.Core.DateStructures;
-using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Mapper;
 using YapartMarket.Core.Models.Azure;
-using YapartMarket.Core.Models.Raw;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL
 {

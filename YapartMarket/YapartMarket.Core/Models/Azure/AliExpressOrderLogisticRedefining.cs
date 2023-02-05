@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Dapper.Contrib.Extensions;
-using Newtonsoft.Json;
 
 namespace YapartMarket.Core.Models.Azure
 {

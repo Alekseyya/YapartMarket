@@ -1,22 +1,11 @@
-﻿using Dapper;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using YapartMarket.BL;
-using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO.Goods;
-using YapartMarket.Core.Extensions;
-using YapartMarket.Core.Models.Azure;
-using YapartMarket.Core.Models.Azure.Goods;
 using YapartMarket.React.Services.Interfaces;
 using YapartMarket.React.ViewModels.Goods;
-using YapartMarket.React.ViewModels.Goods.Shipment;
 
 namespace YapartMarket.React.Services
 {

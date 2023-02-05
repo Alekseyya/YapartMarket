@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using YapartMarket.WebApi.Services.Interfaces;
-using YapartMarket.WebApi.ViewModel.Goods;
 
 namespace YapartMarket.WebApi.Controllers
 {

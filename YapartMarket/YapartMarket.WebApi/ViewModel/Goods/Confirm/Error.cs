@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace YapartMarket.WebApi.ViewModel.Goods.Confirm;
+﻿namespace YapartMarket.WebApi.ViewModel.Goods.Confirm;
 
 public sealed class Error
 {

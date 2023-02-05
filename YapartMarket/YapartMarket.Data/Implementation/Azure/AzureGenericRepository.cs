@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.SqlClient;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.Extensions;
 
 namespace YapartMarket.Data.Implementation.Azure

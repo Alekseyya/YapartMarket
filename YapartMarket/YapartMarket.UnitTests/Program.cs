@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using YapartMarket.Core.Extensions;
 using YapartMarket.Data;
 using YapartMarket.WebApi.Controllers;
 using YapartMarket.WebApi.Services;

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -10,11 +6,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
-using YapartMarket.BL.Implementation;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.BL.AliExpress;
 using YapartMarket.Core.Config;
-using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.React.Controllers;
 using YapartMarket.React.Invocables;
 

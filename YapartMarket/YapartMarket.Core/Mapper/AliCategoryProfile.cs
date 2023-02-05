@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Newtonsoft.Json;
 using YapartMarket.Core.DTO.AliExpress;
-using YapartMarket.Core.Models.Azure;
 using Category = YapartMarket.Core.DTO.AliExpress.Category;
 
 namespace YapartMarket.Core.Mapper

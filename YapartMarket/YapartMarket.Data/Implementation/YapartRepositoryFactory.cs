@@ -1,8 +1,6 @@
 ﻿using System;
 using YapartMarket.Core.Data;
 using YapartMarket.Core.Data.Interfaces;
-using YapartMarket.Core.Data.Interfaces.Access;
-using YapartMarket.Data.Implementation.Access;
 
 namespace YapartMarket.Data.Implementation
 {

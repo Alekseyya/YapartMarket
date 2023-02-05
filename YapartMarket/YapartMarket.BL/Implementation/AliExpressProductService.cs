@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,7 +30,6 @@ using YapartMarket.Core.DTO.AliExpress;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.Core.Models.Raw;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Product = YapartMarket.Core.Models.Azure.Product;
 
 namespace YapartMarket.BL.Implementation

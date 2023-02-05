@@ -12,11 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using YapartMarket.WebApi.Services;
 using YapartMarket.WebApi.Services.Interfaces;
 using Quartz;
-using Dapper;
-using YapartMarket.Core.DTO.Goods;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,48 +47,20 @@ builder.Services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("http
 
 builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
 
-builder.Services.AddQuartz(q =>
-{
-    q.UseMicrosoftDependencyInjectionScopedJobFactory();
-    var jobKey = new JobKey("DemoJob");
-    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
+//builder.Services.AddQuartz(q =>
+//{
+//    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+//    var jobKey = new JobKey("DemoJob");
+//    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
 
-    q.AddTrigger(opts => opts
-        .ForJob(jobKey)
-        .WithIdentity("DemoJob-trigger")
-        .WithCronSchedule("0 */4 * * * ?"));
+//    q.AddTrigger(opts => opts
+//        .ForJob(jobKey)
+//        .WithIdentity("DemoJob-trigger")
+//        .WithCronSchedule("0 */4 * * * ?"));
 
-});
-//Todo Add correct
-//SqlMapper.SetTypeMap(
-//    typeof(Order),
-//    new CustomPropertyTypeMap(
-//        typeof(Order),
-//        (type, columnName) =>
-//            type.GetProperties().FirstOrDefault(prop =>
-//                prop.GetCustomAttributes(false)
-//                    .OfType<ColumnAttribute>()
-//                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
-//SqlMapper.SetTypeMap(
-//    typeof(OrderItem),
-//    new CustomPropertyTypeMap(
-//        typeof(OrderItem),
-//        (type, columnName) =>
-//            type.GetProperties().FirstOrDefault(prop =>
-//                prop.GetCustomAttributes(false)
-//                    .OfType<ColumnAttribute>()
-//                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
-//SqlMapper.SetTypeMap(
-//    typeof(YapartMarket.Core.DTO.Goods.Product),
-//    new CustomPropertyTypeMap(
-//        typeof(OrderItem),
-//        (type, columnName) =>
-//            type.GetProperties().FirstOrDefault(prop =>
-//                prop.GetCustomAttributes(false)
-//                    .OfType<ColumnAttribute>()
-//                    .Any(attr => attr.Name == columnName || prop.Name == columnName))));
+//});
 
-builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+//builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

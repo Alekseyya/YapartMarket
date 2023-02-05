@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Dapper;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core;
 using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.Core.DTO;
 using YapartMarket.Core.Models.Azure;
 
 namespace YapartMarket.UnitTests.YapartMarket.BL
