@@ -36,18 +36,19 @@ namespace YapartMarket.WebApi.Controllers
                 {
                     var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
                     await _goodsService.SaveOrderAsync(order);
-                    await _goodsService.ProcessConfirmOrRejectAsync(shipmentId);
-                    return Ok(new SuccessfulResponse()
-                    {
-                        Success = 1
-                    });
+                    var result = await _goodsService.ProcessConfirmOrRejectAsync(shipmentId);
+                    if (result.Succeeded)
+                        return Ok();
+                    else
+                        return BadRequest(result.Errors);
                 }
-                return BadRequest("1111");
             }
             catch (Exception e)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
+
+            return Ok();
         }
         /// <summary>
         /// Cancel order
@@ -61,11 +62,8 @@ namespace YapartMarket.WebApi.Controllers
         {
             if (order != null)
             {
-                await _goodsService.CancelAsync(order);
-                return Ok(new SuccessfulResponse()
-                {
-                    Success = 1
-                });
+                var result = await _goodsService.CancelAsync(order);
+                return Ok();
             }
             return BadRequest();
         }

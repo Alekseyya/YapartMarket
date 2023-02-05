@@ -6,9 +6,9 @@ namespace YapartMarket.WebApi.Services.Interfaces
 {
     public interface IGoodsService
     {
-        Task CancelAsync(Cancel cancelOrder);
+        Task<SuccessResult> ProcessConfirmOrRejectAsync(string? shipmentId);
+        Task<SuccessResult> CancelAsync(Cancel cancelOrder);
         Task<Order?> GetOrderAsync(OrderNewViewModel orderViewModel);
-        Task ProcessConfirmOrRejectAsync(string? shipmentId);
         Task SaveOrderAsync(OrderNewViewModel orderViewModel);
     }
 }

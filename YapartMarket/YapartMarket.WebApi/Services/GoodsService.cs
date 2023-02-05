@@ -1,7 +1,7 @@
 ﻿using Dapper;
-using Newtonsoft.Json;
 using Npgsql;
 using System.Text;
+using System.Text.Json;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO.Goods;
 using YapartMarket.Core.Extensions;
@@ -9,6 +9,9 @@ using YapartMarket.WebApi.Services.Interfaces;
 using YapartMarket.WebApi.ViewModel.Goods;
 using YapartMarket.WebApi.ViewModel.Goods.Cancel;
 using YapartMarket.WebApi.ViewModel.Goods.Confirm;
+using YapartMarket.WebApi.ViewModel.Goods.Packing;
+using YapartMarket.WebApi.ViewModel.Goods.Reject;
+using YapartMarket.WebApi.ViewModel.Goods.Shipping;
 
 namespace YapartMarket.WebApi.Services
 {
@@ -48,7 +51,7 @@ namespace YapartMarket.WebApi.Services
                 return orderResult.FirstOrDefault();
             }
         }
-        public async Task PackageAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
+        public async Task<SuccessResult> PackingAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
             var items = new List<ViewModel.Goods.Packing.Item>();
             var boxIndex = 1;
@@ -59,7 +62,7 @@ namespace YapartMarket.WebApi.Services
                     itemIndex = item.IntemIndex,
                     boxes = new List<ViewModel.Goods.Packing.Box>()
                     {
-                       new ViewModel.Goods.Packing.Box()
+                       new()
                        {
                            boxIndex = boxIndex,
                            boxCode = "3897" + shipmentId + boxIndex
@@ -82,12 +85,13 @@ namespace YapartMarket.WebApi.Services
                             items = items
                         }
                     }
-                }
+                },
+                meta = new ()
             };
             var json = System.Text.Json.JsonSerializer.Serialize(package);
-            await SendPackageRequestAsync(json);
+            return await SendPackageRequestAsync(json);
         }
-        public async Task RejectAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
+        public async Task<SuccessResult> RejectAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
             var items = new List<ViewModel.Goods.Reject.Item>();
             foreach (var item in orderItems)
@@ -119,14 +123,14 @@ namespace YapartMarket.WebApi.Services
                 meta = new()
             };
             var json = System.Text.Json.JsonSerializer.Serialize(reject);
-            await SendRejectRequestAsync(json);
+           return await SendRejectRequestAsync(json);
         }
-        public async Task CancelAsync(Cancel cancelOrder)
+        public async Task<SuccessResult> CancelAsync(Cancel cancelOrder)
         {
             using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
             {
                 await connection.OpenAsync();
-                using (var transaction = connection.BeginTransaction())
+                using (var transaction = await connection.BeginTransactionAsync())
                 {
                     var canceledOrder = cancelOrder.data.shipments.First();
                     var order = await connection.QueryFirstAsync<Order>(@"select * from ""order"" where ""shipmentId"" = @shipmentid", new { shipmentId = canceledOrder.shipmentId });
@@ -139,14 +143,15 @@ and ""cancelDateTime"" = @cancelDateTime;";
                         var canceledOrderTmp = canceledOrder.items.Select(x=> new { itemIndex = x.itemIndex, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
                         foreach (var cancelOrderTmp in canceledOrderTmp)
                         {
-                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from ""orderItem"" where ""itemIndex"" = @itemIndex and ""goodsId"" = @goodsId", cancelOrderTmp);
+                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from ""orderItem"" where ""itemIndex"" = @itemIndex and ""goodsId"" = @goodsId", cancelOrderTmp).ConfigureAwait(false);
                             if (orderItem != null)
-                                await connection.ExecuteAsync(updateSql, new { orderId = orderId, itemIndex = cancelOrderTmp.itemIndex, goodsId = cancelOrderTmp.goodsId });
+                                await connection.ExecuteAsync(updateSql, new { orderId = orderId, itemIndex = cancelOrderTmp.itemIndex, goodsId = cancelOrderTmp.goodsId }).ConfigureAwait(false);
                         }
-                        transaction.Commit();
+                        await transaction.CommitAsync().ConfigureAwait(false);
                     }
                 }
             }
+            return SuccessResult.Success;
         }
         public async Task SaveOrderAsync(OrderNewViewModel orderViewModel)
         {
@@ -191,8 +196,9 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
         }
 
         /// <inheritdoc />
-        public async Task ProcessConfirmOrRejectAsync(string? shipmentId)
+        public async Task<SuccessResult> ProcessConfirmOrRejectAsync(string? shipmentId)
         {
+            var errors = new List<string>();
             using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
             {
                 await connection.OpenAsync();
@@ -207,25 +213,36 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     var rejectItems = orderItems.Where(x => !confirmProducts.Any(t => t.Sku.ToLower() == x.OfferId.ToLower()));
                     if(confirmItems.Any() && rejectItems.Any())
                     {
-                        await ConfirmAsync(shipmentId, confirmItems.ToList());
-                        await RejectAsync(shipmentId, rejectItems.ToList());
-                        await PackageAsync(shipmentId, confirmItems.ToList());
-                        await ShipmentAsync(shipmentId, confirmItems.ToList());
+                        var confirmResult = await ConfirmAsync(shipmentId, confirmItems.ToList());
+                        var rejectResult = await RejectAsync(shipmentId, rejectItems.ToList());
+                        var packingResult = await PackingAsync(shipmentId, confirmItems.ToList());
+                        var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
+                        var result = SuccessResult.Combine(confirmResult, rejectResult, packingResult, shipmentResult);
+                        if(!result.Succeeded)
+                            return result;
                     }
                     if (confirmItems.Any() && !rejectItems.Any())
                     {
-                        await ConfirmAsync(shipmentId, confirmItems.ToList());
-                        await PackageAsync(shipmentId, confirmItems.ToList());
-                        await ShipmentAsync(shipmentId, confirmItems.ToList());
+                        var confirmResult = await ConfirmAsync(shipmentId, confirmItems.ToList());
+                        var packingResult = await PackingAsync(shipmentId, confirmItems.ToList());
+                        var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
+                        var result = SuccessResult.Combine(confirmResult, packingResult, shipmentResult);
+                        if (!result.Succeeded)
+                            return result;
                     }
                     if(!confirmItems.Any() && rejectItems.Any())
                     {
-                        await RejectAsync(shipmentId, rejectItems.ToList());
+                       var rejectResult = await RejectAsync(shipmentId, rejectItems.ToList());
+                       var result = SuccessResult.Combine(rejectResult);
+                       if (!result.Succeeded)
+                           return result;
                     }
                 }
             }
+            return SuccessResult.Success;
         }
-        public async Task ShipmentAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
+        /// <inheritdoc />
+        public async Task<SuccessResult> ShippingAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
             var date = DateTime.UtcNow.AddDays(1);
             var boxes = new List<ViewModel.Goods.Shipping.Box>();
@@ -261,9 +278,9 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 meta = new()
             };
             var json = System.Text.Json.JsonSerializer.Serialize(shipping);
-            await SendShippingRequestAsync(json);
+            return await SendShippingRequestAsync(json);
         }
-        public async Task ConfirmAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
+        public async Task<SuccessResult> ConfirmAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
             var items = new List<ViewModel.Goods.Confirm.Item>();
             foreach (var orderItem in orderItems)
@@ -274,7 +291,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     offerId = orderItem.OfferId
                 });
             }
-            var confirm = new ViewModel.Goods.Confirm.Confirm()
+            var confirm = new Confirm()
             {
                 data = new()
                 {
@@ -292,38 +309,71 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 meta = new()
             };
             var json = System.Text.Json.JsonSerializer.Serialize(confirm);
-            await SendConfirmRequestAsync(json);
+            var result = await SendConfirmRequestAsync(json);
+            return result;
         }
-        public Task<bool> Confirm(string shipmentId, int orderId)
-        {
-            throw new NotImplementedException();
-        }
-        private async Task<ConfirmResponse> SendRequestAsync(string url, string body)
+        private async Task<string> SendRequestAsync(string url, string body)
         {
             var content = new StringContent(body, Encoding.UTF8, "application/json");
             var result = await _httpClient.PostAsync(url, content);
             string resultContent = await result.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<ConfirmResponse>(resultContent);
+            return resultContent;
         }
-        private async Task SendConfirmRequestAsync(string json)
+        private async Task<SuccessResult> SendConfirmRequestAsync(string json)
         {
             var url = "/api/market/v1/orderService/order/confirm";
             var response = await SendRequestAsync(url, json);
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
+            };
+            var confirmResponse = JsonSerializer.Deserialize<ConfirmResponse>(response, jsonSerializerOptions);
+            if (confirmResponse.success == 0)
+                return new SuccessResult(confirmResponse.error.message);
+            return SuccessResult.Success;
         }
-        private async Task SendShippingRequestAsync(string json)
+        private async Task<SuccessResult> SendShippingRequestAsync(string json)
         {
             var url = "/api/market/v1/orderService/order/shipping";
             var response = await SendRequestAsync(url, json);
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
+            };
+            var packingResponse = JsonSerializer.Deserialize<ShippingResponse>(response, jsonSerializerOptions);
+            if (packingResponse.success == 0)
+                return new SuccessResult(packingResponse.error.Select(x=>x.message).ToList());
+            return SuccessResult.Success;
         }
-        private async Task SendPackageRequestAsync(string json)
+        private async Task<SuccessResult> SendPackageRequestAsync(string json)
         {
             var url = "/api/market/v1/orderService/order/packing";
             var response = await SendRequestAsync(url, json);
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
+            };
+            var packagedResponse = JsonSerializer.Deserialize<PackingResponse>(response, jsonSerializerOptions);
+            if (packagedResponse.success == 0)
+                return new SuccessResult(packagedResponse.error.Select(x => x.message).ToList());
+            return SuccessResult.Success;
         }
-        private async Task SendRejectRequestAsync(string json)
+        private async Task<SuccessResult> SendRejectRequestAsync(string json)
         {
             var url = "/api/market/v1/orderService/order/reject";
             var response = await SendRequestAsync(url, json);
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
+            };
+            var rejectResponse = JsonSerializer.Deserialize<RejectResponse>(response, jsonSerializerOptions);
+            if (rejectResponse.success == 0)
+                return new SuccessResult(rejectResponse.error.message);
+            return SuccessResult.Success;
         }
     }
 }

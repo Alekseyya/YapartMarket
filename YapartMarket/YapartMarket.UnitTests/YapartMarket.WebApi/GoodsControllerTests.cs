@@ -96,8 +96,8 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
             var responseMessage = await client.SendAsync(httpRequestMessage).ConfigureAwait(true);
             //Assert
             var message = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
-            Assert.True(message.Contains("success"));
             Assert.Equal(responseMessage.StatusCode, HttpStatusCode.OK);
+            Assert.True(message.Contains("success"));
         }
         class MyWebApplication : WebApplicationFactory<Program>
         {
