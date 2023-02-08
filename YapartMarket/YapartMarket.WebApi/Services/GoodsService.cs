@@ -372,7 +372,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var rejectResponse = JsonSerializer.Deserialize<RejectResponse>(response, jsonSerializerOptions);
             if (rejectResponse.success == 0)
-                return new SuccessResult(rejectResponse.error.message);
+                return new SuccessResult(rejectResponse.error.Select(x => x.message).ToList());
             return SuccessResult.Success;
         }
     }
