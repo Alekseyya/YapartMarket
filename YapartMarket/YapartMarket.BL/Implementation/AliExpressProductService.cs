@@ -136,14 +136,14 @@ namespace YapartMarket.BL.Implementation
                 await connection.OpenAsync();
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
-                    var updateSql = @"update product set aliExpressProductId = @aliExpressProductId where sku = @sku;";
+                    var updateSql = @"update products set aliExpressProductId = @aliExpressProductId where sku = @sku;";
                     foreach (var responce in productResponses)
                     {
                         foreach (var product in responce.data)
                         {
                             var sku = product.sku.FirstOrDefault().code;
                             var aliProductId = product.id;
-                            await connection.ExecuteAsync(updateSql, new { aliExpressProductId = aliProductId, sku = sku }).ConfigureAwait(false);
+                            await connection.ExecuteAsync(updateSql, new { aliExpressProductId = aliProductId, sku = sku }, transaction).ConfigureAwait(false);
                         }
                     }
                     await transaction.CommitAsync().ConfigureAwait(false);

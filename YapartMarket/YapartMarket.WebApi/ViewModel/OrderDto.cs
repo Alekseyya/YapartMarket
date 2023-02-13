@@ -6,15 +6,15 @@ namespace YapartMarket.WebApi.ViewModel
     public class OrderDto
     {
         [JsonPropertyName("order")]
-        public OrderInfoDto OrderInfoDto { get; set; }
+        public OrderInfoDto? OrderInfoDto { get; set; }
     }
 
     public class OrderInfoDto
     {
         [JsonPropertyName("creationDate")]
-        public string CreationDate { get; set; }
+        public string? CreationDate { get; set; }
         [JsonPropertyName("currency")]
-        public string Currency { get; set; }
+        public string? Currency { get; set; }
         [JsonPropertyName("fake")]
         public bool Fake { get; set; }
         [JsonPropertyName("id")]
@@ -22,46 +22,46 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("itemsTotal")]
         public double ItemsTotal { get; set; }
         [JsonPropertyName("paymentType")]
-        public string PaymentType { get; set; }
+        public string? PaymentType { get; set; }
         [JsonPropertyName("paymentMethod")]
-        public string PaymentMethod { get; set; }
+        public string? PaymentMethod { get; set; }
         [JsonPropertyName("status")]
-        public string Status { get; set; }
+        public string? Status { get; set; }
         [JsonPropertyName("substatus")]
-        public string SubStatus { get; set; }
+        public string? SubStatus { get; set; }
         [JsonPropertyName("taxSystem")]
-        public string TaxSystem { get; set; }
+        public string? TaxSystem { get; set; }
         [JsonPropertyName("total")]
         public double Total { get; set; }
         [JsonPropertyName("subsidyTotal")]
         public double SubsidyTotal { get; set; }
         [JsonPropertyName("delivery")]
-        public DeliveryOrderDto DeliveryOrderDto { get; set; }
+        public DeliveryOrderDto? DeliveryOrderDto { get; set; }
         [JsonPropertyName("items")]
-        public List<OrderItemDto> OrderItemsDto { get; set; }
+        public List<OrderItemDto>? OrderItemsDto { get; set; }
     }
 
     public class DeliveryOrderDto
     {
         [JsonPropertyName("deliveryPartnerType")]
-        public string DeliveryPartnerType { get; set; }
+        public string? DeliveryPartnerType { get; set; }
         [JsonPropertyName("deliveryServiceId")]
         public Int64 DeliveryServiceId { get; set; }
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         [JsonPropertyName("shipments")]
-        public List<ShipmentOrderDto> ShipmentsOrderDto { get; set; }
+        public List<ShipmentOrderDto>? ShipmentsOrderDto { get; set; }
         [JsonPropertyName("serviceName")]
-        public string ServiceName { get; set; }
+        public string? ServiceName { get; set; }
         [JsonPropertyName("type")]
         [Display(Name = "Способ доставки заказа")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
         [JsonPropertyName("region")]
-        public RegionOrderDto RegionOrderDto { get; set; }
+        public RegionOrderDto? RegionOrderDto { get; set; }
         [JsonPropertyName("items")]
-        public List<OrderItemDto> OrderItemsDto { get; set; }
+        public List<OrderItemDto>? OrderItemsDto { get; set; }
         [JsonPropertyName("notes")]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
     }
 
     public class OrderItemDto
@@ -71,7 +71,7 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("feedId")]
         public Int64 FeedId { get; set; }
         [JsonPropertyName("offerId")]
-        public string OfferId { get; set; }
+        public string? OfferId { get; set; }
         [JsonPropertyName("price")]
         public double Price { get; set; }
         [JsonPropertyName("buyer-price")]
@@ -83,35 +83,35 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("delivery")]
         public bool Delivery { get; set; }
         [JsonPropertyName("params")]
-        public string Params { get; set; }
+        public string? Params { get; set; }
         [JsonPropertyName("vat")]
-        public string Vat { get; set; }
+        public string? Vat { get; set; }
         [JsonPropertyName("fulfilmentShopId")]
         public Int64 FulfilmentShopId { get; set; }
         [JsonPropertyName("sku")]
-        public string Sku { get; set; }
+        public string? Sku { get; set; }
         [JsonPropertyName("shopSku")]
-        public string ShopSku { get; set; }
+        public string? ShopSku { get; set; }
         [JsonPropertyName("promos")]
-        public List<PromosOrderDto> PromosOrderDto { get; set; }
+        public List<PromosOrderDto>? PromosOrderDto { get; set; }
         [JsonPropertyName("instances")]
-        public List<InstanceDto> Instances { get; set; }
+        public List<InstanceDto>? Instances { get; set; }
     }
 
     public class InstanceDto
     {
         [JsonPropertyName("cis")]
-        public string Cis { get; set; }
+        public string? Cis { get; set; }
     }
 
     public class PromosOrderDto
     {
         [JsonPropertyName("marketPromoId")]
-        public string MarketPromoId { get; set; }
+        public string? MarketPromoId { get; set; }
         [JsonPropertyName("subsidy")]
         public float Subsidy { get; set; }
         [JsonPropertyName("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
     }
 
     public class RegionOrderDto
@@ -119,11 +119,11 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("id")]
         public int Id { get; set; }
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [JsonPropertyName("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
         [JsonPropertyName("parent")]
-        public ParentRegionDto ParentRegionDto { get; set; }
+        public ParentRegionDto? ParentRegionDto { get; set; }
     }
 
     public class ParentRegionDto
@@ -131,11 +131,11 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("id")]
         public int Id { get; set; }
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [JsonPropertyName("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
         [JsonPropertyName("parent")]
-        public ParentRegionDto RegionDto { get; set; }
+        public ParentRegionDto? RegionDto { get; set; }
     }
 
     public class ShipmentOrderDto
@@ -143,10 +143,10 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("id")]
         public Int64 Id { get; set; }
         [JsonPropertyName("shipmentDate")]
-        public string ShipmentDate { get; set; }
+        public string? ShipmentDate { get; set; }
 
         [JsonPropertyName("boxes")]
-        public List<OrderBox> OrderBoxes { get; set; }
+        public List<OrderBox>? OrderBoxes { get; set; }
     }
 
     public class OrderBox
@@ -167,7 +167,7 @@ namespace YapartMarket.WebApi.ViewModel
         public Int64 Depth { get; set; }
 
         [JsonPropertyName("items")]
-        public List<OrderBoxItem> OrderBoxItems { get; set; }
+        public List<OrderBoxItem>? OrderBoxItems { get; set; }
     }
 
     public class OrderBoxItem

@@ -180,7 +180,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
 
                         command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.takeTime = T.takeTime FROM products AS P INNER JOIN products_tmpTakeTime AS T ON P.sku = T.sku ;DROP TABLE products_tmpTakeTime;";
+                        command.CommandText = "UPDATE P SET P.takeTime = T.takeTime FROM products AS P INNER JOIN products_tmpTakeTime AS T ON P.sku = T.sku; DROP TABLE products_tmpTakeTime;";
                         await command.ExecuteNonQueryAsync();
                     }
                     catch (Exception ex)
