@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Npgsql;
+using System.Data.SqlClient;
 using System.Text;
 using System.Text.Json;
 using YapartMarket.Core.DateStructures;
@@ -27,11 +28,11 @@ namespace YapartMarket.WebApi.Services
         }
         public async Task<Order?> GetOrderAsync(OrderNewViewModel orderViewModel)
         {
-            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
                 var shipmentId = orderViewModel.OrderNewDataViewModel.Shipments[0].ShipmentId;
-                var sql = @"select * from public.order o inner join public.orderItem od on o.Id = od.orderId where o.shipmentId = @shipmentId";
+                var sql = @"select * from goods_order o inner join goods_orderItem od on o.Id = od.orderId where o.shipmentId = @shipmentId";
                 var orderDictionary = new Dictionary<Guid, Order>();
                 var orderResult = await connection.QueryAsync<Order, OrderItem, Order>(sql, (order, orderDetail) =>
                 {
@@ -127,23 +128,23 @@ namespace YapartMarket.WebApi.Services
         }
         public async Task<SuccessResult> CancelAsync(Cancel cancelOrder)
         {
-            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
                     var canceledOrder = cancelOrder.data.shipments.First();
-                    var order = await connection.QueryFirstAsync<Order>(@"select * from ""order"" where ""shipmentId"" = @shipmentid", new { shipmentId = canceledOrder.shipmentId });
+                    var order = await connection.QueryFirstAsync<Order>(@"select * from goods_order where shipmentId = @shipmentid", new { shipmentId = canceledOrder.shipmentId });
                     if (order != null)
                     {
                         var cancelDateTime = DateTime.Now;
                         var orderId = order.Id;
-                        var updateSql = @"update ""orderItem"" set ""cancel"" = true where ""orderId"" = @orderId and ""itemIndex"" = @itemIndex and ""goodsId"" = @goodsId
-and ""cancelDateTime"" = @cancelDateTime;";
+                        var updateSql = @"update goods_orderItem set cancel = true where orderId = @orderId and itemIndex = @itemIndex and goodsId = @goodsId
+and cancelDateTime = @cancelDateTime;";
                         var canceledOrderTmp = canceledOrder.items.Select(x=> new { itemIndex = x.itemIndex, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
                         foreach (var cancelOrderTmp in canceledOrderTmp)
                         {
-                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from ""orderItem"" where ""itemIndex"" = @itemIndex and ""goodsId"" = @goodsId", cancelOrderTmp).ConfigureAwait(false);
+                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from goods_orderItem where itemIndex = @itemIndex and goodsId = @goodsId", cancelOrderTmp).ConfigureAwait(false);
                             if (orderItem != null)
                                 await connection.ExecuteAsync(updateSql, new { orderId = orderId, itemIndex = cancelOrderTmp.itemIndex, goodsId = cancelOrderTmp.goodsId }).ConfigureAwait(false);
                         }
@@ -153,27 +154,32 @@ and ""cancelDateTime"" = @cancelDateTime;";
             }
             return SuccessResult.Success;
         }
+        /// <inheritdoc/>
         public async Task SaveOrderAsync(OrderNewViewModel orderViewModel)
         {
-            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
 
                     var shipment = orderViewModel.OrderNewDataViewModel.Shipments.First();
-                    var order = await connection.QueryAsync<Order>(@"select * from ""order"" where ""shipmentId"" = @shipmentid", new { shipmentId = shipment.ShipmentId });
+                    var order = await connection.QueryAsync<Order>(@"select * from goods_order where shipmentId = @shipmentid",
+                        new
+                        {
+                            shipmentId = shipment.ShipmentId
+                        }, transaction);
                     if (!order.IsAny())
                     {
                         var shipmentDate = DateTime.Parse(shipment.ShipmentDate);
                         var orderId = Guid.NewGuid();
-                        var addOrderSql = @$"insert into ""order""(""id"", ""shipmentId"", ""shipmentDate"") values(@orderId, @shipmentid, @shipmentdate)";
+                        var addOrderSql = @$"insert into goods_order(id, shipmentId, shipmentDate) values(@orderId, @shipmentid, @shipmentdate)";
                         await connection.ExecuteAsync(addOrderSql, new
                         {
                             orderId = orderId,
                             shipmentId = shipment.ShipmentId,
                             shipmentDate = shipmentDate
-                        });
+                        }, transaction);
                         var orderDetails = shipment.Items.Select(x => new
                         {
                             id = Guid.NewGuid(),
@@ -186,9 +192,9 @@ and ""cancelDateTime"" = @cancelDateTime;";
                             finalPrice = x.FinalPrice,
                             quantity = x.Quantity
                         });
-                        var addOrderDetailSql = $@"insert into ""orderItem""(""id"", ""orderId"", ""itemIndex"", ""goodsId"", ""offerId"", ""itemName"", ""price"", ""finalPrice"", ""quantity"") 
+                        var addOrderDetailSql = $@"insert into goods_orderItem(id, orderId, itemIndex, goodsId, offerId, itemName, price, finalPrice, quantity) 
 values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalPrice, @quantity)";
-                        await connection.ExecuteAsync(addOrderDetailSql, orderDetails);
+                        await connection.ExecuteAsync(addOrderDetailSql, orderDetails, transaction);
                         transaction.Commit();
                     }
                 }
@@ -199,16 +205,16 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
         public async Task<SuccessResult> ProcessConfirmOrRejectAsync(string? shipmentId)
         {
             var errors = new List<string>();
-            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
-                var order = await connection.QueryFirstAsync<Order>(@"select * from ""order"" where ""shipmentId"" = @shipmentid", new { shipmentId = shipmentId });
+                var order = await connection.QueryFirstAsync<Order>(@"select * from goods_order where shipmentId = @shipmentid", new { shipmentId = shipmentId });
                 if (order != null)
                 {
                     var orderId = order.Id;
-                    var orderItems = await connection.QueryAsync<OrderItem>(@"select * from ""orderItem"" where ""orderId"" = @orderId", new { orderId });
+                    var orderItems = await connection.QueryAsync<OrderItem>(@"select * from goods_orderItem where orderId = @orderId", new { orderId });
                     var items = orderItems!.Select(x => x.OfferId).ToList();
-                    var confirmProducts = await connection.QueryAsync<Product>(@"select * from ""products"" where ""sku"" = ANY(@skus)", new { skus = items });
+                    var confirmProducts = await connection.QueryAsync<Product>(@"select * from products where sku IN @skus", new { skus = items });
                     var confirmItems = orderItems.Where(x => confirmProducts.Any(t => t.Sku.ToLower() == x.OfferId.ToLower()));
                     var rejectItems = orderItems.Where(x => !confirmProducts.Any(t => t.Sku.ToLower() == x.OfferId.ToLower()));
                     if(confirmItems.Any() && rejectItems.Any())

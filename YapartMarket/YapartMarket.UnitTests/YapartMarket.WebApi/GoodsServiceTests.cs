@@ -1,10 +1,12 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -70,14 +72,16 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
                 }
             };
             await goodsService.SaveOrderAsync(orderModel);
-            using (var connection = new NpgsqlConnection(configuration.GetConnectionString("PostgreSqlConnectionString")))
+            using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
-                var order = await connection.QueryAsync<Core.DTO.Goods.Order>(@"select * from ""order""");
-                var orderItems = await connection.QueryAsync<Core.DTO.Goods.OrderItem>(@"select * from ""orderItem""");
+                var order = await connection.QueryAsync<Core.DTO.Goods.Order>(@"select * from goods_order");
+                var orderItems = await connection.QueryAsync<Core.DTO.Goods.OrderItem>(@"select * from goods_orderItem");
                 Assert.True(order != null);
+                Assert.Equal(order.ToList().Count, 1);
                 Assert.True(orderItems != null);
-                await connection.ExecuteAsync(@"truncate table ""order""; truncate table ""orderItem""");
+                Assert.Equal(orderItems.ToList().Count, 2);
+                await connection.ExecuteAsync(@"truncate table goods_order; truncate table goods_orderItem");
             }
         }
         [Fact]

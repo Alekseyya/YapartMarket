@@ -10,6 +10,7 @@ using YapartMarket.Core;
 using Microsoft.EntityFrameworkCore;
 using YapartMarket.WebApi.Services;
 using YapartMarket.WebApi.Services.Interfaces;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,15 @@ builder.Services.AddScoped<DbContextOptions<YapartContext>>(provider =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "ToDo API",
+        Description = "An ASP.NET Core Web API for managing ToDo items",
+    });
+});
 
 builder.Services.AddAutoMapper(typeof(OrderProfile));
 builder.Services.AddTransient<IAliExpressOrderService, AliExpressOrderService>();
@@ -62,8 +71,14 @@ builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builde
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
 app.UseSwagger();
 app.UseSwaggerUI(option => option.SwaggerEndpoint("/swagger/v1/swagger.json", "YapartStore v1"));
+
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
