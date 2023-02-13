@@ -22,5 +22,6 @@ namespace YapartMarket.Core.BL
         Task ProcessUpdateDatabaseAliExpressProductId();
         Task<IEnumerable<Product>> ListProductsForUpdateInventory();
         Task<List<ProductInfoResult>> GetProductsFromAli(IReadOnlyList<long> productIds);
+        Task ProcessUpdateProductSku();
     }
 }

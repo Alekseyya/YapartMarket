@@ -80,6 +80,15 @@ namespace YapartMarket.WebApi.Controllers
             return Ok(response);
         }
 
+        [HttpGet]
+        [Route("updateProducts")]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateProducts()
+        {
+            await _productService.ProcessUpdateProductSku();
+            return Ok();
+        }
+
         [HttpPost]
         [Route("downloadNewOrders")]
         public async Task<IActionResult> DownloadNewOrders()

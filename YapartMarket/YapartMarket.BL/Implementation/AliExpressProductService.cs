@@ -27,7 +27,9 @@ using YapartMarket.Core.Config;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
 using YapartMarket.Core.DTO.AliExpress;
+using YapartMarket.Core.DTO.AliExpress.OrderGetResponse;
 using YapartMarket.Core.Extensions;
+using YapartMarket.Core.Models.AliProduct;
 using YapartMarket.Core.Models.Azure;
 using YapartMarket.Core.Models.Raw;
 using Product = YapartMarket.Core.Models.Azure.Product;
@@ -118,6 +120,36 @@ namespace YapartMarket.BL.Implementation
                 }
             } while (true);
         }
+        public async Task ProcessUpdateProductSku()
+        {
+            var products = new List<Product>();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                var productsInDb = await connection.QueryAsync<Product>("select * FROM dbo.products");
+                products.AddRange(productsInDb);
+            }
+            var aliProductRequest = new AliProductRequest(_httpClient);
+            var productResponses = await aliProductRequest.Send(products, _aliExpressOptions.GetProducts);
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    var updateSql = @"update product set aliExpressProductId = @aliExpressProductId where sku = @sku;";
+                    foreach (var responce in productResponses)
+                    {
+                        foreach (var product in responce.data)
+                        {
+                            var sku = product.sku.FirstOrDefault().code;
+                            var aliProductId = product.id;
+                            await connection.ExecuteAsync(updateSql, new { aliExpressProductId = aliProductId, sku = sku }).ConfigureAwait(false);
+                        }
+                    }
+                    await transaction.CommitAsync().ConfigureAwait(false);
+                }
+            }
+        }
 
         public async Task<UpdateStocksResponse> UpdateProduct(IReadOnlyList<Product> products)
         {
@@ -130,9 +162,9 @@ namespace YapartMarket.BL.Implementation
                 productsResult.products.Add(new()
                 {
                     product_id = product.AliExpressProductId.ToString(),
-                    skus = new List<Sku>()
+                    skus = new List<Core.Models.Raw.Sku>()
                     {
-                        new Sku()
+                        new Core.Models.Raw.Sku()
                         {
                             sku_code = product.Sku,
                             inventory = product.Count.ToString()
@@ -150,18 +182,18 @@ namespace YapartMarket.BL.Implementation
                 {
                     var tmpProduct = new ProductRoot()
                     {
-                        products = productsResult.products.Skip(skip).Take(1000).ToList()
+                        products = productsResult.products.Skip(skip).Take(500).ToList()
                     };
                     var result = await Request(tmpProduct, _aliExpressOptions.UpdateStocks, _httpClient);
                     var responseTmp = JsonConvert.DeserializeObject<UpdateStocksResponse>(result);
-                    if(responseTmp != null && responseTmp.results != null && responseTmp.results.Any(x=>!x.ok))
-                        response.results.AddRange(responseTmp.results.Where(x=>!x.ok).ToList());
+                    if (responseTmp != null && responseTmp.results != null && responseTmp.results.Any(x => !x.ok))
+                        response.results.AddRange(responseTmp.results.Where(x => !x.ok).ToList());
                 }
                 catch (Exception e)
                 {
                     throw e;
                 }
-                skip += 1000;
+                skip += 500;
             }
             return response;
         }
@@ -223,7 +255,7 @@ namespace YapartMarket.BL.Implementation
                     while (true)
                     {
                         var takeGoods = productGoods.Skip(i).Take(take);
-                        
+
                         if (takeGoods.Any())
                         {
                             var insertQuery = GenerateInsertQuery(takeGoods.ToList());
@@ -245,7 +277,7 @@ namespace YapartMarket.BL.Implementation
             insertQuery.Append(" VALUES ");
             products.ToList().ForEach(x =>
             {
-               insertQuery.Append($"('{Guid.NewGuid()}', '{x.Sku}', {x.Amount}, '{x.UpdateAt.Value.ToString("yyy-MM-dd HH:mm:ss.fff")}'),");
+                insertQuery.Append($"('{Guid.NewGuid()}', '{x.Sku}', {x.Amount}, '{x.UpdateAt.Value.ToString("yyy-MM-dd HH:mm:ss.fff")}'),");
             });
             //Удалить последнюю запятую
             insertQuery.Remove(insertQuery.Length - 1, 1).Append(";");
@@ -341,7 +373,7 @@ namespace YapartMarket.BL.Implementation
                         req.AeopAEProductListQuery_ = obj1;
                         batch.AddRequest(req);
                     }
-                    
+
                     var rsp = client.Execute(batch, _aliExpressOptions.AccessToken);
                     var body = rsp.Body;
                     if (body is not null)
@@ -424,7 +456,7 @@ namespace YapartMarket.BL.Implementation
         {
             var getClient = new BatchTopClient(_aliExpressOptions.HttpsBatchEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
             var listProductInfo = new List<ProductInfoResult>();
-            
+
             do
             {
                 try
@@ -503,13 +535,13 @@ namespace YapartMarket.BL.Implementation
                 new { updatedAt = DateTimeOffset.Now.AddDays(-1).ToString("yyyy-MM-dd'T'HH:mm:ssK") });
             if (aliExpressProducts != null)
             {
-                var countCycles = aliExpressProducts!.Count()/1000;
+                var countCycles = aliExpressProducts!.Count() / 1000;
                 var remaider = aliExpressProducts!.Count() % 1000;
                 for (int cycle = 0; cycle < countCycles; cycle++)
                 {
                     await ProcessUpdateProducts(aliExpressProducts.Select(x => x.ProductId!.Value).Skip(cycle * 1000).Take(1000).ToList());
                 }
-                if(remaider > 0)
+                if (remaider > 0)
                     await ProcessUpdateProducts(aliExpressProducts.Select(x => x.ProductId!.Value).Skip(countCycles * 1000).Take(remaider).ToList());
             }
         }
@@ -603,7 +635,7 @@ namespace YapartMarket.BL.Implementation
         }
         public async Task ProcessUpdateProduct(long productId)
         {
-            var productInDb = await _azureAliExpressProductRepository.GetAsync("select * from dbo.aliExpressProducts where productId =@productId", new {productId = productId});
+            var productInDb = await _azureAliExpressProductRepository.GetAsync("select * from dbo.aliExpressProducts where productId =@productId", new { productId = productId });
             if (productInDb.IsAny())
             {
                 try
@@ -622,7 +654,7 @@ namespace YapartMarket.BL.Implementation
         }
         public async Task AddNewProducts(IEnumerable<AliExpressProductDTO> products)
         {
-            var productsInDb = await _azureAliExpressProductRepository.GetInAsync(nameof(AliExpressProduct.ProductId), new {ProductId = products.Select(x=>x.ProductId)});
+            var productsInDb = await _azureAliExpressProductRepository.GetInAsync(nameof(AliExpressProduct.ProductId), new { ProductId = products.Select(x => x.ProductId) });
             try
             {
                 var newProducts = products.Where(prod => productsInDb.All(prodDb => prodDb.ProductId == 0 || prodDb.ProductId != prod.ProductId));
@@ -691,7 +723,7 @@ namespace YapartMarket.BL.Implementation
                 if (productsInDb.Any())
                 {
                     var pairs = newAliExpressProduct.Join(productsInDb, aliExpProd => aliExpProd.SkuCode,
-                        prodDb => prodDb.Sku, (aliExpProd, prodDb) => new {prodDb, aliExpProd});
+                        prodDb => prodDb.Sku, (aliExpProd, prodDb) => new { prodDb, aliExpProd });
                     foreach (var pair in pairs)
                     {
                         pair.aliExpProd.Inventory = pair.prodDb.Count;
@@ -757,7 +789,7 @@ namespace YapartMarket.BL.Implementation
                 if (!string.IsNullOrEmpty(productJson))
                 {
                     var aliExpressProduct = JsonConvert.DeserializeObject<AliExpressProductDTO>(productJson);
-                    var productId = (long) jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.product_id");
+                    var productId = (long)jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.product_id");
                     var description = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.subject")?.ToString();
                     if (aliExpressProduct != null)
                     {

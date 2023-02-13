@@ -49,6 +49,7 @@
         public string Url { get; set; }
         public string GetOrderList { get; set; }
         public string UpdateStocks { get; set; }
+        public string GetProducts { get; set; }
         public string AuthToken { get; set; }
         public string HttpsBatchEndPoint { get; set; }
     }
