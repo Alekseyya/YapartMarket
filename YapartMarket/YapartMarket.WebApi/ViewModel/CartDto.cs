@@ -13,11 +13,11 @@ namespace YapartMarket.WebApi.ViewModel
     public class CartInfoDto
     {
         [JsonPropertyName("currency")]
-        public string Currency { get; set; }
+        public string? Currency { get; set; }
         [JsonPropertyName("delivery")]
-        public DeliveryDto Delivery { get; set; }
+        public DeliveryDto? Delivery { get; set; }
         [JsonPropertyName("items")]
-        public List<CartItemDto> CartItems { get; set; }
+        public List<CartItemDto>? CartItems { get; set; }
     }
 
     public class CartItemDto
@@ -28,7 +28,7 @@ namespace YapartMarket.WebApi.ViewModel
         public long FeedId { get; set; }
         [JsonPropertyName("offerId")]
         [Display(Name = "SKU")]
-        public string OfferId { get; set; }
+        public string? OfferId { get; set; }
     }
 
 

@@ -6,7 +6,7 @@ namespace YapartMarket.WebApi.ViewModel
     public class DeliveryDto
     {
         [JsonPropertyName("region")]
-        public Region Region { get; set; }
+        public Region? Region { get; set; }
     }
 
     public class Region
@@ -14,12 +14,12 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("id")]
         public int Id { get; set; }
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [JsonPropertyName("type")]
         [Display(Name = "Тип региона")]
-        public string TypeRegion { get; set; }
+        public string? TypeRegion { get; set; }
         [JsonPropertyName("parent")]
-        public ParenRegion ParentRegion { get; set; }
+        public ParenRegion? ParentRegion { get; set; }
     }
 
     public class ParenRegion
@@ -27,11 +27,11 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("id")]
         public int Id { get; set; }
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [JsonPropertyName("type")]
-        public string ParentTypeRegion { get; set; }
+        public string? ParentTypeRegion { get; set; }
         [JsonPropertyName("parent")]
-        public ParenRegion ParentRegion { get; set; }
+        public ParenRegion? ParentRegion { get; set; }
     }
 
 
