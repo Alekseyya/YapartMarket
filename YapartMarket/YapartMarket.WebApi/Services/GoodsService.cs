@@ -60,7 +60,7 @@ namespace YapartMarket.WebApi.Services
             {
                 items.Add(new()
                 {
-                    itemIndex = item.IntemIndex,
+                    itemIndex = item.ItemIndex,
                     boxes = new List<ViewModel.Goods.Packing.Box>()
                     {
                        new()
@@ -100,7 +100,7 @@ namespace YapartMarket.WebApi.Services
                 items.Add(new()
                 {
                     offerId = shipmentId,
-                    itemIndex = item.IntemIndex,
+                    itemIndex = item.ItemIndex,
                 });
             }
             var reject = new ViewModel.Goods.Reject.Root()
@@ -293,7 +293,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             {
                 items.Add(new()
                 {
-                    itemIndex = orderItem.IntemIndex,
+                    itemIndex = orderItem.ItemIndex,
                     offerId = orderItem.OfferId
                 });
             }

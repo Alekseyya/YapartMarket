@@ -10,7 +10,7 @@ namespace YapartMarket.Core.DTO.Goods
         [Column("orderId")]
         public Guid OrderId { get; set; }
         [Column("itemIndex")]
-        public int IntemIndex { get; set; }
+        public int ItemIndex { get; set; }
         [Column("goodsId")]
         public string GoodsId { get; set; }
         [Column("offerId")]
