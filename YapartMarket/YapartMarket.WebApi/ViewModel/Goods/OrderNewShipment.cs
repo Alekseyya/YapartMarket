@@ -10,5 +10,6 @@ namespace YapartMarket.WebApi.ViewModel.Goods
         public string ShipmentDate { get; set; }
         [JsonPropertyName("items")]
         public List<OrderNewShipmentItem> Items { get; set; }
+        public Lable label { get; set; }
     }
 }
