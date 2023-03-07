@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using YapartMarket.Core.Models;
 
 namespace YapartMarket.Core.BL
@@ -12,5 +13,6 @@ namespace YapartMarket.Core.BL
         Product GetById(int id);
         IList<Product> GetAll();
         IList<Product> GetAll(Expression<Func<Product, bool>> conditionFunc);
+        Task UpdateGoodsIdFromProducts();
     }
 }

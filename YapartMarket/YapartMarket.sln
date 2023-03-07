@@ -48,8 +48,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.WebApi", "Yapa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.Integration", "YapartMarket.Integration\YapartMarket.Integration.csproj", "{303DE6B6-A7A4-4228-8D1D-5F041163964A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "WebApplication1\WebApplication1.csproj", "{EECABCA6-3635-455A-BD7E-5D9E71017C45}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,10 +90,6 @@ Global
 		{303DE6B6-A7A4-4228-8D1D-5F041163964A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{303DE6B6-A7A4-4228-8D1D-5F041163964A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{303DE6B6-A7A4-4228-8D1D-5F041163964A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EECABCA6-3635-455A-BD7E-5D9E71017C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EECABCA6-3635-455A-BD7E-5D9E71017C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EECABCA6-3635-455A-BD7E-5D9E71017C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EECABCA6-3635-455A-BD7E-5D9E71017C45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

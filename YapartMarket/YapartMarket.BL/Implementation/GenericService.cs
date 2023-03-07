@@ -7,7 +7,6 @@ using YapartMarket.Core.Data;
 
 namespace YapartMarket.BL.Implementation
 {
-    //Это фабричный метод!
    public abstract class GenericService<TEntry, TId, TRepository> where TRepository : IGenericRepository<TEntry, TId>
     {
         protected IRepositoryFactory RepositoryFactory { get; }

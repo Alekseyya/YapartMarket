@@ -216,90 +216,90 @@ namespace YapartMarket.BL.Implementation
             return await UpdateProduct(products);
         }
 
-        public async Task UpdateProductFromSql()
-        {
-            var products = new List<Product>();
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-            {
-                await connection.OpenAsync();
-                products.AddRange(await connection.QueryAsync<Product>(@"select * from products"));
-            }
-            var productGoods = new List<Core.DTO.Goods.Product>();
-            foreach (var product in products)
-            {
-                var id = Guid.NewGuid();
-                var updateAt = GetDateTime(product.UpdatedAt);
-                var takedDateTime = GetDateTime(product.TakeTime);
-                var takedExpressDateTime = GetDateTime(product.TakeTimeExpress);
-                var updateExpressDateTime = GetDateTime(product.UpdateExpress);
-                productGoods.Add(new()
-                {
-                    Id = id,
-                    Sku = product.Sku,
-                    Amount = product.Count,
-                    UpdateAt = updateAt,
-                    AmountExpress = product.CountExpress,
-                    TakedDateTime = takedDateTime,
-                    TakedExpressDateTime = takedExpressDateTime,
-                    UpdatedExpressAt = updateExpressDateTime
-                });
-            }
-            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
-            {
-                await connection.OpenAsync();
-                using (var transaction = connection.BeginTransaction())
-                {
-                    await connection.ExecuteAsync(@"truncate table ""products""");
-                    var i = 0;
-                    var take = 900;
-                    while (true)
-                    {
-                        var takeGoods = productGoods.Skip(i).Take(take);
+        //public async Task UpdateProductFromSql()
+        //{
+        //    var products = new List<Product>();
+        //    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+        //    {
+        //        await connection.OpenAsync();
+        //        products.AddRange(await connection.QueryAsync<Product>(@"select * from products"));
+        //    }
+        //    var productGoods = new List<Product>();
+        //    foreach (var product in products)
+        //    {
+        //        var id = Guid.NewGuid();
+        //        var updateAt = GetDateTime(product.UpdatedAt);
+        //        var takedDateTime = GetDateTime(product.TakeTime);
+        //        var takedExpressDateTime = GetDateTime(product.TakeTimeExpress);
+        //        var updateExpressDateTime = GetDateTime(product.UpdateExpress);
+        //        productGoods.Add(new()
+        //        {
+        //            Id = id,
+        //            Sku = product.Sku,
+        //            Amount = product.Count,
+        //            UpdateAt = updateAt,
+        //            AmountExpress = product.CountExpress,
+        //            TakedDateTime = takedDateTime,
+        //            TakedExpressDateTime = takedExpressDateTime,
+        //            UpdatedExpressAt = updateExpressDateTime
+        //        });
+        //    }
+        //    using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgreSqlConnectionString")))
+        //    {
+        //        await connection.OpenAsync();
+        //        using (var transaction = connection.BeginTransaction())
+        //        {
+        //            await connection.ExecuteAsync(@"truncate table ""products""");
+        //            var i = 0;
+        //            var take = 900;
+        //            while (true)
+        //            {
+        //                var takeGoods = productGoods.Skip(i).Take(take);
 
-                        if (takeGoods.Any())
-                        {
-                            var insertQuery = GenerateInsertQuery(takeGoods.ToList());
-                            await connection.ExecuteAsync(insertQuery);
-                            i += take;
-                        }
-                        else
-                            break;
-                    }
-                    transaction.Commit();
-                }
-            }
-        }
+        //                if (takeGoods.Any())
+        //                {
+        //                    var insertQuery = GenerateInsertQuery(takeGoods.ToList());
+        //                    await connection.ExecuteAsync(insertQuery);
+        //                    i += take;
+        //                }
+        //                else
+        //                    break;
+        //            }
+        //            transaction.Commit();
+        //        }
+        //    }
+        //}
 
-        public string GenerateInsertQuery(IReadOnlyList<Core.DTO.Goods.Product> products)
-        {
-            var insertQuery = new StringBuilder(@"INSERT INTO ""products""");
-            insertQuery.Append(@"(""id"", ""sku"", ""amount"", ""updateAt"")");
-            insertQuery.Append(" VALUES ");
-            products.ToList().ForEach(x =>
-            {
-                insertQuery.Append($"('{Guid.NewGuid()}', '{x.Sku}', {x.Amount}, '{x.UpdateAt.Value.ToString("yyy-MM-dd HH:mm:ss.fff")}'),");
-            });
-            //Удалить последнюю запятую
-            insertQuery.Remove(insertQuery.Length - 1, 1).Append(";");
-            return insertQuery.ToString();
-        }
+        //public string GenerateInsertQuery(IReadOnlyList<Product> products)
+        //{
+        //    var insertQuery = new StringBuilder(@"INSERT INTO ""products""");
+        //    insertQuery.Append(@"(""id"", ""sku"", ""amount"", ""updateAt"")");
+        //    insertQuery.Append(" VALUES ");
+        //    products.ToList().ForEach(x =>
+        //    {
+        //        insertQuery.Append($"('{Guid.NewGuid()}', '{x.Sku}', {x.Amount}, '{x.UpdateAt.Value.ToString("yyy-MM-dd HH:mm:ss.fff")}'),");
+        //    });
+        //    //Удалить последнюю запятую
+        //    insertQuery.Remove(insertQuery.Length - 1, 1).Append(";");
+        //    return insertQuery.ToString();
+        //}
 
-        protected static DateTime? GetDateTime(string? value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return null;
-            if (DateTime.TryParse(value, out var result))
-                return result;
-            if (DateTime.TryParseExact(value, "yyyyMMddTHHmmss.FFFFFF", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
-                return result;
-            if (DateTime.TryParseExact(value, "yyyyMMddTHHmmssZ", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
-                return result;
-            if (DateTime.TryParseExact(value, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
-                return result;
-            if (DateTime.TryParseExact(value, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-                return result;
-            return null;
-        }
+        //protected static DateTime? GetDateTime(string? value)
+        //{
+        //    if (string.IsNullOrEmpty(value))
+        //        return null;
+        //    if (DateTime.TryParse(value, out var result))
+        //        return result;
+        //    if (DateTime.TryParseExact(value, "yyyyMMddTHHmmss.FFFFFF", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
+        //        return result;
+        //    if (DateTime.TryParseExact(value, "yyyyMMddTHHmmssZ", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
+        //        return result;
+        //    if (DateTime.TryParseExact(value, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out result))
+        //        return result;
+        //    if (DateTime.TryParseExact(value, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+        //        return result;
+        //    return null;
+        //}
 
         public DataTable ConvertToDataTable<T>(IEnumerable<T> data)
         {

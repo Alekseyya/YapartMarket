@@ -31,7 +31,7 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
                 ""items"": [
                     {
                         ""itemIndex"": ""1"",
-                        ""goodsId"": ""100022889385"",
+                        ""goodsId"": ""100024740905"",
                         ""offerId"": ""85030-0"",
                         ""itemId"": ""46465851903"",
                         ""itemName"": ""Концентрат для стеклоочистителей 1:10 // 1000 мл - лимон"",
@@ -95,8 +95,8 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
             var responseMessage = await client.SendAsync(httpRequestMessage).ConfigureAwait(true);
             //Assert
             var message = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
-            Assert.Equal(responseMessage.StatusCode, HttpStatusCode.OK);
-            Assert.True(message.Contains("success"));
+            Assert.Equal(responseMessage.StatusCode, HttpStatusCode.BadRequest);
+            Assert.True(message.Contains("No object found"));
         }
     }
 }

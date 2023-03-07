@@ -84,7 +84,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
                 _mockAzureProductService.Object, _mockProductPropertyRepository.Object, _aliExpressOption,
                 _configuration, _mockLogger.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
             //Arrange
-            await aliExpressProductService.UpdateProductFromSql();
+            //await aliExpressProductService.UpdateProductFromSql();
 
         }
 //        [Fact]
