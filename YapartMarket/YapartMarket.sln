@@ -3,13 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.MainApp", "YapartMarket\YapartMarket.MainApp.csproj", "{8FA34D17-0C7E-4678-8D35-A12F6F2DC619}"
-	ProjectSection(ProjectDependencies) = postProject
-		{51745EEC-E871-41EA-BF5A-A15B342C999A} = {51745EEC-E871-41EA-BF5A-A15B342C999A}
-		{AFB20531-7149-4D70-A257-CF9C6B73E7F8} = {AFB20531-7149-4D70-A257-CF9C6B73E7F8}
-		{CD368DC8-170E-4D96-986E-494F7B5B46F7} = {CD368DC8-170E-4D96-986E-494F7B5B46F7}
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.Core", "YapartMarket.Core\YapartMarket.Core.csproj", "{51745EEC-E871-41EA-BF5A-A15B342C999A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.BL", "YapartMarket.BL\YapartMarket.BL.csproj", "{AFB20531-7149-4D70-A257-CF9C6B73E7F8}"
@@ -25,28 +18,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.Data", "Yapart
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.UnitTests", "YapartMarket.UnitTests\YapartMarket.UnitTests.csproj", "{B6A7614B-9165-4EF1-89C0-386221EE6045}"
 	ProjectSection(ProjectDependencies) = postProject
-		{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72} = {45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}
 		{51745EEC-E871-41EA-BF5A-A15B342C999A} = {51745EEC-E871-41EA-BF5A-A15B342C999A}
-		{8FA34D17-0C7E-4678-8D35-A12F6F2DC619} = {8FA34D17-0C7E-4678-8D35-A12F6F2DC619}
-		{902F0D62-3D34-428D-8886-DC72FE8C4D65} = {902F0D62-3D34-428D-8886-DC72FE8C4D65}
 		{AFB20531-7149-4D70-A257-CF9C6B73E7F8} = {AFB20531-7149-4D70-A257-CF9C6B73E7F8}
 		{CD368DC8-170E-4D96-986E-494F7B5B46F7} = {CD368DC8-170E-4D96-986E-494F7B5B46F7}
 	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.React", "YapartMarket.React\YapartMarket.React.csproj", "{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}"
-	ProjectSection(ProjectDependencies) = postProject
-		{AFB20531-7149-4D70-A257-CF9C6B73E7F8} = {AFB20531-7149-4D70-A257-CF9C6B73E7F8}
-		{CD368DC8-170E-4D96-986E-494F7B5B46F7} = {CD368DC8-170E-4D96-986E-494F7B5B46F7}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.Parser", "YapartMarket.Parser\YapartMarket.Parser.csproj", "{902F0D62-3D34-428D-8886-DC72FE8C4D65}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.WebApi", "YapartMarket.WebApi\YapartMarket.WebApi.csproj", "{E4D29A7D-6BD7-4F9F-9999-17E56EDAB5C2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{AFB20531-7149-4D70-A257-CF9C6B73E7F8} = {AFB20531-7149-4D70-A257-CF9C6B73E7F8}
 	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.Integration", "YapartMarket.Integration\YapartMarket.Integration.csproj", "{303DE6B6-A7A4-4228-8D1D-5F041163964A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,10 +34,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8FA34D17-0C7E-4678-8D35-A12F6F2DC619}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8FA34D17-0C7E-4678-8D35-A12F6F2DC619}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8FA34D17-0C7E-4678-8D35-A12F6F2DC619}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8FA34D17-0C7E-4678-8D35-A12F6F2DC619}.Release|Any CPU.Build.0 = Release|Any CPU
 		{51745EEC-E871-41EA-BF5A-A15B342C999A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{51745EEC-E871-41EA-BF5A-A15B342C999A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51745EEC-E871-41EA-BF5A-A15B342C999A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -74,22 +50,10 @@ Global
 		{B6A7614B-9165-4EF1-89C0-386221EE6045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6A7614B-9165-4EF1-89C0-386221EE6045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6A7614B-9165-4EF1-89C0-386221EE6045}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45AC4518-AE3D-4A34-BB44-A71EF2FC9A72}.Release|Any CPU.Build.0 = Release|Any CPU
-		{902F0D62-3D34-428D-8886-DC72FE8C4D65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{902F0D62-3D34-428D-8886-DC72FE8C4D65}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{902F0D62-3D34-428D-8886-DC72FE8C4D65}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{902F0D62-3D34-428D-8886-DC72FE8C4D65}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E4D29A7D-6BD7-4F9F-9999-17E56EDAB5C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4D29A7D-6BD7-4F9F-9999-17E56EDAB5C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4D29A7D-6BD7-4F9F-9999-17E56EDAB5C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4D29A7D-6BD7-4F9F-9999-17E56EDAB5C2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{303DE6B6-A7A4-4228-8D1D-5F041163964A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{303DE6B6-A7A4-4228-8D1D-5F041163964A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{303DE6B6-A7A4-4228-8D1D-5F041163964A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{303DE6B6-A7A4-4228-8D1D-5F041163964A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

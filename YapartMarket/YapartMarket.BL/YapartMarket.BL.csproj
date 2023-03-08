@@ -21,15 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Topsdk">
-      <HintPath>Topsdk.dll</HintPath>
-    </Reference>
-    <Reference Include="topsdk-net-core">
-      <HintPath>topsdk-net-core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System;
-
-namespace YapartMarket.Core.DTO.Goods
+﻿namespace YapartMarket.Core.DTO.Goods
 {
     //public sealed class Product
     //{

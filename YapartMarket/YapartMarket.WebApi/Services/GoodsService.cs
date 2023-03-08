@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Npgsql;
 using System.Data.SqlClient;
 using System.Text;
 using System.Text.Json;

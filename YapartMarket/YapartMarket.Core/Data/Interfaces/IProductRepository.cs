@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using YapartMarket.Core.Models;
+﻿using YapartMarket.Core.Models;
 
 namespace YapartMarket.Core.Data.Interfaces
 {

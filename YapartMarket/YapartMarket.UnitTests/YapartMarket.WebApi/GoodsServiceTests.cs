@@ -2,7 +2,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.IO;
