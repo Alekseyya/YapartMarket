@@ -65,7 +65,7 @@ namespace YapartMarket.WebApi.Services
                        new()
                        {
                            boxIndex = boxIndex,
-                           boxCode = "3897" + shipmentId + boxIndex
+                           boxCode = $"{_configuration.GetSection("AliExpress:MarketplaceCodeTest").Value}*{shipmentId}*{boxIndex}"
                        }
                     }
                 });
@@ -259,7 +259,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 new ViewModel.Goods.Shipping.Box()
                 {
                     boxIndex = boxIndex,
-                    boxCode = "3897" + shipmentId + boxIndex
+                    boxCode = $"{_configuration.GetSection("AliExpress:MarketplaceCodeTest").Value}*{shipmentId}*{boxIndex}"
                 });
             boxIndex++;
         }
