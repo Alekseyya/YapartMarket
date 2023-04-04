@@ -133,14 +133,8 @@ namespace YapartMarket.BL.Implementation
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
-                var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
-                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku",
-                    (product, aliExpressProduct) =>
-                    {
-                        product.AliExpressProduct = aliExpressProduct;
-                        return product;
-                    }, splitOn: "productId");
-                products.AddRange(productsInDb);
+                var productsInDb = await connection.QueryAsync<Product>("select * from products p WHERE p.aliExpressProductId is not null;");
+                products = productsInDb.ToList();
             }
             return await UpdateProduct(products);
         }
