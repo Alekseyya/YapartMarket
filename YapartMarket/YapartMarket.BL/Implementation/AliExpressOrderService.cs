@@ -39,7 +39,8 @@ namespace YapartMarket.BL.Implementation
             _httpClient = factory.CreateClient("aliExpress");
             _httpClient.DefaultRequestHeaders.Add("x-auth-token", options.Value.AuthToken);
         }
-        
+        //todo написать метод для отправки заказов. Похожий на нижний. Создать еще один десериалйзер. Отправить заказы.
+        //todo напечатать этикетки отправления - отдавать отцу метод
         public async Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
         {
 
@@ -61,6 +62,59 @@ namespace YapartMarket.BL.Implementation
             }
             return aliExpressOrderList;
         }
+        public async Task CreateLogisticOrder()
+        {
+            var startOfDay = DateTime.Now.StartOfDay();
+            var endOfDay = DateTime.Now.EndOfDay();
+            var getOrderRequest = new GetOrderList()
+            {
+                date_start = startOfDay.ToString("yyy-MM-dd HH:mm:ss"),
+                date_end = endOfDay.ToString("yyy-MM-dd HH:mm:ss"),
+                page = 1,
+                page_size = 99
+            };
+            var getOrderResult = await HttpExtension.Request(getOrderRequest, _aliExpressOptions.GetOrderList, _httpClient);
+            var aliExpressOrderList = new List<AliExpressOrder>();
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var deserialize = scope.ServiceProvider.GetRequiredService<Deserializer<IReadOnlyList<AliExpressOrder>>>();
+                var order = deserialize.Deserialize(getOrderResult);
+                if (order.IsAny())
+                    aliExpressOrderList.AddRange(order.ToList());
+            }
+            var orderWaitSendGoods = aliExpressOrderList.Where(x => x.OrderStatus == OrderStatus.WaitSendGoods);
+            if (orderWaitSendGoods.Any())
+            {
+                foreach (var goods in orderWaitSendGoods)
+                {
+                    var orderId = goods.OrderId;
+                    var orderDetails = goods.AliExpressOrderDetails;
+                    var maxLength = orderDetails.Max(x => x.Length);
+                    var summHeight = orderDetails.Sum(x => x.Height);
+                    var summWeight = (double)orderDetails.Sum(x => x.Weight) / 1000;
+                    var summWidth = orderDetails.Sum(x => x.Width);
+                    var items = goods.AliExpressOrderDetails.Select(x => new LogisticOrderItemInfo()
+                    {
+                        quantity = x.ProductCount,
+                        sku_id = x.SkuId
+                    });
+                    var logisticOrderItems = orderDetails.Select(x => new LogisticOrderItem()
+                    {
+                        trade_order_id = orderId,
+                        total_length = maxLength,
+                        total_height = summHeight,
+                        total_weight = summWeight,
+                        total_width = summWidth,
+                        items = items.ToList(),
+                    });
+                    var logisticOrder = new LogisticOrder()
+                    {
+                        orders = logisticOrderItems.ToList()
+                    };
+                    var createLogisticOrderResult = await HttpExtension.Request(logisticOrder, _aliExpressOptions.CreateLogisticOrder, _httpClient);
+                }
+            }
+        } 
         /// <summary>
         /// Получение заказа по статусу "Ожидает отправки товара"
         /// </summary>

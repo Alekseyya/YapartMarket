@@ -89,6 +89,15 @@ namespace YapartMarket.WebApi.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("createLogisticOrder")]
+        [Produces("application/json")]
+        public async Task<IActionResult> CreateLogisticOrder()
+        {
+            await _aliExpressOrderService.CreateLogisticOrder();
+            return Ok();
+        }
+
         [HttpPost]
         [Route("downloadNewOrders")]
         public async Task<IActionResult> DownloadNewOrders()

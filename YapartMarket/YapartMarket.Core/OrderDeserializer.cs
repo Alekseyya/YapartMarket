@@ -6,70 +6,8 @@ using YapartMarket.Core.Models.Raw;
 
 namespace YapartMarket.Core
 {
-    public class OrderDeserializer : OrderMessageDeserializer<IReadOnlyList<AliExpressOrder>>
+    public sealed class OrderDeserializer : OrderMessageDeserializer<IReadOnlyList<AliExpressOrder>>
     {
-        LogisticsStatus GetLogisticStatus(string? status)
-        {
-            if (status == null)
-                return LogisticsStatus.UNKNOWN;
-            return status.ToLower() switch
-            {
-                "wait_seller_send_goods" => LogisticsStatus.WAIT_SELLER_SEND_GOODS,
-                "seller_send_part_goods" => LogisticsStatus.SELLER_SEND_PART_GOODS,
-                "seller_send_goods" => LogisticsStatus.SELLER_SEND_GOODS,
-                "buyer_accept_goods" => LogisticsStatus.BUYER_ACCEPT_GOODS,
-                "no_logistics" => LogisticsStatus.NO_LOGISTICS
-            };
-        }
-
-        BizType GetBizType(string? status)
-        {
-            if(status == null)
-                return BizType.UNKNOWN;
-            return status.ToLower() switch
-            {
-                "ae_common" => BizType.AE_COMMON,
-                "ae_trial" => BizType.AE_TRIAL,
-                "ae_recharge" => BizType.AE_RECHARGE,
-            };
-        }
-
-        OrderStatus GetOrderStatus(string orderStatus)
-        {
-            if(orderStatus == null)
-                return OrderStatus.Unknown;
-            return orderStatus.ToLower() switch
-            {
-                "unknown" => OrderStatus.Unknown,
-                "placeordersuccess" => OrderStatus.PlaceOrderSuccess,
-                "paymentpending" => OrderStatus.PaymentPending,
-                "waitexaminemoney" => OrderStatus.WaitExamineMoney,
-                "waitgroup" => OrderStatus.WaitGroup,
-                "waitsendgoods" => OrderStatus.WaitSendGoods,
-                "partialsendgoods" => OrderStatus.PartialSendGoods,
-                "waitacceptgoods" => OrderStatus.WaitAcceptGoods,
-                "incancel" => OrderStatus.InCancel,
-                "complete" => OrderStatus.Complete,
-                "close" => OrderStatus.Close,
-                "finish" => OrderStatus.Finish,
-                "infrozen" => OrderStatus.InFrozen,
-                "inissue" => OrderStatus.InIssue
-            };
-        }
-
-        PaymentStatus GetPaymentStatus(string? status)
-        {
-            if(status == null)
-                return PaymentStatus.Unknown;
-            return status.ToLower() switch
-            {
-                "notpaid" => PaymentStatus.NotPaid,
-                "hold" => PaymentStatus.Hold,
-                "paid" => PaymentStatus.Paid,
-                "cancelled" => PaymentStatus.Cancelled,
-                "failed" => PaymentStatus.Failed
-            };
-        }
         protected override IReadOnlyList<AliExpressOrder> CreateInstanceFromMessage(IReadOnlyList<Order> orders)
         {
             var aliOrders = new List<AliExpressOrder>();
@@ -99,9 +37,14 @@ namespace YapartMarket.Core
                 aliOrderDetails.Add(new AliExpressOrderDetail()
                 {
                     ProductId = GetLong(orderDetail.item_id),
+                    SkuId = GetLong(orderDetail.sku_id),
                     ProductName = orderDetail.sku_code,
                     ProductCount = (int)orderDetail.quantity,
                     ItemPrice = GetDecimal(orderDetail.item_price),
+                    Height = (int)orderDetail.height,
+                    Weight = (int)orderDetail.weight,
+                    Width = (int)orderDetail.width,
+                    Length = (int)orderDetail.length,
                     TotalProductAmount = GetDecimal(orderDetail.total_amount),
                 });
             }
