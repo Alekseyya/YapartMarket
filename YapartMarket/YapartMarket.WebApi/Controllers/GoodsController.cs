@@ -62,8 +62,13 @@ namespace YapartMarket.WebApi.Controllers
         {
             if (order != null)
             {
-                var result = await _goodsService.CancelAsync(order);
-                return Ok();
+                await _goodsService.CancelAsync(order);
+                return Ok(new ConfirmCancel()
+                {
+                    data = new(),
+                    success = 1,
+                    meta = new()
+                });
             }
             return BadRequest();
         }

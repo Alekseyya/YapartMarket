@@ -133,19 +133,22 @@ namespace YapartMarket.WebApi.Services
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
                     var canceledOrder = cancelOrder.data.shipments.First();
-                    var order = await connection.QueryFirstAsync<Order>(@"select * from goods_order where shipmentId = @shipmentid", new { shipmentId = canceledOrder.shipmentId });
+                    var order = await connection.QueryFirstAsync<Order>(@"select * from goods_order where shipmentId = @shipmentid", new { shipmentId = canceledOrder.shipmentId },
+                        transaction);
                     if (order != null)
                     {
                         var cancelDateTime = DateTime.Now;
                         var orderId = order.Id;
-                        var updateSql = @"update goods_orderItem set cancel = true where orderId = @orderId and itemIndex = @itemIndex and goodsId = @goodsId
+                        var updateSql = @"update goods_orderItem set cancel = 0 where orderId = @orderId and itemIndex = @itemIndex and goodsId = @goodsId
 and cancelDateTime = @cancelDateTime;";
                         var canceledOrderTmp = canceledOrder.items.Select(x => new { itemIndex = x.itemIndex, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
                         foreach (var cancelOrderTmp in canceledOrderTmp)
                         {
-                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from goods_orderItem where itemIndex = @itemIndex and goodsId = @goodsId", cancelOrderTmp).ConfigureAwait(false);
+                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from goods_orderItem where itemIndex = @itemIndex and goodsId = @goodsId", cancelOrderTmp,
+                                transaction).ConfigureAwait(false);
                             if (orderItem != null)
-                                await connection.ExecuteAsync(updateSql, new { orderId = orderId, itemIndex = cancelOrderTmp.itemIndex, goodsId = cancelOrderTmp.goodsId }).ConfigureAwait(false);
+                                await connection.ExecuteAsync(updateSql, new { orderId = orderId, itemIndex = cancelOrderTmp.itemIndex, goodsId = cancelOrderTmp.goodsId, cancelDateTime = DateTime.Now },
+                                    transaction).ConfigureAwait(false);
                         }
                         await transaction.CommitAsync().ConfigureAwait(false);
                     }
