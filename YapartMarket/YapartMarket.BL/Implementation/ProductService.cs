@@ -40,26 +40,37 @@ namespace YapartMarket.BL.Implementation
             }
             return productRepository.GetAll();
         }
+
+        sealed class UpdateGoodsProduct
+        {
+            public UpdateGoodsProduct(string sku, string goodsId, string offerId)
+            {
+                Sku = sku;
+                GoodsId = goodsId;
+                OfferId = offerId;
+            }
+            public string Sku { get; }
+            public string GoodsId { get; }
+            public string OfferId { get; }
+        }
+
         public async Task UpdateGoodsIdFromProducts()
         {
-            var dic = new Dictionary<string, string>();
-            using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\TMP\Готовые связки-2023-03-06.xlsx")))
+            var products = new List<UpdateGoodsProduct>();
+            using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\TMP\Готовые связки-2023-05-05.xlsx")))
             {
                 var myWorksheet = xlPackage.Workbook.Worksheets.First(); //select sheet here
                 var totalRows = myWorksheet.Dimension.End.Row;
                 var totalColumns = myWorksheet.Dimension.End.Column;
 
                 var sb = new StringBuilder(); //this is your data
-                var cell = myWorksheet.Cells[9130, 2].Select(c => c.Value == null ? string.Empty : c.Value.ToString());
-                if (string.IsNullOrEmpty(cell.FirstOrDefault()))
-                    Console.WriteLine(true);
-                Console.WriteLine(cell);
                 for (int rowNum = 2; rowNum <= totalRows; rowNum++) //select ;starting row here
                 {
                     var cellGoodsId = myWorksheet.Cells[rowNum, 3].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
-                    var cellId = myWorksheet.Cells[rowNum, 12].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
-                    if(!dic.ContainsKey(cellGoodsId))
-                        dic.Add(cellGoodsId, cellId);
+                    var cellOfferId = myWorksheet.Cells[rowNum, 2].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
+                    var cellSku = myWorksheet.Cells[rowNum, 12].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
+                    if (!products.Any(x => x.OfferId == cellOfferId))
+                        products.Add(new(cellSku, cellGoodsId, cellOfferId));
                 }
             }
             using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
@@ -67,10 +78,10 @@ namespace YapartMarket.BL.Implementation
                 await connection.OpenAsync();
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
-                    var updateSql = @"update products set goodsId = @goodsId where sku = @sku;";
-                    foreach (var item in dic)
+                    var updateSql = @"update products set goodsId = @goodsId, offerId = @offerId where sku = @sku;";
+                    foreach (var product in products)
                     {
-                        await connection.ExecuteAsync(updateSql, new { goodsId = item.Key, sku = item.Value }, transaction).ConfigureAwait(false);
+                        await connection.ExecuteAsync(updateSql, new { goodsId = product.GoodsId, offerId = product.OfferId, sku = product.Sku }, transaction).ConfigureAwait(false);
                     }
                     await transaction.CommitAsync().ConfigureAwait(false);
                 }

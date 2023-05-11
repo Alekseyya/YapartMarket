@@ -139,15 +139,16 @@ namespace YapartMarket.WebApi.Services
                     {
                         var cancelDateTime = DateTime.Now;
                         var orderId = order.Id;
-                        var updateSql = @"update goods_orderItem set cancel = 0 where orderId = @orderId and itemIndex = @itemIndex and goodsId = @goodsId
+                        var updateSql = @"update goods_orderItem set cancel = 0 where orderId = @orderId and itemIndex = @itemIndex and goodsId = @goodsId and offerId = @offerId
 and cancelDateTime = @cancelDateTime;";
-                        var canceledOrderTmp = canceledOrder.items.Select(x => new { itemIndex = x.itemIndex, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
+                        var canceledOrderTmp = canceledOrder.items.Select(x => new { itemIndex = x.itemIndex, offerId = x.offerId, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
                         foreach (var cancelOrderTmp in canceledOrderTmp)
                         {
-                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from goods_orderItem where itemIndex = @itemIndex and goodsId = @goodsId", cancelOrderTmp,
+                            var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from goods_orderItem where itemIndex = @itemIndex and offerId = @offerId", cancelOrderTmp,
                                 transaction).ConfigureAwait(false);
                             if (orderItem != null)
-                                await connection.ExecuteAsync(updateSql, new { orderId = orderId, itemIndex = cancelOrderTmp.itemIndex, goodsId = cancelOrderTmp.goodsId, cancelDateTime = DateTime.Now },
+                                await connection.ExecuteAsync(updateSql, new { orderId = orderId, itemIndex = cancelOrderTmp.itemIndex, offerId = cancelOrderTmp.offerId,
+                                    goodsId = cancelOrderTmp.goodsId, cancelDateTime = DateTime.Now },
                                     transaction).ConfigureAwait(false);
                         }
                         await transaction.CommitAsync().ConfigureAwait(false);
@@ -216,28 +217,28 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 {
                     var orderId = order.Id;
                     var orderItems = await connection.QueryAsync<OrderItem>(@"select * from goods_orderItem where orderId = @orderId", new { orderId });
-                    var group = orderItems!.GroupBy(x => x.GoodsId).Select(x => new { goodsId = x.Key, count = x.Count() }).ToList();
-                    var goodsId = orderItems!.GroupBy(x => x.GoodsId).Select(x => x.Key).ToList();
-                    var foundProducts = await connection.QueryAsync<Core.Models.Azure.Product>(@"select * from products where goodsId IN @goodsId", new { goodsId = goodsId });
+                    var group = orderItems!.GroupBy(x => x.OfferId).Select(x => new { offerId = x.Key, count = x.Count() }).ToList();
+                    var offerId = orderItems!.GroupBy(x => x.OfferId).Select(x => x.Key).ToList();
+                    var foundProducts = await connection.QueryAsync<Core.Models.Azure.Product>(@"select * from products where offerId IN @offerId", new { offerId = offerId });
                     var confirmItems = new List<OrderItem>();
                     var rejectItems = new List<OrderItem>();
                     foreach (var foundProduct in foundProducts)
                     {
-                        var goods = group.FirstOrDefault(x => x.goodsId == foundProduct.GoodsId!.Value);
+                        var goods = group.FirstOrDefault(x => x.offerId == foundProduct.OfferId!.Value);
                         if (goods == null)
-                            rejectItems.AddRange(orderItems.Where(x => x.GoodsId == foundProduct.GoodsId!.Value));
+                            rejectItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value));
                         if(foundProduct.Count == 0)
-                            rejectItems.AddRange(orderItems.Where(x => x.GoodsId == foundProduct.GoodsId!.Value));
+                            rejectItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value));
                         if(foundProduct.Count != 0 && foundProduct.Count >= goods.count)
                         {
-                            confirmItems.AddRange(orderItems.Where(x => x.GoodsId == foundProduct.GoodsId!.Value).Take(goods.count));
+                            confirmItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value).Take(goods.count));
                         }
                         if(foundProduct.Count != 0 && foundProduct.Count < goods.count)
                         {
                             var countConfirm = foundProduct.Count;
                             var countReject = goods.count - countConfirm;
-                            confirmItems.AddRange(orderItems.Where(x => x.GoodsId == foundProduct.GoodsId!.Value).Take(countConfirm));
-                            rejectItems.AddRange(orderItems.Where(x => x.GoodsId == foundProduct.GoodsId!.Value).Skip(countConfirm).Take(countReject));
+                            confirmItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value).Take(countConfirm));
+                            rejectItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value).Skip(countConfirm).Take(countReject));
                         }
 
                     }

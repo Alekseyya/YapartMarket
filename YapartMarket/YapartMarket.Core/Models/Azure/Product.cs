@@ -20,6 +20,8 @@ namespace YapartMarket.Core.Models.Azure
         public long? AliExpressProductId { get; set; }
         [Column("goodsId")]
         public long? GoodsId { get; set; }
+        [Column("offerId")]
+        public long? OfferId { get; set; }
         [Column("updatedAt")]
         [Display(Name = "Время обновления записи")]
         public string UpdatedAt { get; set; }
