@@ -65,7 +65,7 @@ namespace YapartMarket.WebApi.Services
                        new()
                        {
                            boxIndex = boxIndex,
-                           boxCode = $"{_configuration.GetSection("AliExpress:MarketplaceCodeTest").Value}*{shipmentId}*{boxIndex}"
+                           boxCode = $"{_configuration.GetSection("AliExpress:MarketplaceCode").Value}*{shipmentId}*{boxIndex}"
                        }
                     }
                 });
@@ -75,7 +75,7 @@ namespace YapartMarket.WebApi.Services
             {
                 data = new ViewModel.Goods.Packing.Data()
                 {
-                    token = _configuration.GetSection("goodsTestToken").Value,
+                    token = _configuration.GetSection("goodsToken").Value,
                     shipments = new List<ViewModel.Goods.Packing.Shipment>()
                     {
                         new()
@@ -118,7 +118,7 @@ namespace YapartMarket.WebApi.Services
                     {
                         type = Enum.GetName(typeof(ReasonType), ReasonType.OUT_OF_STOCK)
                     },
-                    token = _configuration.GetSection("goodsTestToken").Value
+                    token = _configuration.GetSection("goodsToken").Value
                 },
                 meta = new()
             };
@@ -284,7 +284,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     new ViewModel.Goods.Shipping.Box()
                     {
                         boxIndex = boxIndex,
-                        boxCode = $"{_configuration.GetSection("AliExpress:MarketplaceCodeTest").Value}*{shipmentId}*{boxIndex}"
+                        boxCode = $"{_configuration.GetSection("AliExpress:MarketplaceCode").Value}*{shipmentId}*{boxIndex}"
                     });
                 boxIndex++;
             }
@@ -292,7 +292,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             {
                 data = new()
                 {
-                    token = _configuration.GetSection("goodsTestToken").Value,
+                    token = _configuration.GetSection("goodsToken").Value,
                     shipments = new List<ViewModel.Goods.Shipping.Shipment>()
                     {
                         new()
@@ -319,14 +319,14 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 items.Add(new()
                 {
                     itemIndex = orderItem.ItemIndex,
-                    offerId = orderItem.OfferId
+                    offerId = orderItem.OfferId.ToString()
                 });
             }
             var confirm = new Confirm()
             {
                 data = new()
                 {
-                    token = _configuration.GetSection("goodsTestToken").Value,
+                    token = _configuration.GetSection("goodsToken").Value,
                     shipments = new List<ViewModel.Goods.Confirm.Shipment>()
                     {
                         new()
