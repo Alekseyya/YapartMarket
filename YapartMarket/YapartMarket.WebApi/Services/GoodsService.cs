@@ -361,7 +361,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var confirmResponse = JsonSerializer.Deserialize<ConfirmResponse>(response, jsonSerializerOptions);
             if (confirmResponse.success == 0)
-                return new SuccessResult(confirmResponse.error.message);
+                return new SuccessResult($"Confirm : {confirmResponse.error.message}");
             return SuccessResult.Success;
         }
         private async Task<SuccessResult> SendShippingRequestAsync(string json)
@@ -375,7 +375,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var packingResponse = JsonSerializer.Deserialize<ShippingResponse>(response, jsonSerializerOptions);
             if (packingResponse.success == 0)
-                return new SuccessResult(packingResponse.error.Select(x => x.message).ToList());
+                return new SuccessResult($"Shipping : {packingResponse.error.message}");
             return SuccessResult.Success;
         }
         private async Task<SuccessResult> SendPackageRequestAsync(string json)
@@ -389,7 +389,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var packagedResponse = JsonSerializer.Deserialize<PackingResponse>(response, jsonSerializerOptions);
             if (packagedResponse.success == 0)
-                return new SuccessResult(packagedResponse.error.Select(x => x.message).ToList());
+                return new SuccessResult($"Packing : {packagedResponse.error.message}");
             return SuccessResult.Success;
         }
         private async Task<SuccessResult> SendRejectRequestAsync(string json)
@@ -403,7 +403,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var rejectResponse = JsonSerializer.Deserialize<RejectResponse>(response, jsonSerializerOptions);
             if (rejectResponse.success == 0)
-                return new SuccessResult(rejectResponse.error.Select(x => x.message).ToList());
+                return new SuccessResult($"Reject : {rejectResponse.error.message}");
             return SuccessResult.Success;
         }
     }

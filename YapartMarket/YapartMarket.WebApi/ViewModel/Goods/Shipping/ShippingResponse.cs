@@ -4,6 +4,6 @@ namespace YapartMarket.WebApi.ViewModel.Goods.Shipping
 {
     public sealed class ShippingResponse : SuccessResponse
     {
-        public List<Error> error { get; set; }
+        public Error error { get; set; }
     }
 }
