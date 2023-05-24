@@ -77,8 +77,16 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("order/status")]
         [Produces("application/json")]
-        public IActionResult SetOrderStatus([FromBody] OrderDto orderStatusDto)
+        public IActionResult SetOrderStatus([FromBody] OrderDto orderStatusDto, [FromQuery(Name = "auth-token")] string authToken)
         {
+            if (string.IsNullOrEmpty(authToken))
+                return StatusCode(500);
+            var yapartToken = _configuration.GetValue<string>("auth-token");
+            var yapartRogToken = _configuration.GetValue<string>("auth-token-rog");
+            var yapartExpressToken = _configuration.GetValue<string>("auth-token-yapart-express");
+            var yapartYarkoExpressToken = _configuration.GetValue<string>("auth-token-yapart-yarko-express");
+            if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken && yapartYarkoExpressToken != authToken)
+                return StatusCode(403);
             if (orderStatusDto != null)
             {
                 return Ok();
