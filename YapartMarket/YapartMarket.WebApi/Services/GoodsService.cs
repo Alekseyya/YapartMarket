@@ -5,7 +5,10 @@ using System.Text.Json;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO.Goods;
 using YapartMarket.Core.Extensions;
+using YapartMarket.Core.Models.Azure;
+using YapartMarket.WebApi.Model.Goods;
 using YapartMarket.WebApi.Services.Interfaces;
+using YapartMarket.WebApi.ViewModel;
 using YapartMarket.WebApi.ViewModel.Goods;
 using YapartMarket.WebApi.ViewModel.Goods.Cancel;
 using YapartMarket.WebApi.ViewModel.Goods.Confirm;
@@ -50,6 +53,53 @@ namespace YapartMarket.WebApi.Services
 
                 return orderResult.FirstOrDefault();
             }
+        }
+        public async Task<OrdersViewModel> GetOrderAsync(DateTime dateTimeStart, DateTime dateTimeEnd)
+        {
+            var orderViewModel = new List<Model.Goods.OrderViewModel>();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                var sql = @"select * from goods_order o inner join goods_orderItem od on o.Id = od.orderId
+where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
+                var orderDictionary = new Dictionary<Guid, Order>();
+                var queryResult = await connection.QueryAsync<Order, OrderItem, Order>(sql, (order, orderDetail) =>
+                {
+                    if (!orderDictionary.TryGetValue(order.Id, out Order docEntry))
+                    {
+                        docEntry = order;
+                        docEntry.OrderDetails = new List<OrderItem>();
+                        orderDictionary.Add(docEntry.Id, docEntry);
+                    }
+                    docEntry.OrderDetails.Add(orderDetail);
+                    return docEntry;
+                }, splitOn: "orderid", param: new { dateTimeStart, dateTimeEnd });
+                var ordersResult = queryResult.GroupBy(x => x.ShipmentId);
+                foreach (var orderResult in ordersResult)
+                {
+                    var order = orderResult.First();
+                    var orderItemsResult = orderResult.SelectMany(x => x.OrderDetails).GroupBy(x => x.OfferId).Select(x => new { OfferId = x.Key, Quantity = x.Sum(q => q.Quantity) }).ToList();
+                    var products = await connection.QueryAsync<Product>(@"select * from products where offerId IN @offerId", new { offerId = orderItemsResult.Select(x => x.OfferId) });
+                    var items = new List<Model.Goods.OrderItemViewModel>();
+                    foreach (var orderDetails in orderItemsResult)
+                    {
+                        var sku = products.FirstOrDefault(x => x.OfferId == orderDetails.OfferId).Sku;
+                        items.Add(new()
+                        {
+                            OfferId = orderDetails.OfferId,
+                            Sku = sku,
+                            Quantity = orderDetails.Quantity
+                        });
+                    }
+                    orderViewModel.Add(new()
+                    {
+                        ShipmentId = order.ShipmentId,
+                        ShipmentDate = order.ShipmentDate,
+                        Items = items
+                    });
+                }
+            }
+            return new OrdersViewModel(orderViewModel);
         }
         public async Task<SuccessResult> PackingAsync(string shipmentId, IReadOnlyList<OrderItem> orderItems)
         {
@@ -405,6 +455,11 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             if (rejectResponse.success == 0)
                 return new SuccessResult($"Reject : {rejectResponse.error.message}");
             return SuccessResult.Success;
+        }
+
+        Task<Core.DTO.Goods.Order?> IGoodsService.GetOrderAsync(OrderNewViewModel orderViewModel)
+        {
+            throw new NotImplementedException();
         }
     }
 }

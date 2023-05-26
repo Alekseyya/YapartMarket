@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using YapartMarket.Core.Extensions;
 using YapartMarket.WebApi.Services.Interfaces;
 using YapartMarket.WebApi.ViewModel.Goods;
 using YapartMarket.WebApi.ViewModel.Goods.Cancel;
@@ -49,6 +50,23 @@ namespace YapartMarket.WebApi.Controllers
             }
 
             return Ok();
+        }
+        [HttpGet]
+        [Route("CurrentDay")]
+        [Produces("application/json")]
+        public async Task<IActionResult> Get()
+        {
+            try
+            {
+                var ordersByDay = await _goodsService.GetOrderAsync(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.EndOfDay());
+                if (ordersByDay != null)
+                    return Ok(ordersByDay);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
         /// <summary>
         /// Cancel order
