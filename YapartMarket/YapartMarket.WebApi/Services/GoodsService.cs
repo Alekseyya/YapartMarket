@@ -297,8 +297,8 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                         var confirmResult = await ConfirmAsync(shipmentId, confirmItems.ToList());
                         var rejectResult = await RejectAsync(shipmentId, rejectItems.ToList());
                         var packingResult = await PackingAsync(shipmentId, confirmItems.ToList());
-                        var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
-                        var result = SuccessResult.Combine(confirmResult, rejectResult, packingResult, shipmentResult);
+                        //var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
+                        var result = SuccessResult.Combine(confirmResult, rejectResult, packingResult /*, shipmentResult*/);
                         if (!result.Succeeded)
                             return result;
                     }
@@ -306,8 +306,8 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     {
                         var confirmResult = await ConfirmAsync(shipmentId, confirmItems.ToList());
                         var packingResult = await PackingAsync(shipmentId, confirmItems.ToList());
-                        var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
-                        var result = SuccessResult.Combine(confirmResult, packingResult, shipmentResult);
+                        //var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
+                        var result = SuccessResult.Combine(confirmResult, packingResult /*, shipmentResult*/);
                         if (!result.Succeeded)
                             return result;
                     }
