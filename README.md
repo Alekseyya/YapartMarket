@@ -1,2 +1,2 @@
 # YapartMarket
-YapartStore migrate to .net core 3.1
+YapartStore .net 7
