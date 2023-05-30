@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using Dapper.Contrib.Extensions;
 using YapartMarket.Core.DateStructures;
 
@@ -18,6 +19,8 @@ namespace YapartMarket.Core.Models.Azure
         public int ProductCount { get; set; }
         [Column("product_id")]
         public long ProductId { get; set; }
+        [Column("sku_id")]
+        public long SkuId { get; set; }
         [Column("product_name")]
         public string ProductName { get; set; }
         [Column("product_unit_price")]
@@ -26,6 +29,14 @@ namespace YapartMarket.Core.Models.Azure
         public OrderStatus ShowStatus { get; set; }
         [Column("goods_prepare_time")]
         public int GoodsPrepareDays { get; set; }
+        [Column("height")]
+        public int Height { get; set; }
+        [Column("weight")]
+        public int Weight { get; set; }
+        [Column("width")]
+        public int Width { get; set; }
+        [Column("length")]
+        public int Length { get; set; }
         [Column("total_count_product_amount")]
         public decimal TotalProductAmount { get; set; }
         [Column("created")]

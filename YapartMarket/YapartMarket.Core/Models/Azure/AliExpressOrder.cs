@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dapper.Contrib.Extensions;
@@ -29,6 +30,6 @@ namespace YapartMarket.Core.Models.Azure
         public DateTime? CreateAt { get; set; }
         [Column("fund_status")]
         public PaymentStatus PaymentStatus { get; set; }
-        public virtual ICollection<AliExpressOrderDetail> AliExpressOrderDetails { get; set; }
+        public virtual IList<AliExpressOrderDetail> AliExpressOrderDetails { get; set; }
     }
 }

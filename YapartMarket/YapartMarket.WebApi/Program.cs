@@ -59,13 +59,26 @@ builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builde
 builder.Services.AddQuartz(q =>
 {
     q.UseMicrosoftDependencyInjectionScopedJobFactory();
-    var jobKey = new JobKey("DemoJob");
+    var jobKey = new JobKey("UpdateInventotyJob");
     q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
 
     q.AddTrigger(opts => opts
         .ForJob(jobKey)
-        .WithIdentity("DemoJob-trigger")
-        .WithCronSchedule("0 */4 * * * ?"));
+        .WithIdentity("UpdateInventoryTrigger")
+        .WithCronSchedule("0 */1 * * * ?"));
+
+});
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+    var jobKey = new JobKey("CreateLogisticOrderJob");
+    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
+
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("CreateLogisticOrderTrigger")
+        .WithCronSchedule("*/1 * * * * ?"));
 
 });
 
