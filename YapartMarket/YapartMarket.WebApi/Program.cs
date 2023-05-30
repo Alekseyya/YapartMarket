@@ -78,7 +78,7 @@ builder.Services.AddQuartz(q =>
     q.AddTrigger(opts => opts
         .ForJob(jobKey)
         .WithIdentity("CreateLogisticOrderTrigger")
-        .WithCronSchedule("*/1 * * * * ?"));
+        .WithCronSchedule("*/15 * * * * ?"));
 
 });
 
