@@ -56,20 +56,33 @@ builder.Services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("http
 
 builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
 
-//builder.Services.AddQuartz(q =>
-//{
-//    q.UseMicrosoftDependencyInjectionScopedJobFactory();
-//    var jobKey = new JobKey("DemoJob");
-//    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+    var jobKey = new JobKey("UpdateInventotyJob");
+    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
 
-//    q.AddTrigger(opts => opts
-//        .ForJob(jobKey)
-//        .WithIdentity("DemoJob-trigger")
-//        .WithCronSchedule("0 */4 * * * ?"));
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("UpdateInventoryTrigger")
+        .WithCronSchedule("0 */1 * * * ?"));
 
-//});
+});
 
-//builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+    var jobKey = new JobKey("CreateLogisticOrderJob");
+    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
+
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("CreateLogisticOrderTrigger")
+        .WithCronSchedule("*/1 * * * * ?"));
+
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

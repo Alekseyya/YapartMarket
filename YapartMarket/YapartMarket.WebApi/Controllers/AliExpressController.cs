@@ -94,7 +94,7 @@ namespace YapartMarket.WebApi.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> CreateLogisticOrder()
         {
-            await _aliExpressOrderService.CreateLogisticOrder();
+            await _aliExpressOrderService.CreateLogisticOrderAsync();
             return Ok();
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -62,7 +63,7 @@ namespace YapartMarket.BL.Implementation
             }
             return aliExpressOrderList;
         }
-        public async Task CreateLogisticOrder()
+        public async Task CreateLogisticOrderAsync()
         {
             var startOfDay = DateTime.Now.StartOfDay();
             var endOfDay = DateTime.Now.EndOfDay();
@@ -111,7 +112,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         orders = logisticOrderItems.ToList()
                     };
-                    var createLogisticOrderResult = await HttpExtension.Request(logisticOrder, _aliExpressOptions.CreateLogisticOrder, _httpClient);
+                    await HttpExtension.Request(logisticOrder, _aliExpressOptions.CreateLogisticOrder, _httpClient);
                 }
             }
         } 
