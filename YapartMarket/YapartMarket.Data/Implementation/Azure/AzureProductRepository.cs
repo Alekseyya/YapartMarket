@@ -160,7 +160,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", conn))
+                using (SqlCommand command = new SqlCommand(@"DROP TABLE products_tmpTakeTime; CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", conn))
                 {
                     try
                     {
