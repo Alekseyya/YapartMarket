@@ -72,7 +72,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpCount (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, count int NULL, updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", conn))
+                using (SqlCommand command = new SqlCommand(@"DROP TABLE products_tmpCount; CREATE TABLE products_tmpCount (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, count int NULL, updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", conn))
                 {
                     try
                     {
