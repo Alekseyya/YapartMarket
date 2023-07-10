@@ -6,7 +6,7 @@ using YapartMarket.Core.Models.Raw;
 
 namespace YapartMarket.Core
 {
-    public sealed class OrderDeserializer : OrderMessageDeserializer<IReadOnlyList<AliExpressOrder>>
+    public class OrderDeserializer : OrderMessageDeserializer<IReadOnlyList<AliExpressOrder>>
     {
         protected override IReadOnlyList<AliExpressOrder> CreateInstanceFromMessage(IReadOnlyList<Order> orders)
         {

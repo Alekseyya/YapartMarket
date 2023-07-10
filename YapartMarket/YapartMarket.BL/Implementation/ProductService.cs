@@ -87,5 +87,37 @@ namespace YapartMarket.BL.Implementation
                 }
             }
         }
+        public async Task UpdateAliProdutId()
+        {
+            var products = new Dictionary<long, string>();
+            using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\MyOwn\актуальные артикулы али.xlsx")))
+            {
+                var myWorksheet = xlPackage.Workbook.Worksheets.First(); //select sheet here
+                var totalRows = myWorksheet.Dimension.End.Row;
+                var totalColumns = myWorksheet.Dimension.End.Column;
+
+                var sb = new StringBuilder(); //this is your data
+                for (int rowNum = 4; rowNum <= totalRows; rowNum++) //select ;starting row here
+                {
+                    var cellProductId = long.Parse(myWorksheet.Cells[rowNum, 1].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault());
+                    var cellSku = myWorksheet.Cells[rowNum, 2].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
+                    if (!products.ContainsKey(cellProductId))
+                        products.Add(cellProductId, cellSku);
+                }
+            }
+            using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    var updateSql = @"update products set aliExpressProductId = @aliExpressProductId where sku = @sku;";
+                    foreach (var product in products)
+                    {
+                        await connection.ExecuteAsync(updateSql, new { aliExpressProductId = product.Key, sku = product.Value }, transaction).ConfigureAwait(false);
+                    }
+                    await transaction.CommitAsync().ConfigureAwait(false);
+                }
+            }
+        }
     }
 }

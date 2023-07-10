@@ -50,7 +50,9 @@ updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", conn))
 
                         command.CommandTimeout = 3000;
                         command.CommandText = @"UPDATE P SET P.aliExpressProductId = T.aliExpressProductId, P.updatedAt = T.updatedAt
-FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TABLE products_productId;";
+FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
+                        await command.ExecuteNonQueryAsync();
+                        command.CommandText = "DROP TABLE products_productId;";
                         await command.ExecuteNonQueryAsync();
                     }
                     catch (Exception ex)
@@ -72,7 +74,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"DROP TABLE products_tmpCount; CREATE TABLE products_tmpCount (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, count int NULL, updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", conn))
+                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpCount (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, count int NULL, updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", conn))
                 {
                     try
                     {
@@ -93,7 +95,9 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
 
                         command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.count = T.count FROM products AS P INNER JOIN products_tmpCount AS T ON P.sku = T.sku ;DROP TABLE products_tmpCount;";
+                        command.CommandText = "UPDATE P SET P.count = T.count FROM products AS P INNER JOIN products_tmpCount AS T ON P.sku = T.sku;";
+                        await command.ExecuteNonQueryAsync();
+                        command.CommandText = "DROP TABLE products_tmpCount;";
                         await command.ExecuteNonQueryAsync();
                     }
                     catch (Exception ex)
@@ -137,7 +141,9 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
 
                         command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.countExpress = T.countExpress, P.updateExpress = T.updateExpress  FROM products AS P INNER JOIN products_express_count AS T ON P.sku = T.sku; DROP TABLE products_express_count;";
+                        command.CommandText = "UPDATE P SET P.countExpress = T.countExpress, P.updateExpress = T.updateExpress  FROM products AS P INNER JOIN products_express_count AS T ON P.sku = T.sku;";
+                        await command.ExecuteNonQueryAsync();
+                        command.CommandText = "DROP TABLE products_express_count;";
                         await command.ExecuteNonQueryAsync();
                     }
                     catch (Exception ex)
@@ -160,7 +166,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"DROP TABLE products_tmpTakeTime; CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", conn))
+                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", conn))
                 {
                     try
                     {
@@ -180,12 +186,13 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
 
                         command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.takeTime = T.takeTime FROM products AS P INNER JOIN products_tmpTakeTime AS T ON P.sku = T.sku; DROP TABLE products_tmpTakeTime;";
+                        command.CommandText = "UPDATE P SET P.takeTime = T.takeTime FROM products AS P INNER JOIN products_tmpTakeTime AS T ON P.sku = T.sku;";
+                        await command.ExecuteNonQueryAsync();
+                        command.CommandText = "DROP TABLE products_tmpTakeTime;";
                         await command.ExecuteNonQueryAsync();
                     }
                     catch (Exception ex)
                     {
-                        // Handle exception properly
                         throw ex;
                     }
                     finally
@@ -223,12 +230,13 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku; DROP TAB
 
 
                         command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.takeTimeExpress = T.takeTimeExpress FROM products AS P INNER JOIN products_express_take AS T ON P.sku = T.sku; DROP TABLE products_express_take;";
+                        command.CommandText = "UPDATE P SET P.takeTimeExpress = T.takeTimeExpress FROM products AS P INNER JOIN products_express_take AS T ON P.sku = T.sku;";
+                        await command.ExecuteNonQueryAsync();
+                        command.CommandText = "DROP TABLE products_express_take;";
                         await command.ExecuteNonQueryAsync();
                     }
                     catch (Exception ex)
                     {
-                        // Handle exception properly
                         throw ex;
                     }
                     finally
