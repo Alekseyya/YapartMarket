@@ -57,7 +57,7 @@ namespace YapartMarket.BL.Implementation
         public async Task UpdateGoodsIdFromProducts()
         {
             var products = new List<UpdateGoodsProduct>();
-            using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\TMP\Готовые связки-2023-05-05.xlsx")))
+            using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\TMP\Готовые связки-2023-07-18.xlsx")))
             {
                 var myWorksheet = xlPackage.Workbook.Worksheets.First(); //select sheet here
                 var totalRows = myWorksheet.Dimension.End.Row;
@@ -90,7 +90,7 @@ namespace YapartMarket.BL.Implementation
         public async Task UpdateAliProdutId()
         {
             var products = new Dictionary<long, string>();
-            using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\MyOwn\актуальные артикулы али.xlsx")))
+            using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\TMP\ALI\aliexpress_товары_часть_4.xlsx")))
             {
                 var myWorksheet = xlPackage.Workbook.Worksheets.First(); //select sheet here
                 var totalRows = myWorksheet.Dimension.End.Row;

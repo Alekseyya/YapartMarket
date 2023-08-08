@@ -65,7 +65,7 @@ builder.Services.AddQuartz(q =>
     q.AddTrigger(opts => opts
         .ForJob(jobKey)
         .WithIdentity("UpdateInventoryTrigger")
-        .WithCronSchedule("0 */1 * * * ?"));
+        .WithCronSchedule("0 */2 * * * ?"));
 
 });
 
