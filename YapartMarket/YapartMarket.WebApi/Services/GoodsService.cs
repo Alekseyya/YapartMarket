@@ -78,17 +78,19 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
                 foreach (var orderResult in ordersResult)
                 {
                     var order = orderResult.First();
-                    var orderItemsResult = orderResult.SelectMany(x => x.OrderDetails).GroupBy(x => x.OfferId).Select(x => new { OfferId = x.Key, Quantity = x.Sum(q => q.Quantity) }).ToList();
+                    var orderItemsResult = orderResult.SelectMany(x => x.OrderDetails).GroupBy(x => x.OfferId)
+                        .Select(x => new { OfferId = x.Key, Quantity = x.Sum(q => q.Quantity), Price = x.Sum(q => q.Price) }).ToList();
                     var products = await connection.QueryAsync<Product>(@"select * from products where offerId IN @offerId", new { offerId = orderItemsResult.Select(x => x.OfferId) });
                     var items = new List<Model.Goods.OrderItemViewModel>();
                     foreach (var orderDetails in orderItemsResult)
                     {
-                        var sku = products.FirstOrDefault(x => x.OfferId == orderDetails.OfferId).Sku;
+                        var sku = products.FirstOrDefault(x => x.OfferId == orderDetails.OfferId)?.Sku;
                         items.Add(new()
                         {
                             OfferId = orderDetails.OfferId,
                             Sku = sku,
-                            Quantity = orderDetails.Quantity
+                            Quantity = orderDetails.Quantity,
+                            Price = orderDetails.Price
                         });
                     }
                     orderViewModel.Add(new()
