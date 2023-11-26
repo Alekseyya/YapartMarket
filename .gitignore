@@ -283,3 +283,4 @@ __pycache__/
 YapartMarket/YapartMarket.Test/appSettings.json
 /YapartMarket/YapartMarket.UnitTests/appSettings.json
 /YapartMarket/YapartMarket.React/appsettings.json
+YapartMarket/YapartMarket.WebApi/appsettings.json
