@@ -18,8 +18,21 @@ namespace YapartMarket.Core.Models.Azure
         public int Count { get; set; }
         [Column("aliExpressProductId")]
         public long? AliExpressProductId { get; set; }
+        [Column("goodsId")]
+        public long? GoodsId { get; set; }
+        [Column("offerId")]
+        public long? OfferId { get; set; }
         [Column("updatedAt")]
         [Display(Name = "Время обновления записи")]
         public string UpdatedAt { get; set; }
+        [Column("takeTime")]
+        public string TakeTime { get; set; }
+        [Column("countExpress")]
+        public int CountExpress { get; set; }
+        [Column("updateExpress")]
+        public string UpdateExpress { get; set; }
+        [Column("takeTimeExpress")]
+        public string TakeTimeExpress { get; set; }
+        public AliExpressProduct AliExpressProduct { get; set; }
     }
 }

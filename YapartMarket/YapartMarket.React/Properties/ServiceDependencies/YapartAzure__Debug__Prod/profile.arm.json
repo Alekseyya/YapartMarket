@@ -92,7 +92,9 @@
                   "dependsOn": [
                     "[concat('Microsoft.Web/Sites/', parameters('resourceName'))]"
                   ],
-                  "properties": {}
+                  "properties": {
+                    "WEBSITE_WEBDEPLOY_USE_SCM": "false"
+                  }
                 }
               ]
             },

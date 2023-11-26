@@ -1,10 +1,8 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoMapper;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Data;
 using YapartMarket.Core.Data.Interfaces;
-using YapartMarket.Core.Data.Interfaces.Access;
 using YapartMarket.Core.Models;
 
 namespace YapartMarket.BL.Implementation

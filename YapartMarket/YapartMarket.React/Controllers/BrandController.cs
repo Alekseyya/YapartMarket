@@ -1,14 +1,9 @@
 ﻿using System.Threading.Tasks;
-using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using YapartMarket.Core.BL;
-using YapartMarket.Core.Models;
 using YapartMarket.React.Commands;
 using YapartMarket.React.Queries.Brand;
 using YapartMarket.React.Queries.Brands;
-using YapartMarket.React.ViewModels;
 
 namespace YapartMarket.React.Controllers
 {

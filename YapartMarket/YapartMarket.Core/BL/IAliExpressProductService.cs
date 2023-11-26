@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.Models.Raw;
+using Product = YapartMarket.Core.Models.Azure.Product;
+
 
 namespace YapartMarket.Core.BL
 {
     public interface IAliExpressProductService
     {
-        void UpdateInventoryProducts(IEnumerable<AliExpressProductDTO> aliExpressProducts);
+        Task<UpdateStocksResponse> ProcessUpdateStocks();
         Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products);
-        IEnumerable<AliExpressProductDTO> GetProductsAliExpress(Expression<Func<AliExpressProductDTO, bool>> conditionFunction = null);
-        AliExpressProductDTO GetProduct(long productId);
-        void UpdatePriceProduct(List<long> productIds);
-        AliExpressProductDTO ProductStringToDTO(string json);
-        List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts);
-        void ProcessUpdateDatabaseAliExpressProductId(IEnumerable<AliExpressProductDTO> aliExpressProducts);
+        Task ProcessUpdateDatabaseAliExpressProductId();
+        Task<IEnumerable<Product>> ListProductsForUpdateInventory();
+        Task ProcessUpdateProductSku();
     }
 }

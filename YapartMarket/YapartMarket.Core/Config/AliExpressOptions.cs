@@ -13,6 +13,7 @@
         /// </summary>
         public string AppSecret { get; set; }
 
+        public string RefreshToken { get; set; }
         /// <summary>
         /// Токен доступа
         /// </summary>
@@ -21,6 +22,7 @@
         /// Время истечения срока действия токена
         /// </summary>
         public long ExpireToken { get; set; }
+        public string SP { get; set; }
 
         /// <summary>
         /// Ник пользователя
@@ -44,5 +46,13 @@
         public string PassAliExpressCode { get; set; }
 
         public string HttpsEndPoint { get; set; }
+        public string Url { get; set; }
+        public string GetOrderList { get; set; }
+        public string CreateLogisticOrder { get; set; }
+        public string MarketplaceCodeTest { get; set; }
+        public string UpdateStocks { get; set; }
+        public string GetProducts { get; set; }
+        public string AuthToken { get; set; }
+        public string HttpsBatchEndPoint { get; set; }
     }
 }

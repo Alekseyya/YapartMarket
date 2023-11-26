@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace YapartMarket.React.ViewModels
+﻿namespace YapartMarket.React.ViewModels
 {
     public class ProductViewModel
     {

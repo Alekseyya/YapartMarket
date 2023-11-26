@@ -1,193 +1,192 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Top.Api;
-using Top.Api.Request;
-using Top.Api.Response;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.Config;
+using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
+using YapartMarket.Core.DTO.AliExpress;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
+using YapartMarket.Core.Models.Raw;
+using Product = YapartMarket.Core.Models.Azure.Product;
 
 namespace YapartMarket.BL.Implementation
 {
-    public class AliExpressProductService : IAliExpressProductService
+    public class AliExpressProductService : SendRequest<ProductRoot>, IAliExpressProductService
     {
+        private readonly IAzureAliExpressProductRepository _azureAliExpressProductRepository;
+        private readonly IAzureProductRepository _azureProductRepository;
+        private readonly IProductPropertyRepository _productPropertyRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AliExpressProductService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly AliExpressOptions _aliExpressOptions;
+        private readonly HttpClient _httpClient;
 
-        public AliExpressProductService(IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger)
+        public AliExpressProductService(IAzureAliExpressProductRepository azureAliExpressProductRepository, IAzureProductRepository azureProductRepository,
+            IProductPropertyRepository productPropertyRepository,
+            IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger,
+            IServiceScopeFactory scopeFactory, IHttpClientFactory factory)
         {
+            _azureAliExpressProductRepository = azureAliExpressProductRepository;
+            _azureProductRepository = azureProductRepository;
+            _productPropertyRepository = productPropertyRepository;
             _configuration = configuration;
             _logger = logger;
+            _scopeFactory = scopeFactory;
             _aliExpressOptions = options.Value;
+            _httpClient = factory.CreateClient("aliExpress");
+            _httpClient.DefaultRequestHeaders.Add("x-auth-token", options.Value.AuthToken);
         }
-        public void UpdateInventoryProducts(IEnumerable<AliExpressProductDTO> aliExpressProducts)
+        public async Task ProcessUpdateProductSku()
         {
-            try
+            var products = new List<Product>();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-                AliexpressSolutionBatchProductInventoryUpdateRequest req = new AliexpressSolutionBatchProductInventoryUpdateRequest();
-                for (int i = 0; i < aliExpressProducts.Count(); i += 20)
+                await connection.OpenAsync();
+                var productsInDb = await connection.QueryAsync<Product>("select * FROM dbo.products");
+                products.AddRange(productsInDb);
+            }
+            var aliProductRequest = new AliProductRequest(_httpClient);
+            var productResponses = await aliProductRequest.Send(products, _aliExpressOptions.GetProducts);
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                using (var transaction = await connection.BeginTransactionAsync())
                 {
-                    var takeProducts = aliExpressProducts.Skip(i).Take(20);
-                    if (takeProducts.Any())
+                    var updateSql = @"update products set aliExpressProductId = @aliExpressProductId where sku = @sku;";
+                    foreach (var responce in productResponses)
                     {
-                        var reqMultipleProductUpdateList = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain>();
-                        foreach (var takeProduct in takeProducts)
+                        foreach (var product in responce.data)
                         {
-                            var objectProductId = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeProductRequestDtoDomain();
-                            reqMultipleProductUpdateList.Add(objectProductId);
-                            objectProductId.ProductId = takeProduct.ProductId;
-                            var synchronizeSkuRequestDtoDomains = new List<AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain>();
-                            var synchronizeSkuRequestDtoDomain = new AliexpressSolutionBatchProductInventoryUpdateRequest.SynchronizeSkuRequestDtoDomain();
-                            synchronizeSkuRequestDtoDomains.Add(synchronizeSkuRequestDtoDomain);
-                            synchronizeSkuRequestDtoDomain.SkuCode = takeProduct.SkuCode;
-                            synchronizeSkuRequestDtoDomain.Inventory = takeProduct.Inventory;
-                            objectProductId.MultipleSkuUpdateList = synchronizeSkuRequestDtoDomains;
+                            var sku = product.sku.FirstOrDefault().code;
+                            var aliProductId = product.id;
+                            await connection.ExecuteAsync(updateSql, new { aliExpressProductId = aliProductId, sku = sku }, transaction).ConfigureAwait(false);
                         }
+                    }
+                    await transaction.CommitAsync().ConfigureAwait(false);
+                }
+            }
+        }
 
-                        req.MutipleProductUpdateList_ = reqMultipleProductUpdateList;
-                        var request = client.Execute(req, _aliExpressOptions.AccessToken);
-                        if (request.Body.TryParseJson(out AliExpressBatchProductInventoryUpdateResponseDTO responseDto))
+        public async Task<UpdateStocksResponse> UpdateProduct(IReadOnlyList<Product> products)
+        {
+            var productsResult = new ProductRoot()
+            {
+                products = new List<Core.Models.Raw.Product>()
+            };
+            foreach (var product in products)
+            {
+                productsResult.products.Add(new()
+                {
+                    product_id = product.AliExpressProductId.ToString(),
+                    skus = new List<Core.Models.Raw.Sku>()
+                    {
+                        new Core.Models.Raw.Sku()
                         {
-                            //todo записать в лог ошибку
+                            sku_code = product.Sku,
+                            inventory = product.Count.ToString()
                         }
-
-                        if (request.Body.TryParseJson(out AliExpressError error)){}
-                        //todo записать в лог ошибку
-
                     }
-                }
+                });
             }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
 
-        public IEnumerable<AliExpressProductDTO> GetProductsAliExpress(Expression<Func<AliExpressProductDTO, bool>> conditionFunction = null)
-        {
-            var listProducts = new List<AliExpressProductDTO>();
-            bool haveElement = true;
-            long currentPage = 1;
-            try
+            var skip = 0;
+            var count = products.Count;
+            var response = new UpdateStocksResponse();
+            while (skip < count)
             {
-                do
+                try
                 {
-                    _logger.LogInformation($"Запрос. Страница {currentPage}");
-                    ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-                    var req = new AliexpressSolutionProductListGetRequest();
-                    var obj1 = new AliexpressSolutionProductListGetRequest.ItemListQueryDomain
+                    var tmpProduct = new ProductRoot()
                     {
-                        CurrentPage = currentPage,
-                        ProductStatusType = "onSelling",
-                        PageSize = 99
+                        products = productsResult.products.Skip(skip).Take(500).ToList()
                     };
-                    req.AeopAEProductListQuery_ = obj1;
-                    var rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-                    _logger.LogInformation($"Страница {currentPage} Десериализация json продуктов");
-                    var tmpListProductFromJson = GetProductFromJson(rsp.Body);
-                    if (!tmpListProductFromJson.Any())
-                        haveElement = false;
-                    else
-                    {
-                        //обновление коллекции полем SKUCode
-                        _logger.LogInformation("Обновление информации о SKU");
-                        tmpListProductFromJson = UpdateSkuFromAliExpress(tmpListProductFromJson, client);
-                        _logger.LogInformation("Обновление количества продукта");
-                        tmpListProductFromJson = SetInventoryFromDatabase(tmpListProductFromJson.ToList());
-                        listProducts.AddRange(tmpListProductFromJson);
-                    }
-                    currentPage++;
-                } while (haveElement);
-
-                if (conditionFunction != null)
-                    return listProducts.AsQueryable().Where(conditionFunction).AsEnumerable();
-                return listProducts.AsEnumerable(); 
+                    var result = await Request(tmpProduct, _aliExpressOptions.UpdateStocks, _httpClient);
+                    var responseTmp = JsonConvert.DeserializeObject<UpdateStocksResponse>(result);
+                    if (responseTmp != null && responseTmp.results != null && responseTmp.results.Any(x => !x.ok))
+                        response.results.AddRange(responseTmp.results.Where(x => !x.ok).ToList());
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+                skip += 500;
             }
-            catch (Exception)
-            {
-                if (conditionFunction != null)
-                   return listProducts.AsQueryable().Where(conditionFunction).AsEnumerable();
-                return listProducts.AsEnumerable();
-            }
+            return response;
         }
-
-        private IEnumerable<T> UpdateSkuFromAliExpress<T>(IEnumerable<T> products, ITopClient client) where T : AliExpressProductDTO
+        public async Task<UpdateStocksResponse> ProcessUpdateStocks()
         {
-            if (products.Any())
+            var products = new List<Product>();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                ReturnProductNotFoundDatabase(products, out IEnumerable<T> intersectProducts, out IEnumerable<T> exceptProducts);
-                foreach (var expressProduct in exceptProducts)
-                {
-                    var reqInfoProduct = new AliexpressSolutionProductInfoGetRequest
-                    {
-                        ProductId = expressProduct.ProductId
-                    };
-                    var executeProductInfo = client.Execute(reqInfoProduct, _aliExpressOptions.AccessToken);
-                    var tmpInfoProduct = ProductStringToDTO(executeProductInfo.Body);
-                    expressProduct.SkuCode = tmpInfoProduct?.SkuCode;
-                }
-
-                ((List<T>)intersectProducts).AddRange(exceptProducts);
-                return intersectProducts;
+                await connection.OpenAsync();
+                var productsInDb = await connection.QueryAsync<Product>("select * from products p WHERE p.aliExpressProductId is not null;");
+                products = productsInDb.ToList();
             }
-            return null;
+            return await UpdateProduct(products);
         }
-        //todo переименовать метод
-        private void ReturnProductNotFoundDatabase<T>(IEnumerable<T> products, out IEnumerable<T> intersectProducts, out IEnumerable<T> exceptProducts) where T : AliExpressProductDTO
+
+        public IReadOnlyList<ProductInfoResult> DeserializeProductsInfo(IReadOnlyList<string> responseProducts)
         {
-            IEnumerable<Product> productsInDb = null;
-            if (products.Any())
+            var listProductInfo = new List<ProductInfoResult>();
+            foreach (var responseProduct in responseProducts)
             {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-                {
-                    connection.Open();
-                    productsInDb = connection.Query<Product>("select * from products where aliExpressProductId IN @aliExpressProductIds", new { aliExpressProductIds = products.Select(x => x.ProductId) });
-                }
-                if (productsInDb.Any())
-                {
-                    //проставить sku в aliExpressProducts
-                    var pairs = products.Join(productsInDb, aliExpProd => aliExpProd.ProductId,
-                        prodDb => prodDb.AliExpressProductId, (aliExpProd, prodDb) => new { prodDb, aliExpProd });
-                    foreach (var pair in pairs)
-                    {
-                        pair.aliExpProd.SkuCode = pair.prodDb.Sku;
-                    }
-                }
+                var productInfo = DeserializeProductInfo(responseProduct);
+                if (productInfo != null && productInfo.ProductId != 0)
+                    listProductInfo.Add(productInfo);
             }
-            intersectProducts = products.Where(x => x.SkuCode != null).ToList(); //todo в отдельные generic функции - Вместе с подключением к бд!!
-            exceptProducts = products.Where(prod => productsInDb.All(prodDb => prodDb.AliExpressProductId != prod.ProductId)).ToList();
+            return listProductInfo;
         }
 
+        public ProductInfoResult DeserializeProductInfo(string responseProduct)
+        {
+            var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(responseProduct)?.Response?.ProductInfoResult;
+            return productInfo;
+        }
+
+        public async Task<IEnumerable<Product>> ListProductsForUpdateInventory()
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            {
+                await connection.OpenAsync();
+                var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
+                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku",
+                    (product, aliExpressProduct) =>
+                    {
+                        product.AliExpressProduct = aliExpressProduct;
+                        return product;
+                    }, splitOn: "productId");
+                return productsInDb;
+            }
+        }
         public async Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products)
         {
             if (products.Any())
             {
+                //todo в отдельный 
                 IEnumerable<Product> productsInDb;
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     connection.Open();
                     productsInDb = await connection.QueryAsync<Product>("select * from products where aliExpressProductId IN @aliExpressProductIds", new { aliExpressProductIds = products.Select(x => x.ProductId) });
                 }
-                return products.Where(prod => productsInDb.All(prodDb => prodDb.AliExpressProductId != prod.ProductId));
+                return products.Where(prod => productsInDb.All(prodDb => prodDb.Sku != prod.SkuCode));
             }
             return null;
         }
-
         public List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts)
         {
             if (aliExpressProducts.Any())
@@ -204,7 +203,7 @@ namespace YapartMarket.BL.Implementation
                 if (productsInDb.Any())
                 {
                     var pairs = newAliExpressProduct.Join(productsInDb, aliExpProd => aliExpProd.SkuCode,
-                        prodDb => prodDb.Sku, (aliExpProd, prodDb) => new {prodDb, aliExpProd});
+                        prodDb => prodDb.Sku, (aliExpProd, prodDb) => new { prodDb, aliExpProd });
                     foreach (var pair in pairs)
                     {
                         pair.aliExpProd.Inventory = pair.prodDb.Count;
@@ -216,85 +215,31 @@ namespace YapartMarket.BL.Implementation
             return null;
         }
 
-        public void ProcessUpdateDatabaseAliExpressProductId(IEnumerable<AliExpressProductDTO> aliExpressProducts)
+        public async Task ProcessUpdateDatabaseAliExpressProductId()
         {
-            if (aliExpressProducts.Any())
-            {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
-                {
-                    connection.Open();
-                    var productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) });
-                    var updateProducts = aliExpressProducts.Where(x => productsInDb.Any(t => t.Sku.Equals(x.SkuCode)
-                        && (!t.AliExpressProductId.HasValue || t.AliExpressProductId != x.ProductId)
-                    ));
-                    if (updateProducts.Any())
-                        UpdateAliExpressProductId(connection, updateProducts);
-                }
-            }
+            var updateProducts = await GetProductWhereAliExpressProductIdIsNull();
+            if (updateProducts.Any())
+                await _azureProductRepository.BulkUpdateProductId(updateProducts.ToList());
         }
 
-        private void UpdateAliExpressProductId(SqlConnection connection, IEnumerable<AliExpressProductDTO> updateProducts)
+        public async Task<IEnumerable<Product>> GetProductWhereAliExpressProductIdIsNull()
         {
-            foreach (var updateProduct in updateProducts)
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                connection.Execute(
-                    "update products set aliExpressProductId = @aliExpressProductId, updatedAt = @updatedAt where sku = @sku",
-                    new
+                await connection.OpenAsync();
+                _logger.LogInformation("Связывание таблиц AliExpressProduct с Product");
+                var lookup = new Dictionary<int, Product>();
+                var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(
+                    "select * FROM dbo.products p inner join dbo.aliExpressProducts aep on p.sku = aep.sku",
+                    (p, a) =>
                     {
-                        aliExpressProductId = updateProduct.ProductId,
-                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                        sku = updateProduct.SkuCode
-                    });
+                        p.AliExpressProduct = a;
+                        p.AliExpressProductId = a.ProductId;
+                        return p;
+                    }, splitOn: "productId");
+                _logger.LogInformation($"Количество записей, которые стоит обновить {productsInDb.Count()}");
+                return productsInDb;
             }
-        }
-
-        public AliExpressProductDTO GetProduct(long productId)
-        {
-            ITopClient client = new DefaultTopClient(_aliExpressOptions.HttpsEndPoint, _aliExpressOptions.AppKey, _aliExpressOptions.AppSecret, "Json");
-            AliexpressSolutionProductInfoGetRequest req = new AliexpressSolutionProductInfoGetRequest
-            {
-                ProductId = productId
-            };
-            AliexpressSolutionProductInfoGetResponse rsp = client.Execute(req, _aliExpressOptions.AccessToken);
-            return ProductStringToDTO(rsp.Body);
-        }
-
-        private IEnumerable<AliExpressProductDTO> GetProductFromJson(string json)
-        {
-            var jsonObject = JObject.Parse(json);
-            var listProductDtos = jsonObject.SelectToken("aliexpress_solution_product_list_get_response.result.aeop_a_e_product_display_d_t_o_list.item_display_dto")?.ToObject<IEnumerable<AliExpressProductDTO>>();
-            return listProductDtos;
-        }
-        //todo переписать на объект сериализации!!
-        public AliExpressProductDTO ProductStringToDTO(string json)
-        {
-            var jsonObject = JObject.Parse(json);
-            var productJson = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.aeop_ae_product_s_k_us.global_aeop_ae_product_sku")?[0]?.ToString();
-            try
-            {
-                if (!string.IsNullOrEmpty(productJson))
-                {
-                    var aliExpressProduct = JsonConvert.DeserializeObject<AliExpressProductDTO>(productJson);
-                    var productId = (long) jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.product_id");
-                    var description = jsonObject.SelectToken("aliexpress_solution_product_info_get_response.result.subject")?.ToString();
-                    if (aliExpressProduct != null)
-                    {
-                        aliExpressProduct.ProductId = productId;
-                        aliExpressProduct.Description = description;
-                        return aliExpressProduct;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            return null;
-        }
-
-        public void UpdatePriceProduct(List<long> productIds)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "YapartMarket.BL": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
