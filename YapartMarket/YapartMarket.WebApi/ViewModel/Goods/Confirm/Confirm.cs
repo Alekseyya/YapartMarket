@@ -1,4 +1,6 @@
-﻿namespace YapartMarket.WebApi.ViewModel.Goods.Confirm
+﻿using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.ViewModel.Goods.Confirm
 {
     public class Data
     {

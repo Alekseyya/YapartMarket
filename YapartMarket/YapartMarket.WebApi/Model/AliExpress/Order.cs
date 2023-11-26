@@ -1,4 +1,7 @@
-﻿namespace YapartMarket.WebApi.Model.AliExpress
+﻿using System;
+using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.Model.AliExpress
 {
     sealed class Order
     {

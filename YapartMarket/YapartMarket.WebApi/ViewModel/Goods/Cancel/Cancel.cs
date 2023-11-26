@@ -1,4 +1,6 @@
-﻿namespace YapartMarket.WebApi.ViewModel.Goods.Cancel
+﻿using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.ViewModel.Goods.Cancel
 {
     public class Data
     {

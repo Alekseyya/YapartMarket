@@ -1,7 +1,13 @@
 ﻿using Dapper;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using YapartMarket.Core.DateStructures;
 using YapartMarket.Core.DTO.Goods;
 using YapartMarket.Core.Extensions;
@@ -457,11 +463,6 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             if (rejectResponse.success == 0)
                 return new SuccessResult($"Reject : {rejectResponse.error.message}");
             return SuccessResult.Success;
-        }
-
-        Task<Core.DTO.Goods.Order?> IGoodsService.GetOrderAsync(OrderNewViewModel orderViewModel)
-        {
-            throw new NotImplementedException();
         }
     }
 }

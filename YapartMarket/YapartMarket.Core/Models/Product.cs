@@ -38,17 +38,17 @@ namespace YapartMarket.Core.Models
         public ICollection<ProductModification> ProductModifications { get; set; }
 
     }
-    public class ProductConfiguration : IEntityTypeConfiguration<Product>
-    {
-        public void Configure(EntityTypeBuilder<Product> builder)
-        {
-            builder.HasKey(x => x.Id);
+    //public class ProductConfiguration : IEntityTypeConfiguration<Product>
+    //{
+    //    public void Configure(EntityTypeBuilder<Product> builder)
+    //    {
+    //        builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.Article).IsRequired().HasMaxLength(50);
-            builder.Property(x => x.Descriptions).IsRequired();
-            builder.Property(x => x.Price).HasColumnType("decimal(10,2)");
-            builder.HasMany(x => x.Pictures).WithOne(x => x.Product);
-            builder.HasMany(x => x.ProductModifications).WithOne(x => x.Product);
-        }
-    }
+    //        builder.Property(x => x.Article).IsRequired().HasMaxLength(50);
+    //        builder.Property(x => x.Descriptions).IsRequired();
+    //        builder.Property(x => x.Price).HasColumnType("decimal(10,2)");
+    //        builder.HasMany(x => x.Pictures).WithOne(x => x.Product);
+    //        builder.HasMany(x => x.ProductModifications).WithOne(x => x.Product);
+    //    }
+    //}
 }

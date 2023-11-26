@@ -1,4 +1,6 @@
-﻿using YapartMarket.WebApi.ViewModel;
+﻿using System.Collections.Generic;
+using System.Linq;
+using YapartMarket.WebApi.ViewModel;
 
 namespace YapartMarket.WebApi.Services
 {

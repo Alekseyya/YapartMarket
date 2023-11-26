@@ -1,4 +1,6 @@
-﻿namespace YapartMarket.WebApi.ViewModel.Goods.Packing
+﻿using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.ViewModel.Goods.Packing
 {
     public class Box
     {

@@ -1,4 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using YapartMarket.BL.Implementation;
+using YapartMarket.Core.DTO;
 using YapartMarket.Core.Extensions;
 using YapartMarket.WebApi.Services.Interfaces;
 using YapartMarket.WebApi.ViewModel.Goods;
@@ -15,11 +21,13 @@ namespace YapartMarket.WebApi.Controllers
     public sealed class GoodsController : ControllerBase
     {
         private IGoodsService _goodsService;
+        readonly YmlServiceBase ymlServiceBase;
 
         /// <inheritdoc />
-        public GoodsController(IGoodsService goodsService)
+        public GoodsController(IGoodsService goodsService, YmlServiceBase ymlServiceBase)
         {
-            _goodsService = goodsService;
+            this.ymlServiceBase = ymlServiceBase ?? throw new ArgumentNullException(nameof(ymlServiceBase));
+            _goodsService = goodsService ?? throw new ArgumentNullException(nameof(goodsService));
         }
         /// <summary>
         /// Add new order
@@ -61,6 +69,21 @@ namespace YapartMarket.WebApi.Controllers
                 var ordersByDay = await _goodsService.GetOrderAsync(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.EndOfDay());
                 if (ordersByDay != null)
                     return Ok(ordersByDay);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        [HttpGet]
+        [Route("yml")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetYml(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await ymlServiceBase.ProcessCreateFileAsync(cancellationToken);
                 return Ok();
             }
             catch (Exception e)

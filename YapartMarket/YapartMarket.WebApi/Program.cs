@@ -1,18 +1,27 @@
-using YapartMarket.BL.Implementation;
-using YapartMarket.Core.BL;
-using YapartMarket.Core.Models.Azure;
-using YapartMarket.WebApi.Mapper.AliExpress;
-using YapartMarket.Data;
-using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.Data.Implementation.Azure;
-using YapartMarket.Core.Config;
-using YapartMarket.Core;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using YapartMarket.WebApi.Services;
-using YapartMarket.WebApi.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Quartz;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using YapartMarket.BL.Implementation;
+using YapartMarket.Core;
+using YapartMarket.Core.BL;
+using YapartMarket.Core.Config;
+using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.DTO;
+using YapartMarket.Core.Models.Azure;
+using YapartMarket.Data;
+using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.WebApi.Job;
+using YapartMarket.WebApi.Mapper.AliExpress;
+using YapartMarket.WebApi.Services;
+using YapartMarket.WebApi.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,10 +46,15 @@ builder.Services.AddSwaggerGen(options =>
         Description = "An ASP.NET Core Web API for managing ToDo items",
     });
 });
+var storageAccountSettings = builder.Configuration.GetSection("StorageAccount").Get<StorageAccountSettings>()!;
+builder.Services.AddSingleton(storageAccountSettings);
+var connectionString = builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionSettings>()!;
+builder.Services.AddSingleton(connectionString);
 
 builder.Services.AddAutoMapper(typeof(OrderProfile));
 builder.Services.AddTransient<IAliExpressOrderService, AliExpressOrderService>();
 builder.Services.AddTransient<IAliExpressProductService, AliExpressProductService>();
+builder.Services.AddTransient<YmlServiceBase, YmlService>();
 
 builder.Services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
 builder.Services.AddTransient<IProductPropertyRepository>(m => new ProductPropertiesRepository("dbo.ali_product_properties", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
@@ -56,33 +70,42 @@ builder.Services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("http
 
 builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
 
-builder.Services.AddQuartz(q =>
-{
-    q.UseMicrosoftDependencyInjectionScopedJobFactory();
-    var jobKey = new JobKey("UpdateInventotyJob");
-    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
+//builder.Services.AddQuartz(q =>
+//{
+//    var jobKey = new JobKey("UpdateInventotyJob");
+//    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
 
-    q.AddTrigger(opts => opts
-        .ForJob(jobKey)
-        .WithIdentity("UpdateInventoryTrigger")
-        .WithCronSchedule("0 */2 * * * ?"));
+//    q.AddTrigger(opts => opts
+//        .ForJob(jobKey)
+//        .WithIdentity("UpdateInventoryTrigger")
+//        .WithCronSchedule("0 */2 * * * ?"));
 
-});
+//});
 
-builder.Services.AddQuartz(q =>
-{
-    q.UseMicrosoftDependencyInjectionScopedJobFactory();
-    var jobKey = new JobKey("CreateLogisticOrderJob");
-    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
+//builder.Services.AddQuartz(q =>
+//{
+//    var jobKey = new JobKey("CreateLogisticOrderJob");
+//    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
 
-    q.AddTrigger(opts => opts
-        .ForJob(jobKey)
-        .WithIdentity("CreateLogisticOrderTrigger")
-        .WithCronSchedule("*/15 * * * * ?"));
+//    q.AddTrigger(opts => opts
+//        .ForJob(jobKey)
+//        .WithIdentity("CreateLogisticOrderTrigger")
+//        .WithCronSchedule("*/15 * * * * ?"));
 
-});
+//});
+//builder.Services.AddQuartz(q =>
+//{
+//    var jobKey = new JobKey("CreateYMLFileJob");
+//    q.AddJob<CreateYMLFileJob>(opts => opts.WithIdentity(jobKey));
 
-builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+//    q.AddTrigger(opts => opts
+//        .ForJob(jobKey)
+//        .WithIdentity("CreateYMLFileJob")
+//        .WithCronSchedule("*/20 * * * * ?"));
+
+//});
+
+//builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

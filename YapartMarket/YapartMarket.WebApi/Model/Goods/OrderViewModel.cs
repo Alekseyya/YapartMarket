@@ -1,4 +1,7 @@
-﻿namespace YapartMarket.WebApi.Model.Goods
+﻿using System;
+using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.Model.Goods
 {
     public sealed class OrderViewModel
     {

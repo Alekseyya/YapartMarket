@@ -27,7 +27,7 @@ namespace YapartMarket.Data
         {
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new GroupConfiguration());
-            modelBuilder.ApplyConfiguration(new ProductConfiguration());
+            //modelBuilder.ApplyConfiguration(new ProductConfiguration());
             modelBuilder.ApplyConfiguration(new SectionConfiguration());
             modelBuilder.ApplyConfiguration(new BrandConfiguration());
             modelBuilder.ApplyConfiguration(new PictureConfiguration());

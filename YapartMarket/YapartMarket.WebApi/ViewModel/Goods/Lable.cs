@@ -1,4 +1,6 @@
-﻿namespace YapartMarket.WebApi.ViewModel.Goods
+﻿using System;
+
+namespace YapartMarket.WebApi.ViewModel.Goods
 {
     public sealed class Lable
     {

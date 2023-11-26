@@ -1,4 +1,6 @@
-﻿using YapartMarket.Core.DTO.Goods;
+﻿using System;
+using System.Threading.Tasks;
+using YapartMarket.Core.DTO.Goods;
 using YapartMarket.WebApi.Model.Goods;
 using YapartMarket.WebApi.ViewModel.Goods;
 using YapartMarket.WebApi.ViewModel.Goods.Cancel;

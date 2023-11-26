@@ -1,4 +1,6 @@
-﻿namespace YapartMarket.WebApi.ViewModel.Goods.Reject
+﻿using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.ViewModel.Goods.Reject
 {
     public class Data
     {

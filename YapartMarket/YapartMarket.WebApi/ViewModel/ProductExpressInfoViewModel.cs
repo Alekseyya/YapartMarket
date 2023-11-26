@@ -1,4 +1,6 @@
-﻿namespace YapartMarket.WebApi.ViewModel
+﻿using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.ViewModel
 {
     public sealed class ProductExpressInfoViewModel
     {

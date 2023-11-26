@@ -1,4 +1,8 @@
-﻿namespace YapartMarket.WebApi.Services;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace YapartMarket.WebApi.Services;
 
 public sealed class SuccessResult : IExecutionResult
 {

@@ -1,4 +1,7 @@
-﻿namespace YapartMarket.WebApi.ViewModel
+﻿using System;
+using System.Collections.Generic;
+
+namespace YapartMarket.WebApi.ViewModel
 {
     public class AliExpressOrderViewModel
     {
