@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using YapartMarket.Core.Data.Interfaces.Azure;
+using YapartMarket.Core.DTO;
 using YapartMarket.Core.DTO.Yandex;
 using YapartMarket.Core.Extensions;
 using YapartMarket.Core.Models.Azure;
@@ -22,9 +23,11 @@ namespace YapartMarket.React.Controllers
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IAzureProductRepository _productRepository;
+        readonly ConnectionSettings connectionSettings;
 
-        public ProductController(IMapper mapper, IConfiguration configuration, IAzureProductRepository productRepository)
+        public ProductController(IMapper mapper, ConnectionSettings connectionSettings, IConfiguration configuration, IAzureProductRepository productRepository)
         {
+            this.connectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
             _mapper = mapper;
             _configuration = configuration;
             _productRepository = productRepository;
@@ -156,65 +159,67 @@ namespace YapartMarket.React.Controllers
             }
             return BadRequest();
         }
-        
+
         [HttpPost]
         [Route("setProducts")]
         [Produces("application/json")]
-        public async Task<IActionResult> SetProducts([FromBody] ItemsDto itemsDto)
+        public async Task<IActionResult> SetProductsAsync([FromBody] ItemsDto itemsDto)
         {
-            if (itemsDto != null)
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
+            try
             {
-                try
+                if (cancellationToken.IsCancellationRequested)
+                    return BadRequest("Request aborted.");
+                if (itemsDto != null)
                 {
-                    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                    var productsByInsertSkuInDb = new List<Product>();
+                    using (var connection = new SqlConnection(connectionSettings.SQLServerConnectionString))
                     {
-                        await connection.OpenAsync();
-                        var take = 2000;
-                        var skip = 0;
-                        var productsByInsertSkuInDb = new List<Product>();
-                        do
+                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                        var takeSkus = itemsDto.Products.Select(x => x.Sku);
+                        productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
+                    }
+                    var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
+                    var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
+                    if (updateProducts.Any())
+                    {
+                        var result = updateProducts.Select(x => new Product
                         {
-                            var takeSkus = itemsDto.Products.Select(x=>x.Sku).Skip(skip).Take(take);
-                            skip += take;
-                            if(!takeSkus.Any())
-                                break;
-                            productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
-                        } while (true);
-                        var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
-                        var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
-                        if (updateProducts.Any())
+                            Sku = x.Sku,
+                            Count = x.Count,
+                            UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                        }).ToList();
+                        await _productRepository.BulkUpdateCountDataAsync(result, cancellationToken).ConfigureAwait(false);
+                    }
+                    if (insertProducts.Any())
+                    {
+                        using (var connection = new SqlConnection(connectionSettings.SQLServerConnectionString))
                         {
-                            var result = updateProducts.Select(x=> new Product
+                            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                            using (var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                             {
-                                Sku = x.Sku,
-                                Count = x.Count,
-                                UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
-                            }).ToList();
-                            await _productRepository.BulkUpdateCountData(result);
-                        }
-                        if (insertProducts.Any())
-                        {
-                            foreach (var insertProduct in insertProducts)
-                            {
-                                await connection.ExecuteAsync("insert into products (sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
+                                foreach (var insertProduct in insertProducts)
                                 {
-                                    sku = insertProduct.Sku,
-                                    count = insertProduct.Count,
-                                    updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
-                                    type = nameof(ProductType.FIT)
-                                });
+                                    await connection.ExecuteAsync("insert into products (sku, count, updatedAt, type)  values(@sku, @count, @updatedAt, @type)", new
+                                    {
+                                        sku = insertProduct.Sku,
+                                        count = insertProduct.Count,
+                                        updatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"),
+                                        type = nameof(ProductType.FIT)
+                                    }, transaction);
+                                }
+                                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                             }
                         }
-
                     }
+
                 }
-                catch (Exception e)
-                {
-                    return BadRequest(e.Message);
-                }
-                return Ok();
             }
-            return BadRequest();
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            return Ok();
         }
         [HttpPost]
         [Route("setProductsExpress")]
@@ -296,7 +301,7 @@ namespace YapartMarket.React.Controllers
             {
                 await connection.OpenAsync();
                 var stocksSku = stockDto.Skus;
-                var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new {skus = stocksSku});
+                var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new { skus = stocksSku });
                 foreach (var productFromDb in productsFromDb)
                 {
                     var currentDateTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
@@ -335,7 +340,7 @@ namespace YapartMarket.React.Controllers
                     }).ToList();
                     await _productRepository.BulkUpdateTakeTime(result);
                 }
-                
+
             }
             return Ok(new StocksSkuDto { Skus = listSkuInfo });
         }
