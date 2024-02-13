@@ -20,17 +20,15 @@ namespace YapartMarket.React.Controllers
     [Route("api/[controller]")]
     public class ProductController : Controller
     {
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-        private readonly IAzureProductRepository _productRepository;
+        readonly IConfiguration configuration;
+        readonly IAzureProductRepository productRepository;
         readonly ConnectionSettings connectionSettings;
 
-        public ProductController(IMapper mapper, ConnectionSettings connectionSettings, IConfiguration configuration, IAzureProductRepository productRepository)
+        public ProductController(ConnectionSettings connectionSettings, IConfiguration configuration, IAzureProductRepository productRepository)
         {
             this.connectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
-            _mapper = mapper;
-            _configuration = configuration;
-            _productRepository = productRepository;
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         }
 
 
@@ -41,7 +39,7 @@ namespace YapartMarket.React.Controllers
         {
             try
             {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     var sql = "select * from dbo.products";
                     await connection.OpenAsync();
@@ -63,7 +61,7 @@ namespace YapartMarket.React.Controllers
             if (orderDto != null)
             {
                 var isAccepted = true;
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     //Пройтись по всем товарам, если хоть одного нету или количество меньше того что есть на сервере = отменить заказа
                     await connection.OpenAsync();
@@ -89,10 +87,10 @@ namespace YapartMarket.React.Controllers
         {
             if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
-            var yapartToken = _configuration.GetValue<string>("auth-token");
-            var yapartRogToken = _configuration.GetValue<string>("auth-token-rog");
-            var yapartExpressToken = _configuration.GetValue<string>("auth-token-yapart-express");
-            var yapartYarkoExpressToken = _configuration.GetValue<string>("auth-token-yapart-yarko-express");
+            var yapartToken = configuration.GetValue<string>("auth-token");
+            var yapartRogToken = configuration.GetValue<string>("auth-token-rog");
+            var yapartExpressToken = configuration.GetValue<string>("auth-token-yapart-express");
+            var yapartYarkoExpressToken = configuration.GetValue<string>("auth-token-yapart-yarko-express");
             if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken && yapartYarkoExpressToken != authToken)
                 return StatusCode(403);
             if (orderStatusDto != null)
@@ -110,10 +108,10 @@ namespace YapartMarket.React.Controllers
         {
             if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
-            var yapartToken = _configuration.GetValue<string>("auth-token");
-            var yapartRogToken = _configuration.GetValue<string>("auth-token-rog");
-            var yapartExpressToken = _configuration.GetValue<string>("auth-token-yapart-express");
-            var yapartYarkoExpressToken = _configuration.GetValue<string>("auth-token-yapart-yarko-express");
+            var yapartToken = configuration.GetValue<string>("auth-token");
+            var yapartRogToken = configuration.GetValue<string>("auth-token-rog");
+            var yapartExpressToken = configuration.GetValue<string>("auth-token-yapart-express");
+            var yapartYarkoExpressToken = configuration.GetValue<string>("auth-token-yapart-yarko-express");
             if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken && yapartYarkoExpressToken != authToken)
                 return StatusCode(403);
             if (cartDto != null)
@@ -127,7 +125,7 @@ namespace YapartMarket.React.Controllers
                             CartItems = new List<CartItemViewModel>()
                         }
                     };
-                    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                    using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                     {
                         await connection.OpenAsync();
                         foreach (var cartItemDto in cartDto.Cart.CartItems)
@@ -159,7 +157,7 @@ namespace YapartMarket.React.Controllers
             }
             return BadRequest();
         }
-
+        //todo добавить доп ключ интедетификации или кейклок
         [HttpPost]
         [Route("setProducts")]
         [Produces("application/json")]
@@ -179,7 +177,7 @@ namespace YapartMarket.React.Controllers
                         var takeSkus = itemsDto.Products.Select(x => x.Sku);
                         productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
                     }
-                    var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
+                    var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.ToLower().Equals(x.Sku.ToLower()))).ToList();
                     var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
                     if (updateProducts.Any())
                     {
@@ -189,7 +187,9 @@ namespace YapartMarket.React.Controllers
                             Count = x.Count,
                             UpdatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                         }).ToList();
-                        await _productRepository.BulkUpdateCountDataAsync(result, cancellationToken).ConfigureAwait(false);
+                        var resultBulkUpdateMessage = await productRepository.BulkUpdateCountDataAsync(result, cancellationToken).ConfigureAwait(false);
+                        if(!string.IsNullOrEmpty(resultBulkUpdateMessage))
+                            return BadRequest(resultBulkUpdateMessage);
                     }
                     if (insertProducts.Any())
                     {
@@ -226,14 +226,17 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> SetProductsExpress([FromBody] ItemsDto itemsDto)
         {
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
+            if (cancellationToken.IsCancellationRequested)
+                return BadRequest("Request aborted.");
             if (itemsDto != null)
             {
                 var productExpress = new ProductExpressInfoViewModel();
                 try
                 {
-                    using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+                    using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                     {
-                        await connection.OpenAsync();
+                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                         var take = 2000;
                         var skip = 0;
                         var productsByInsertSkuInDb = new List<Product>();
@@ -254,7 +257,7 @@ namespace YapartMarket.React.Controllers
                                 Count = x.Count
                             }).ToList();
                         }
-                        var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.CountExpress != x.Count)).ToList();
+                        var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.ToLower().Equals(x.Sku.ToLower()))).ToList();
                         if (updateProducts.Any())
                         {
                             var result = updateProducts.Select(x => new Product
@@ -263,7 +266,7 @@ namespace YapartMarket.React.Controllers
                                 CountExpress = x.Count,
                                 UpdateExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                             }).ToList();
-                            await _productRepository.BulkUpdateCountExpressData(result);
+                            await productRepository.BulkUpdateCountExpressDataAsync(result, cancellationToken);
                             productExpress.UpdateProducts = updateProducts.Select(x => new ProductExpressViewModel()
                             {
                                 Sku = x.Sku,
@@ -290,14 +293,14 @@ namespace YapartMarket.React.Controllers
                 return BadRequest();
             if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
-            var yapartToken = _configuration.GetValue<string>("auth-token");
-            var yapartRogToken = _configuration.GetValue<string>("auth-token-rog");
-            var yapartExpressToken = _configuration.GetValue<string>("auth-token-yapart-express");
-            var yapartYarkoExpressToken = _configuration.GetValue<string>("auth-token-yapart-yarko-express");
+            var yapartToken = configuration.GetValue<string>("auth-token");
+            var yapartRogToken = configuration.GetValue<string>("auth-token-rog");
+            var yapartExpressToken = configuration.GetValue<string>("auth-token-yapart-express");
+            var yapartYarkoExpressToken = configuration.GetValue<string>("auth-token-yapart-yarko-express");
             if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken && yapartYarkoExpressToken != authToken)
                 return StatusCode(403);
             var listSkuInfo = new List<SkuInfoDto>();
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
+            using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync();
                 var stocksSku = stockDto.Skus;
@@ -329,7 +332,7 @@ namespace YapartMarket.React.Controllers
                         Sku = x.Sku,
                         TakeTimeExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                     }).ToList();
-                    await _productRepository.BulkUpdateExpressTakeTime(result);
+                    await productRepository.BulkUpdateExpressTakeTimeAsync(result).ConfigureAwait(false);
                 }
                 else
                 {
@@ -338,7 +341,7 @@ namespace YapartMarket.React.Controllers
                         Sku = x.Sku,
                         TakeTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                     }).ToList();
-                    await _productRepository.BulkUpdateTakeTime(result);
+                    await productRepository.BulkUpdateTakeTimeAsync(result).ConfigureAwait(false);
                 }
 
             }

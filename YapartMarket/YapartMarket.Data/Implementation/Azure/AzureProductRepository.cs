@@ -1,31 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Threading;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
-using YapartMarket.Core.Data.Interfaces.Azure;
+using System.Collections.Generic;
 using YapartMarket.Core.Models.Azure;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using YapartMarket.Core.Data.Interfaces.Azure;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
-    public class AzureProductRepository : AzureGenericRepository<Product>,  IAzureProductRepository
+    public sealed class AzureProductRepository : AzureGenericRepository<Product>,  IAzureProductRepository
     {
-        private readonly string _tableName;
-        private readonly string _connectionString;
+        readonly string tableName;
+        readonly string connectionString;
 
         public AzureProductRepository(string tableName, string connectionString) : base(tableName, connectionString)
         {
-            _tableName = tableName;
-            _connectionString = connectionString;
+            this.tableName = tableName;
+            this.connectionString = connectionString;
         }
         public async Task BulkUpdateProductId(IReadOnlyList<Product> products)
         {
-            var dt = new DataTable(_tableName);
+            var dt = new DataTable(tableName);
             dt = ConvertToDataTable(products);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_productId (
 sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -69,11 +68,11 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
                 }
             }
         }
-        public async Task BulkUpdateCountDataAsync(List<Product> list, CancellationToken cancellationToken)
+        public async Task<string> BulkUpdateCountDataAsync(List<Product> list, CancellationToken cancellationToken)
         {
-            var dt = new DataTable(_tableName);
+            var dt = new DataTable(tableName);
             dt = ConvertToDataTable(list);
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 using (var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -106,8 +105,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
                         catch (Exception ex)
                         {
                             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                            // Handle exception properly
-                            throw ex;
+                            return ex.Message;
                         }
                         finally
                         {
@@ -116,23 +114,23 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
                         }
                     }
                 }
-                
             }
+            return string.Empty;
         }
-
-        public async Task BulkUpdateCountExpressData(List<Product> list)
+        //todo добавить везде транзакции!!
+        public async Task<string> BulkUpdateCountExpressDataAsync(List<Product> productList, CancellationToken cancellationToken)
         {
-            var dt = new DataTable(_tableName);
-            dt = ConvertToDataTable(list);
+            var dt = new DataTable(tableName);
+            dt = ConvertToDataTable(productList);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_express_count (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, countExpress int NULL, updateExpress datetime2(6) NULL);", conn))
                 {
                     try
                     {
-                        await conn.OpenAsync();
-                        await command.ExecuteNonQueryAsync();
+                        await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 
                         using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
                         {
@@ -142,36 +140,36 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
                             bulkcopy.ColumnMappings.Add("sku", "sku");
                             bulkcopy.ColumnMappings.Add("countExpress", "countExpress");
                             bulkcopy.ColumnMappings.Add("updateExpress", "updateExpress");
-                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
+                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader(), cancellationToken).ConfigureAwait(false);
                             bulkcopy.Close();
                         }
 
 
                         command.CommandTimeout = 3000;
                         command.CommandText = "UPDATE P SET P.countExpress = T.countExpress, P.updateExpress = T.updateExpress  FROM products AS P INNER JOIN products_express_count AS T ON P.sku = T.sku;";
-                        await command.ExecuteNonQueryAsync();
+                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                         command.CommandText = "DROP TABLE products_express_count;";
-                        await command.ExecuteNonQueryAsync();
+                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
-                        // Handle exception properly
-                        throw ex;
+                        return ex.Message;
                     }
                     finally
                     {
-                        conn.Close();
+                        await conn.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
+            return string.Empty;
         }
 
-        public async Task BulkUpdateTakeTime(List<Product> list)
+        public async Task BulkUpdateTakeTimeAsync(List<Product> list)
         {
-            var dt = new DataTable(_tableName);
+            var dt = new DataTable(tableName);
             dt = ConvertToDataTable(list);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", conn))
                 {
@@ -210,12 +208,12 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
             }
         }
 
-        public async Task BulkUpdateExpressTakeTime(List<Product> list)
+        public async Task BulkUpdateExpressTakeTimeAsync(List<Product> list)
         {
-            var dt = new DataTable(_tableName);
+            var dt = new DataTable(tableName);
             dt = ConvertToDataTable(list);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_express_take (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTimeExpress datetime2(6) NULL);", conn))
                 {

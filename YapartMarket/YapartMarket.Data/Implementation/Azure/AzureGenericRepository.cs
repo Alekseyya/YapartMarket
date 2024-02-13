@@ -1,35 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Dapper;
 using Dapper.Contrib.Extensions;
-using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Extensions;
+using YapartMarket.Core.Data.Interfaces.Azure;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
     public abstract class AzureGenericRepository<T> : IAzureQueriesGenericRepository<T>, IAzureCommandGenericRepository<T> where T : class
     {
-        private readonly string _tableName;
-        private readonly string _connectionString;
+        readonly string tableName;
+        readonly string connectionString;
 
         protected AzureGenericRepository(string tableName, string connectionString)
         {
-            _tableName = tableName;
-            _connectionString = connectionString;
+            this.tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
+            this.connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                return await connection.QueryAsync<T>($"select * from {_tableName}");
+                return await connection.QueryAsync<T>($"select * from {tableName}");
             }
         }
 
@@ -41,10 +41,10 @@ namespace YapartMarket.Data.Implementation.Azure
                 throw new ArgumentNullException(nameof(action));
             try
             {
-                using (var connection = new SqlConnection(_connectionString))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
-                    return await connection.QueryAsync<T>($"select * from {_tableName} where {field} IN @{field}", action);
+                    return await connection.QueryAsync<T>($"select * from {tableName} where {field} IN @{field}", action);
                 }
             }
             catch (Exception)
@@ -127,7 +127,7 @@ namespace YapartMarket.Data.Implementation.Azure
         /// <returns></returns>
         public async Task<IEnumerable<T>> GetAsync(string sql)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 return await connection.QueryAsync<T>(sql);
@@ -136,7 +136,7 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public async Task<IEnumerable<T>> GetAsync(string sql, DynamicParameters dynamicParameters)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 return await connection.QueryAsync<T>(sql, dynamicParameters);
@@ -145,7 +145,7 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public async Task<IEnumerable<T>> GetAsync(string sql, object action)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 return await connection.QueryAsync<T>(sql, action);
@@ -154,10 +154,10 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public async Task<T> GetById(int id)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                return await connection.QueryFirstAsync<T>($"select * from {_tableName} where id = {id}");
+                return await connection.QueryFirstAsync<T>($"select * from {tableName} where id = {id}");
             }
         }
 
@@ -174,7 +174,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             try
             {
-                using (var connection = new SqlConnection(_connectionString))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
                     foreach (var insert in inserts)
@@ -194,7 +194,7 @@ namespace YapartMarket.Data.Implementation.Azure
         {
             try
             {
-                using (var connection = new SqlConnection(_connectionString))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
 
@@ -209,8 +209,8 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public virtual async Task<IEnumerable<int>> InsertAsync(IEnumerable<object> listObjects)
         {
-            var insertSql = Activator.CreateInstance<T>().InsertString(_tableName);
-            using (var connection = new SqlConnection(_connectionString))
+            var insertSql = Activator.CreateInstance<T>().InsertString(tableName);
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 return await connection.QueryAsync<int>(insertSql, listObjects);
@@ -219,8 +219,8 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public virtual async Task InsertAsync(object @object)
         {
-            var insertSql = Activator.CreateInstance<T>().InsertString(_tableName);
-            using (var connection = new SqlConnection(_connectionString))
+            var insertSql = Activator.CreateInstance<T>().InsertString(tableName);
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 await connection.QueryAsync(insertSql, @object);
@@ -229,7 +229,7 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public virtual async Task<IEnumerable<int>> InsertOutputAsync(string sql, IEnumerable<object> inserts)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 return await connection.QueryAsync<int>(sql, inserts);
@@ -238,7 +238,7 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public virtual async Task Update(string sql, object action)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 await connection.ExecuteAsync(sql, action);
@@ -247,7 +247,7 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public virtual async Task Delete(string sql)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 await connection.ExecuteAsync(sql);
@@ -256,8 +256,8 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public virtual async Task Update(object action)
         {
-            var updateSQL = Activator.CreateInstance<T>().UpdateString(_tableName);
-            using (var connection = new SqlConnection(_connectionString))
+            var updateSQL = Activator.CreateInstance<T>().UpdateString(tableName);
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 await connection.ExecuteAsync(updateSQL, action);
@@ -266,7 +266,7 @@ namespace YapartMarket.Data.Implementation.Azure
 
         public virtual async Task Update(string sql, List<object> actions)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 foreach (var action in actions)
