@@ -236,7 +236,7 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public virtual async Task Update(string sql, object action)
+        public virtual async Task UpdateAsync(string sql, object action)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -245,7 +245,7 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public virtual async Task Delete(string sql)
+        public virtual async Task DeleteAsync(string sql)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -254,7 +254,7 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public virtual async Task Update(object action)
+        public virtual async Task UpdateAsync(object action)
         {
             var updateSQL = Activator.CreateInstance<T>().UpdateString(_tableName);
             using (var connection = new SqlConnection(_connectionString))

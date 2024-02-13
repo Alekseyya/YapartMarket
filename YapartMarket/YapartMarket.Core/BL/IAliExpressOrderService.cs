@@ -9,10 +9,9 @@ namespace YapartMarket.Core.BL
 {
     public interface IAliExpressOrderService : IAliExpressOrderQueries
     {
-        Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetail(DateTime? startDateTime = null,
-            DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null);
-        Task AddOrders(List<AliExpressOrder> aliExpressOrders);
-        Task<IEnumerable<AliExpressOrder>> GetOrders(DateTime start, DateTime end);
+        Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetailAsync(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus>? orderStatusList = null);
+        Task AddOrdersAsync(List<AliExpressOrder> aliExpressOrders);
+        Task<IEnumerable<AliExpressOrder>> GetOrdersAsync(DateTime start, DateTime end);
         Task CreateLogisticOrderAsync();
     }
 }

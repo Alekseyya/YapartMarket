@@ -33,7 +33,7 @@ namespace YapartMarket.WebApi.Controllers
         {
             try
             {
-                var ordersByDay = await _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.EndOfDay());
+                var ordersByDay = await _aliExpressOrderService.QueryOrderDetailAsync(DateTime.Now.AddDays(-1).StartOfDay(), DateTime.Now.EndOfDay());
                 var orderService = new OrderService();
                 if (ordersByDay.IsAny())
                     return Ok(orderService.Convert(ordersByDay));
@@ -53,7 +53,7 @@ namespace YapartMarket.WebApi.Controllers
         {
             try
             {
-                var ordersByDay = await _aliExpressOrderService.GetOrders(DateTime.Now.AddDays(-2).StartOfDay(), DateTime.Now.AddDays(-1).EndOfDay());
+                var ordersByDay = await _aliExpressOrderService.GetOrdersAsync(DateTime.Now.AddDays(-2).StartOfDay(), DateTime.Now.AddDays(-1).EndOfDay());
                 if (ordersByDay.IsAny())
                     return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<Order>>(ordersByDay));
                 return Ok();
@@ -70,7 +70,7 @@ namespace YapartMarket.WebApi.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> Get(DateTime day)
         {
-            var ordersByDay = await _aliExpressOrderService.GetOrders(day.StartOfDay(), day.EndOfDay());
+            var ordersByDay = await _aliExpressOrderService.GetOrdersAsync(day.StartOfDay(), day.EndOfDay());
             if (ordersByDay.IsAny())
                 return Ok(_mapper.Map<IEnumerable<AliExpressOrder>, IEnumerable<Order>>(ordersByDay));
             return Ok();
@@ -80,7 +80,7 @@ namespace YapartMarket.WebApi.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> UpdateStocks()
         {
-            var response = await _productService.ProcessUpdateStocks();
+            var response = await _productService.ProcessUpdateStocksAsync();
             return Ok(response);
         }
 
@@ -89,7 +89,7 @@ namespace YapartMarket.WebApi.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> UpdateProducts()
         {
-            await _productService.ProcessUpdateProductSku();
+            await _productService.ProcessUpdateProductSkuAsync();
             return Ok();
         }
 
@@ -108,8 +108,8 @@ namespace YapartMarket.WebApi.Controllers
         {
             try
             {
-                var aliExpressOrders = await _aliExpressOrderService.QueryOrderDetail(DateTime.Now.AddDays(-8).StartOfDay(), DateTime.Now.AddDays(+1).EndOfDay());
-                await _aliExpressOrderService.AddOrders(aliExpressOrders.ToList());
+                var aliExpressOrders = await _aliExpressOrderService.QueryOrderDetailAsync(DateTime.Now.AddDays(-8).StartOfDay(), DateTime.Now.AddDays(+1).EndOfDay());
+                await _aliExpressOrderService.AddOrdersAsync(aliExpressOrders.ToList());
             }
             catch (Exception e)
             {

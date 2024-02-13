@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Dapper.Contrib.Extensions;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace YapartMarket.Core.Models.Azure
 {
@@ -11,18 +11,18 @@ namespace YapartMarket.Core.Models.Azure
         [Column("order_id")]
         public long OrderId { get; set; }
         [Column("warehouse_name")]
-        public string WarehouseName { get; set; }
+        public string? WarehouseName { get; set; }
         [Column("logistics_service_name")]
-        public string LogisticServiceName { get; set; }
+        public string? LogisticServiceName { get; set; }
         [Column("logistics_timeliness")]
-        public string LogisticTimeLines { get; set; }
+        public string? LogisticTimeLines { get; set; }
         [Column("logistics_service_id")]
-        public string LogisticServiceId { get; set; }
+        public string? LogisticServiceId { get; set; }
         [Column("delivery_address")]
-        public string DeliveryAddress { get; set; }
+        public string? DeliveryAddress { get; set; }
         [Column("express_logistics_service")]
         public bool ExpressLogisticsService { get; set; }
         [Column("trial_result")]
-        public string TrialResult { get; set; }
+        public string? TrialResult { get; set; }
     }
 }

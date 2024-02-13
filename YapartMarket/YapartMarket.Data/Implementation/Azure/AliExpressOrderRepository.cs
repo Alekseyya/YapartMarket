@@ -24,7 +24,7 @@ namespace YapartMarket.Data.Implementation.Azure
             _connectionString = connectionString;
         }
 
-        public async Task Update(IEnumerable<AliExpressOrder> aliExpressOrders)
+        public async Task UpdateAsync(IEnumerable<AliExpressOrder> aliExpressOrders)
         {
             //var dateTimeNow = new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
             var updateOrder = new AliExpressOrder().UpdateString(_tableName);
@@ -104,7 +104,7 @@ where gmt_create >= @gmt_create_start and gmt_create <= @gmt_create_end and orde
            
         }
 
-        public async Task AddOrders(IEnumerable<AliExpressOrder> aliExpressOrders)
+        public async Task AddOrdersAsync(IEnumerable<AliExpressOrder> aliExpressOrders)
         {
             var insertOrder = new AliExpressOrder().InsertString(_tableName);
             var insertOrderDetail = new AliExpressOrderDetail().InsertString("dbo.order_details");

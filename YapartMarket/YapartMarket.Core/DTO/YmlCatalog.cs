@@ -9,7 +9,7 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlAttribute(AttributeName = "id")]
-        public string Id { get; init; }
+        public string? Id { get; init; }
 
         [XmlAttribute(AttributeName = "rate")]
         public int Rate { get; init; }
@@ -20,7 +20,7 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "currency")]
-        public List<Currency> Currency { get; init; }
+        public List<Currency>? Currency { get; init; }
     }
 
     [XmlRoot(ElementName = "category")]
@@ -31,7 +31,7 @@ namespace YapartMarket.Core.DTO
         public int Id { get; init; }
 
         [XmlText]
-        public string Text { get; init; }
+        public string? Text { get; init; }
 
         [XmlAttribute(AttributeName = "parentId")]
         public int ParentId { get; init; }
@@ -42,7 +42,7 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "category")]
-        public List<Category> Category { get; init; }
+        public List<Category>? Category { get; init; }
     }
 
     [XmlRoot(ElementName = "option")]
@@ -61,7 +61,7 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "option")]
-        public Option Option { get; init; }
+        public Option? Option { get; init; }
     }
 
     [XmlRoot(ElementName = "outlet")]
@@ -80,17 +80,17 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "outlet")]
-        public Outlet Outlet { get; init; }
+        public Outlet? Outlet { get; init; }
     }
 
     [XmlRoot(ElementName = "param")]
     public class Param
     {
         [XmlAttribute(AttributeName = "name")]
-        public string Name { get; init; }
+        public string? Name { get; init; }
 
         [XmlText]
-        public string Text { get; init; }
+        public string? Text { get; init; }
     }
 
     [XmlRoot(ElementName = "offer")]
@@ -98,10 +98,10 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "url")]
-        public string Url { get; init; }
+        public string? Url { get; init; }
 
         [XmlElement(ElementName = "name")]
-        public string Name { get; init; }
+        public string? Name { get; init; }
 
         [XmlElement(ElementName = "price")]
         public int Price { get; init; }
@@ -113,34 +113,34 @@ namespace YapartMarket.Core.DTO
         public int CategoryId { get; init; }
 
         [XmlElement(ElementName = "picture")]
-        public List<string> Picture { get; init; }
+        public List<string>? Picture { get; init; }
 
         [XmlElement(ElementName = "vat")]
-        public string Vat { get; init; }
+        public string? Vat { get; init; }
 
         [XmlElement(ElementName = "shipment-options")]
-        public Shipmentoptions Shipmentoptions { get; init; }
+        public Shipmentoptions? Shipmentoptions { get; init; }
 
         [XmlElement(ElementName = "outlets")]
-        public Outlets Outlets { get; init; }
+        public Outlets? Outlets { get; init; }
 
         [XmlElement(ElementName = "vendor")]
-        public string Vendor { get; init; }
+        public string? Vendor { get; init; }
 
         [XmlElement(ElementName = "vendorCode")]
-        public string VendorCode { get; init; }
+        public string? VendorCode { get; init; }
 
         [XmlElement(ElementName = "model")]
-        public string Model { get; init; }
+        public string? Model { get; init; }
 
         [XmlElement(ElementName = "description")]
-        public string Description { get; init; }
+        public string? Description { get; init; }
 
         [XmlElement(ElementName = "param")]
-        public List<Param> Param { get; init; }
+        public List<Param>? Param { get; init; }
 
         [XmlElement(ElementName = "barcode")]
-        public string Barcode { get; init; }
+        public string? Barcode { get; init; }
 
         [XmlAttribute(AttributeName = "id")]
         public int Id { get; init; }
@@ -149,7 +149,7 @@ namespace YapartMarket.Core.DTO
         public bool Available { get; init; }
 
         [XmlText]
-        public string Text { get; init; }
+        public string? Text { get; init; }
     }
 
     [XmlRoot(ElementName = "offers")]
@@ -157,7 +157,7 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "offer")]
-        public List<Offer> Offer { get; init; }
+        public List<Offer>? Offer { get; init; }
     }
 
     [XmlRoot(ElementName = "shop")]
@@ -165,25 +165,25 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "name")]
-        public string Name { get; init; }
+        public string? Name { get; init; }
 
         [XmlElement(ElementName = "company")]
-        public string Company { get; init; }
+        public string? Company { get; init; }
 
         [XmlElement(ElementName = "url")]
-        public string Url { get; init; }
+        public string? Url { get; init; }
 
         [XmlElement(ElementName = "currencies")]
-        public Currencies Currencies { get; init; }
+        public Currencies? Currencies { get; init; }
 
         [XmlElement(ElementName = "categories")]
         public Categories? Categories { get; init; }
 
         [XmlElement(ElementName = "shipment-options")]
-        public Shipmentoptions Shipmentoptions { get; init; }
+        public Shipmentoptions? Shipmentoptions { get; init; }
 
         [XmlElement(ElementName = "offers")]
-        public Offers Offers { get; init; }
+        public Offers? Offers { get; init; }
     }
 
     [XmlRoot(ElementName = "yml_catalog")]
@@ -191,7 +191,7 @@ namespace YapartMarket.Core.DTO
     {
 
         [XmlElement(ElementName = "shop")]
-        public Shop Shop { get; init; }
+        public Shop? Shop { get; init; }
 
         [XmlIgnore]
         public DateTime Date { get; init; }
@@ -204,6 +204,6 @@ namespace YapartMarket.Core.DTO
         }
 
         [XmlText]
-        public string Text { get; init; }
+        public string? Text { get; init; }
     }
 }

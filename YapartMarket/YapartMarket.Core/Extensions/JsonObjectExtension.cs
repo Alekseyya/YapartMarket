@@ -21,21 +21,12 @@ namespace YapartMarket.Core.Extensions
         }
         public static bool TryParseJsonT<T>(this string obj, out T result)
         {
-            try
-            {
-                // Validate missing fields of object
-                JsonSerializerSettings settings = new JsonSerializerSettings();
-                settings.MissingMemberHandling = MissingMemberHandling.Error;
+            // Validate missing fields of object
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.MissingMemberHandling = MissingMemberHandling.Error;
 
-                result = JsonConvert.DeserializeObject<T>(obj, settings);
-                return true;
-            }
-            catch (Exception e)
-            {
-                throw e;
-                result = default(T);
-                return false;
-            }
+            result = JsonConvert.DeserializeObject<T>(obj, settings);
+            return true;
         }
         public static T TryParseJson<T>(this string json, string schema) where T : new()
         {

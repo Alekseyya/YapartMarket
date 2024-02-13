@@ -50,7 +50,7 @@ namespace YapartMarket.BL.Implementation
             _httpClient = factory.CreateClient("aliExpress");
             _httpClient.DefaultRequestHeaders.Add("x-auth-token", options.Value.AuthToken);
         }
-        public async Task ProcessUpdateProductSku()
+        public async Task ProcessUpdateProductSkuAsync()
         {
             var products = new List<Product>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
@@ -127,7 +127,7 @@ namespace YapartMarket.BL.Implementation
             }
             return response;
         }
-        public async Task<UpdateStocksResponse> ProcessUpdateStocks()
+        public async Task<UpdateStocksResponse> ProcessUpdateStocksAsync()
         {
             var products = new List<Product>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
@@ -157,7 +157,7 @@ namespace YapartMarket.BL.Implementation
             return productInfo;
         }
 
-        public async Task<IEnumerable<Product>> ListProductsForUpdateInventory()
+        public async Task<IEnumerable<Product>> ListProductsForUpdateInventoryAsync()
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
@@ -172,7 +172,7 @@ namespace YapartMarket.BL.Implementation
                 return productsInDb;
             }
         }
-        public async Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBase(IEnumerable<AliExpressProductDTO> products)
+        public async Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBaseAsync(IEnumerable<AliExpressProductDTO> products)
         {
             if (products.Any())
             {
@@ -215,7 +215,7 @@ namespace YapartMarket.BL.Implementation
             return null;
         }
 
-        public async Task ProcessUpdateDatabaseAliExpressProductId()
+        public async Task ProcessUpdateDatabaseAliExpressProductIdAsync()
         {
             var updateProducts = await GetProductWhereAliExpressProductIdIsNull();
             if (updateProducts.Any())

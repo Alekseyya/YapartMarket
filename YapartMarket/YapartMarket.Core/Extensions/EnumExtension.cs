@@ -24,17 +24,17 @@ namespace YapartMarket.Core.Extensions
 
             foreach (FieldInfo fi in typeof(T).GetFields(BindingFlags.Static | BindingFlags.Public))
             {
-                string key = fi.Name;
+                string? key = fi.Name;
 
                 var display = fi.GetCustomAttributes(typeof(DisplayAttribute), false) as DisplayAttribute[];
                 if (display != null)
                     key = (display.Length > 0) ? display[0].Name : fi.Name;
 
                 if (ignoreCase)
-                    key = key.ToLower();
+                    key = key?.ToLower();
 
-                if (!enumValues.ContainsKey(key))
-                    enumValues[key] = (T)fi.GetRawConstantValue();
+                if (!enumValues.ContainsKey(key!))
+                    enumValues[key!] = (T)fi.GetRawConstantValue()!;
             }
 
             return enumValues;
@@ -61,7 +61,7 @@ namespace YapartMarket.Core.Extensions
         {
             IDictionary<string, T> values = GetValues(ignoreCase);
 
-            string key = null;
+            string? key = null;
             if (ignoreCase)
                 key = value.ToLower();
             else

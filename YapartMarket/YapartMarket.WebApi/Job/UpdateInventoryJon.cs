@@ -14,7 +14,7 @@ namespace YapartMarket.WebApi.Job
         }
         public async Task Execute(IJobExecutionContext context)
         {
-            await _productService.ProcessUpdateStocks();
+            await _productService.ProcessUpdateStocksAsync();
         }
     }
 }

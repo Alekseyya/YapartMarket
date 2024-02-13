@@ -42,7 +42,7 @@ namespace YapartMarket.BL.Implementation
         }
         //todo написать метод для отправки заказов. Похожий на нижний. Создать еще один десериалйзер. Отправить заказы.
         //todo напечатать этикетки отправления - отдавать отцу метод
-        public async Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetail(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
+        public async Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetailAsync(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
         {
 
             var getOrderRequest = new GetOrderList()
@@ -121,13 +121,13 @@ namespace YapartMarket.BL.Implementation
         /// </summary>
         /// <param name="start">Дата начала обновления заказа</param>
         /// <param name="end">Дата окончания обновления заказа</param>
-        public async Task<IEnumerable<AliExpressOrder>> GetOrders(DateTime start, DateTime end)
+        public async Task<IEnumerable<AliExpressOrder>> GetOrdersAsync(DateTime start, DateTime end)
         {
             var orders = await _orderRepository.GetOrdersByWaitSellerSendGoodsAsync(start, end);
             return orders;
         }
 
-        public async Task AddOrders(List<AliExpressOrder> aliExpressOrders)
+        public async Task AddOrdersAsync(List<AliExpressOrder> aliExpressOrders)
         {
             foreach (var aliExpressOrder in aliExpressOrders)
             {
@@ -138,10 +138,10 @@ namespace YapartMarket.BL.Implementation
             }
             var newAliExpressOrders = await ExceptOrders(aliExpressOrders);
             if (newAliExpressOrders.Any())
-                await _orderRepository.AddOrders(newAliExpressOrders);
+                await _orderRepository.AddOrdersAsync(newAliExpressOrders);
             var updatedOrders = await IntersectOrder(aliExpressOrders);
             if (updatedOrders.IsAny())
-                await _orderRepository.Update(updatedOrders);
+                await _orderRepository.UpdateAsync(updatedOrders);
             await AddOrUpdateOrderDetails(aliExpressOrders);
         }
 

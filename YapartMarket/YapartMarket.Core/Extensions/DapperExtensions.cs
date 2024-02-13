@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Dapper.Contrib.Extensions;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
-using Dapper.Contrib.Extensions;
 using YapartMarket.Core.DateStructures;
 
 namespace YapartMarket.Core.Extensions

@@ -28,6 +28,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YapartMarket.WebApi", "Yapa
 		{AFB20531-7149-4D70-A257-CF9C6B73E7F8} = {AFB20531-7149-4D70-A257-CF9C6B73E7F8}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A100AEA0-E651-4684-8625-BD6552ED5E10}"
+	ProjectSection(SolutionItems) = preProject
+		Common.targets = Common.targets
+		CommonTest.targets = CommonTest.targets
+		Directory.Packages.props = Directory.Packages.props
+		GlobalAssemblyInformation.cs = GlobalAssemblyInformation.cs
+		GlobalAssemblyInformationTests.cs = GlobalAssemblyInformationTests.cs
+		Version.targets = Version.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

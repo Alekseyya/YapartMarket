@@ -1,0 +1,19 @@
+﻿<Project>
+    <PropertyGroup>
+        <YapartVersion>1.0.0</YapartVersion>
+        <CompanyName>Yapart</CompanyName>
+        <Company>$(CompanyName)</Company>
+        <Copyright>Copyright © 2023 $(CompanyName)</Copyright>
+        <ProductName>Yapart Service Production Platform of Marketplace</ProductName>
+        <Version>$(YapartVersion)</Version>
+        <FileVersion>$(YapartVersion)</FileVersion>
+        <PackageVersion>$(YapartVersion)</PackageVersion>
+        <AssemblyVersion>$(YapartVersion)</AssemblyVersion>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    </PropertyGroup>
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Reflection.AssemblyTrademarkAttribute">
+            <_Parameter1>$(CompanyName)</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+</Project>

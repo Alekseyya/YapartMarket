@@ -1,0 +1,34 @@
+﻿<Project>
+    <Import Project="Version.targets" />
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <SignAssembly>true</SignAssembly>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Nullable>disable</Nullable>
+        <IsPackable>false</IsPackable>
+        <Optimize>False</Optimize>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="..\GlobalAssemblyInformation.cs" />
+        <Compile Include="..\GlobalAssemblyInformationTests.cs" />
+    </ItemGroup>
+    <ItemGroup>
+		<PackageReference Include="coverlet.collector">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Dapper"/>
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
+		<PackageReference Include="Microsoft.AspNetCore.TestHost"/>
+		<PackageReference Include="Microsoft.Data.Sqlite"/>
+		<PackageReference Include="Microsoft.Extensions.Configuration"/>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json"/>
+		<PackageReference Include="Microsoft.NET.Test.Sdk"/>
+		<PackageReference Include="Moq" />
+		<PackageReference Include="xunit"/>
+		<PackageReference Include="xunit.runner.visualstudio" />
+    </ItemGroup>
+        <PropertyGroup>
+        <NoWarn>1701;1702;CS8002;AD0001</NoWarn>
+    </PropertyGroup>
+</Project>

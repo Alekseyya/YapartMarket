@@ -4,7 +4,7 @@ namespace YapartMarket.Core.BL
 {
     public interface IAliExpressCategoryService
     {
-        Task ProcessUpdateCategories();
-        Task UpdateCategoryByProductId(long productId);
+        Task ProcessUpdateCategoriesAsync();
+        Task UpdateCategoryByProductIdAsync(long productId);
     }
 }

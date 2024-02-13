@@ -122,7 +122,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             var sql = "update products set count = @count, updatedAt = @updatedAt where sku = @sku";
             //act
             timer.Start();
-            await azureProductRepository.Update(sql,actions);
+            await azureProductRepository.UpdateAsync(sql,actions);
             timer.Stop();
             //assert
             TimeSpan timeTaken = timer.Elapsed;
