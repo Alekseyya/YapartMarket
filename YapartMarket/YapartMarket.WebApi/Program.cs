@@ -9,6 +9,7 @@ using Quartz;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using YapartMarket.BL.Implementation;
 using YapartMarket.Core;
 using YapartMarket.Core.BL;
@@ -70,29 +71,32 @@ builder.Services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("http
 
 builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
 
-//builder.Services.AddQuartz(q =>
-//{
-//    var jobKey = new JobKey("UpdateInventotyJob");
-//    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
+var commonSemaphore = new SemaphoreSlim(1);
+builder.Services.AddSingleton(commonSemaphore);
 
-//    q.AddTrigger(opts => opts
-//        .ForJob(jobKey)
-//        .WithIdentity("UpdateInventoryTrigger")
-//        .WithCronSchedule("0 */2 * * * ?"));
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("UpdateInventoryJob");
+    q.AddJob<UpdateInventoryJob>(opts => opts.WithIdentity(jobKey));
 
-//});
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("UpdateInventoryTrigger")
+        .WithCronSchedule("0 */2 * * * ?"));
 
-//builder.Services.AddQuartz(q =>
-//{
-//    var jobKey = new JobKey("CreateLogisticOrderJob");
-//    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
+});
 
-//    q.AddTrigger(opts => opts
-//        .ForJob(jobKey)
-//        .WithIdentity("CreateLogisticOrderTrigger")
-//        .WithCronSchedule("*/15 * * * * ?"));
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("CreateLogisticOrderJob");
+    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
 
-//});
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("CreateLogisticOrderTrigger")
+        .WithCronSchedule("*/15 * * * * ?"));
+
+});
 //builder.Services.AddQuartz(q =>
 //{
 //    var jobKey = new JobKey("CreateYMLFileJob");
@@ -105,7 +109,7 @@ builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builde
 
 //});
 
-//builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

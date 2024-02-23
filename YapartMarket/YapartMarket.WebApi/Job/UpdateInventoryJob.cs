@@ -4,11 +4,11 @@ using YapartMarket.Core.BL;
 
 namespace YapartMarket.WebApi.Job
 {
-    public sealed class UpdateInventoryJon : IJob
+    public sealed class UpdateInventoryJob : IJob
     {
         private readonly IAliExpressProductService _productService;
 
-        public UpdateInventoryJon(IAliExpressProductService productService)
+        public UpdateInventoryJob(IAliExpressProductService productService)
         {
             _productService = productService;
         }

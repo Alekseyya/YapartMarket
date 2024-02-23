@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
@@ -23,9 +24,11 @@ namespace YapartMarket.React.Controllers
         readonly IConfiguration configuration;
         readonly IAzureProductRepository productRepository;
         readonly ConnectionSettings connectionSettings;
+        readonly SemaphoreSlim semaphoreSlim;
 
-        public ProductController(ConnectionSettings connectionSettings, IConfiguration configuration, IAzureProductRepository productRepository)
+        public ProductController(ConnectionSettings connectionSettings, IConfiguration configuration, IAzureProductRepository productRepository, SemaphoreSlim semaphoreSlim)
         {
+            this.semaphoreSlim = semaphoreSlim ?? throw new ArgumentNullException(nameof(semaphoreSlim));
             this.connectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
@@ -289,30 +292,34 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> StocksAsync([FromBody] StockDto stockDto, [FromQuery(Name = "auth-token")] string authToken)
         {
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
             if (stockDto == null)
                 return BadRequest();
             if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
-            var yapartToken = configuration.GetValue<string>("auth-token");
-            var yapartRogToken = configuration.GetValue<string>("auth-token-rog");
-            var yapartExpressToken = configuration.GetValue<string>("auth-token-yapart-express");
-            var yapartYarkoExpressToken = configuration.GetValue<string>("auth-token-yapart-yarko-express");
-            if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken && yapartYarkoExpressToken != authToken)
-                return StatusCode(403);
-            var listSkuInfo = new List<SkuInfoDto>();
-            using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
+            await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                await connection.OpenAsync();
-                var stocksSku = stockDto.Skus;
-                var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new { skus = stocksSku });
-                foreach (var productFromDb in productsFromDb)
+                var yapartToken = configuration.GetValue<string>("auth-token");
+                var yapartRogToken = configuration.GetValue<string>("auth-token-rog");
+                var yapartExpressToken = configuration.GetValue<string>("auth-token-yapart-express");
+                var yapartYarkoExpressToken = configuration.GetValue<string>("auth-token-yapart-yarko-express");
+                if (yapartToken != authToken && yapartRogToken != authToken && yapartExpressToken != authToken && yapartYarkoExpressToken != authToken)
+                    return StatusCode(403);
+                var listSkuInfo = new List<SkuInfoDto>();
+                using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                 {
-                    var currentDateTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
-                    var skuInfo = new SkuInfoDto
+                    await connection.OpenAsync();
+                    var stocksSku = stockDto.Skus;
+                    var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new { skus = stocksSku });
+                    foreach (var productFromDb in productsFromDb)
                     {
-                        Sku = productFromDb.Sku,
-                        WarehouseId = stockDto.WarehouseId,
-                        Items = new List<ProductDto>
+                        var currentDateTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");
+                        var skuInfo = new SkuInfoDto
+                        {
+                            Sku = productFromDb.Sku,
+                            WarehouseId = 228648,
+                            Items = new List<ProductDto>
                         {
                             new ProductDto
                             {
@@ -321,31 +328,39 @@ namespace YapartMarket.React.Controllers
                                 UpdatedAt = currentDateTime
                             }
                         }
-                    };
-                    listSkuInfo.Add(skuInfo);
-                }
+                        };
+                        listSkuInfo.Add(skuInfo);
+                    }
 
-                if (yapartYarkoExpressToken == authToken)
-                {
-                    var result = productsFromDb.Select(x => new Product
+                    if (yapartYarkoExpressToken == authToken)
                     {
-                        Sku = x.Sku,
-                        TakeTimeExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
-                    }).ToList();
-                    await productRepository.BulkUpdateExpressTakeTimeAsync(result).ConfigureAwait(false);
-                }
-                else
-                {
-                    var result = productsFromDb.Select(x => new Product
+                        var result = productsFromDb.Select(x => new Product
+                        {
+                            Sku = x.Sku,
+                            TakeTimeExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                        }).ToList();
+                        await productRepository.BulkUpdateExpressTakeTimeAsync(result).ConfigureAwait(false);
+                    }
+                    else
                     {
-                        Sku = x.Sku,
-                        TakeTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
-                    }).ToList();
-                    await productRepository.BulkUpdateTakeTimeAsync(result).ConfigureAwait(false);
+                        var result = productsFromDb.Select(x => new Product
+                        {
+                            Sku = x.Sku,
+                            TakeTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
+                        }).ToList();
+                        await productRepository.BulkUpdateTakeTimeAsync(result).ConfigureAwait(false);
+                    }
                 }
-
+                return Ok(new StocksSkuDto { Skus = listSkuInfo });
             }
-            return Ok(new StocksSkuDto { Skus = listSkuInfo });
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
         }
     }
 }
