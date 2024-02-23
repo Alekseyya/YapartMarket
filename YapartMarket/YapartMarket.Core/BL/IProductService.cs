@@ -13,6 +13,6 @@ namespace YapartMarket.Core.BL
         Product GetById(int id);
         IList<Product> GetAll();
         IList<Product> GetAll(Expression<Func<Product, bool>> conditionFunc);
-        Task UpdateGoodsIdFromProducts();
+        Task UpdateGoodsIdFromProductsAsync();
     }
 }

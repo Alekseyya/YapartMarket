@@ -25,13 +25,13 @@ namespace YapartMarket.Core.Mapper
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.ProductName,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.product_name))
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.ItemPrice,
-                    aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => Convert.ToDecimal(x.product_unit_price.amount, new CultureInfo("en-US"))))
+                    aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => Convert.ToDecimal(x.product_unit_price!.amount, new CultureInfo("en-US"))))
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.ShowStatus,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.show_status))
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.GoodsPrepareDays,
                     aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => x.goods_prepare_time))
                 .ForMember(aliExpressOrderDetail => aliExpressOrderDetail.TotalProductAmount,
-                    aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => Convert.ToDecimal(x.total_product_amount.amount, new CultureInfo("en-US"))));
+                    aliExpressOrderProductDto => aliExpressOrderProductDto.MapFrom(x => Convert.ToDecimal(x.total_product_amount!.amount, new CultureInfo("en-US"))));
 
             CreateMap<OrderDto, AliExpressOrder>()
                 .ForMember(aliExpressOrder => aliExpressOrder.BuyerName,
@@ -42,10 +42,10 @@ namespace YapartMarket.Core.Mapper
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.gmt_pay_time))
                 .ForMember(aliExpressOrder => aliExpressOrder.TotalProductCount,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x =>
-                        x.product_list.order_product_dto.Select(t => t.product_count).Aggregate((a, b) => a + b)))
+                        x.product_list!.order_product_dto.Select(t => t.product_count).Aggregate((a, b) => a + b)))
                 .ForMember(aliExpressOrder => aliExpressOrder.TotalPayAmount,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x =>
-                        x.product_list.order_product_dto.Select(t => Convert.ToDecimal(t.total_product_amount.amount, new CultureInfo("en-US")))
+                        x.product_list!.order_product_dto.Select(t => Convert.ToDecimal(t.total_product_amount!.amount, new CultureInfo("en-US")))
                             .Aggregate((a, b) => a + b)))
                 .ForMember(aliExpressOrder => aliExpressOrder.OrderStatus,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.order_status))
@@ -57,7 +57,7 @@ namespace YapartMarket.Core.Mapper
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.fund_status))
 
             .ForMember(aliExpressOrder => aliExpressOrder.AliExpressOrderDetails,
-                aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.product_list.order_product_dto));
+                aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.product_list!.order_product_dto));
 
 
 

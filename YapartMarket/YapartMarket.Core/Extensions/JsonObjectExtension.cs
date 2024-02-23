@@ -16,7 +16,7 @@ namespace YapartMarket.Core.Extensions
                 Error = (sender, args) => { success = false; args.ErrorContext.Handled = true; },
                 MissingMemberHandling = MissingMemberHandling.Error
             };
-            result = JsonConvert.DeserializeObject<T>(@this, settings);
+            result = JsonConvert.DeserializeObject<T>(@this, settings)!;
             return success;
         }
         public static bool TryParseJsonT<T>(this string obj, out T result)
@@ -25,16 +25,17 @@ namespace YapartMarket.Core.Extensions
             JsonSerializerSettings settings = new JsonSerializerSettings();
             settings.MissingMemberHandling = MissingMemberHandling.Error;
 
-            result = JsonConvert.DeserializeObject<T>(obj, settings);
+            result = JsonConvert.DeserializeObject<T>(obj, settings)!;
             return true;
         }
+
+        [Obsolete]
         public static T TryParseJson<T>(this string json, string schema) where T : new()
         {
-            JsonSchema parsedSchema = JsonSchema.Parse(schema);
+            var parsedSchema = JsonSchema.Parse(schema);
             JObject jObject = JObject.Parse(json);
 
-            return jObject.IsValid(parsedSchema) ?
-                JsonConvert.DeserializeObject<T>(json) : default(T);
+            return jObject.IsValid(parsedSchema) ? JsonConvert.DeserializeObject<T>(json)! : default(T)!;
         }
 
         public static T FillProperties<T>(this T entity, JObject jObject) where T : class

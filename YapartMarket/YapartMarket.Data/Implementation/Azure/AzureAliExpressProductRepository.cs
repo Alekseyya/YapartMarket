@@ -17,7 +17,7 @@ namespace YapartMarket.Data.Implementation.Azure
             _tableName = tableName;
             _connectionString = connectionString;
         }
-        public async Task BulkUpdateData(IReadOnlyList<AliExpressProduct> products)
+        public async Task BulkUpdateDataAsync(IReadOnlyList<AliExpressProduct> products)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(products);

@@ -8,9 +8,9 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
     public interface IAzureProductRepository : IAzureQueriesGenericRepository<Product>, IAzureCommandGenericRepository<Product>
     {
         Task BulkUpdateCountDataAsync(List<Product> list, CancellationToken cancellationToken);
-        Task BulkUpdateCountExpressData(List<Product> list);
-        Task BulkUpdateTakeTime(List<Product> list);
-        Task BulkUpdateExpressTakeTime(List<Product> list);
-        Task BulkUpdateProductId(IReadOnlyList<Product> products);
+        Task BulkUpdateCountExpressDataAsync(List<Product> list);
+        Task BulkUpdateTakeTimeAsync(List<Product> list);
+        Task BulkUpdateExpressTakeTimeAsync(List<Product> list);
+        Task BulkUpdateProductIdAsync(IReadOnlyList<Product> products);
     }
 }

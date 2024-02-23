@@ -25,7 +25,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             //Act
             var productService = new ProductService(repositoryFactory.Object, configuration);
             //Arrange
-            await productService.UpdateGoodsIdFromProducts();
+            await productService.UpdateGoodsIdFromProductsAsync();
         }
         [Fact]
         public async Task UpdateAliProductIdFromProducts_UpdateProducts_Success()
@@ -33,7 +33,7 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             //Act
             var productService = new ProductService(repositoryFactory.Object, configuration);
             //Arrange
-            await productService.UpdateAliProdutId();
+            await productService.UpdateAliProductIdAsync();
         }
     }
 }

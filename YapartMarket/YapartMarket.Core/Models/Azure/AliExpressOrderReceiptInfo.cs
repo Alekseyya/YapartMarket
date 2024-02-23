@@ -3,7 +3,7 @@ using Dapper.Contrib.Extensions;
 
 namespace YapartMarket.Core.Models.Azure
 { 
-    public class AliExpressOrderReceiptInfo
+    public sealed class AliExpressOrderReceiptInfo
     {
         [Key]
         [Column("id")]
@@ -11,38 +11,38 @@ namespace YapartMarket.Core.Models.Azure
         [Column("order_id")]
         public long OrderId { get; set; }
         [Column("country_name")]
-        public string CountryName { get; set; }
+        public string? CountryName { get; set; }
         [Column("mobile_no")]
-        public string Mobile { get; set; }
+        public string? Mobile { get; set; }
         [Column("contact_person")]
-        public string ContractPerson { get; set; }
+        public string? ContractPerson { get; set; }
         [Column("phone_country")]
-        public string PhoneCountry { get; set; }
+        public string? PhoneCountry { get; set; }
         [Column("phone_area")]
-        public string PhoneArea { get; set; }
+        public string? PhoneArea { get; set; }
         [Column("province")]
-        public string Province { get; set; }
+        public string? Province { get; set; }
         [Column("address")]
-        public string Address { get; set; }
+        public string? Address { get; set; }
         [Column("phone_number")]
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
         [Column("fax_number")]
-        public string FaxNumber { get; set; }
+        public string? FaxNumber { get; set; }
         [Column("detail_address")]
-        public string StreetDetailedAddress { get; set; }
+        public string? StreetDetailedAddress { get; set; }
         [Column("city")]
-        public string City { get; set; }
+        public string? City { get; set; }
         [Column("country")]
-        public string Country { get; set; }
+        public string? Country { get; set; }
         [Column("address2")]
-        public string Address2 { get; set; }
+        public string? Address2 { get; set; }
         [Column("fax_country")]
-        public string FaxCountry { get; set; }
+        public string? FaxCountry { get; set; }
         [Column("zip")]
-        public string PostCode { get; set; }
+        public string? PostCode { get; set; }
         [Column("fax_area")]
-        public string FaxArea { get; set; }
+        public string? FaxArea { get; set; }
         [Column("localized_address")]
-        public string LocalizedAddress { get; set; }
+        public string? LocalizedAddress { get; set; }
     }
 }

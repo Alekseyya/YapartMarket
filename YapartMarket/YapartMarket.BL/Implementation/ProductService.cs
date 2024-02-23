@@ -27,7 +27,7 @@ namespace YapartMarket.BL.Implementation
         }
         public IList<Product> GetAll()
         {
-            return GetAll(null);
+            return GetAll(null!);
         }
 
         public IList<Product> GetAll(Expression<Func<Product, bool>> conditionFunc)
@@ -54,7 +54,7 @@ namespace YapartMarket.BL.Implementation
             public string OfferId { get; }
         }
 
-        public async Task UpdateGoodsIdFromProducts()
+        public async Task UpdateGoodsIdFromProductsAsync()
         {
             var products = new List<UpdateGoodsProduct>();
             using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\TMP\Готовые связки-2023-07-18.xlsx")))
@@ -70,7 +70,7 @@ namespace YapartMarket.BL.Implementation
                     var cellOfferId = myWorksheet.Cells[rowNum, 2].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
                     var cellSku = myWorksheet.Cells[rowNum, 12].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
                     if (!products.Any(x => x.OfferId == cellOfferId))
-                        products.Add(new(cellSku, cellGoodsId, cellOfferId));
+                        products.Add(new(cellSku!, cellGoodsId!, cellOfferId!));
                 }
             }
             using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
@@ -87,7 +87,7 @@ namespace YapartMarket.BL.Implementation
                 }
             }
         }
-        public async Task UpdateAliProdutId()
+        public async Task UpdateAliProductIdAsync()
         {
             var products = new Dictionary<long, string>();
             using (ExcelPackage xlPackage = new ExcelPackage(new FileInfo(@"C:\TMP\ALI\aliexpress_товары_часть_4.xlsx")))
@@ -99,10 +99,10 @@ namespace YapartMarket.BL.Implementation
                 var sb = new StringBuilder(); //this is your data
                 for (int rowNum = 4; rowNum <= totalRows; rowNum++) //select ;starting row here
                 {
-                    var cellProductId = long.Parse(myWorksheet.Cells[rowNum, 1].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault());
+                    var cellProductId = long.Parse(myWorksheet.Cells[rowNum, 1].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault()!);
                     var cellSku = myWorksheet.Cells[rowNum, 2].Select(c => c.Value == null ? string.Empty : c.Value.ToString()).FirstOrDefault();
                     if (!products.ContainsKey(cellProductId))
-                        products.Add(cellProductId, cellSku);
+                        products.Add(cellProductId, cellSku!);
                 }
             }
             using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))

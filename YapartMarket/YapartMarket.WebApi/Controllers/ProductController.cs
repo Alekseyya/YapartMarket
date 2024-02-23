@@ -37,7 +37,7 @@ namespace YapartMarket.React.Controllers
         [HttpGet]
         [Route("products")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetAzureProducts()
+        public async Task<IActionResult> GetAzureProductsAsync()
         {
             try
             {
@@ -58,18 +58,20 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("order/accept")]
         [Produces("application/json")]
-        public async Task<IActionResult> AcceptOrder([FromBody] OrderDto orderDto)
+        public async Task<IActionResult> AcceptOrderAsync([FromBody] OrderDto orderDto)
         {
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
             if (orderDto != null)
             {
                 var isAccepted = true;
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     //Пройтись по всем товарам, если хоть одного нету или количество меньше того что есть на сервере = отменить заказа
-                    await connection.OpenAsync();
-                    foreach (var orderItem in orderDto.OrderInfoDto.OrderItemsDto)
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var orderItem in orderDto.OrderInfoDto?.OrderItemsDto!)
                     {
-                        var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new { sku = orderItem.OfferId, count = orderItem.Count });
+                        var productInDb = await connection.QueryFirstOrDefaultAsync<Product>
+                            ("select * from products where sku = @sku and count >= @count", new { sku = orderItem.OfferId, count = orderItem.Count }).ConfigureAwait(false);
                         if (productInDb == null)
                         {
                             isAccepted = false;
@@ -106,7 +108,7 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("cart")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto, [FromQuery(Name = "auth-token")] string authToken)
+        public async Task<IActionResult> GetInfoFromCartAsync([FromBody] CartDto cartDto, [FromQuery(Name = "auth-token")] string authToken)
         {
             if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
@@ -145,7 +147,7 @@ namespace YapartMarket.React.Controllers
                             cartViewModel.Cart.CartItems.Add(new CartItemViewModel
                             {
                                 FeedId = cartItemDto.FeedId,
-                                OfferId = cartItemDto.OfferId,
+                                OfferId = cartItemDto.OfferId!,
                                 Count = count,
                                 Delivery = isDelivery
                             });
@@ -224,7 +226,7 @@ namespace YapartMarket.React.Controllers
         [HttpPost]
         [Route("setProductsExpress")]
         [Produces("application/json")]
-        public async Task<IActionResult> SetProductsExpress([FromBody] ItemsDto itemsDto)
+        public async Task<IActionResult> SetProductsExpressAsync([FromBody] ItemsDto itemsDto)
         {
             if (itemsDto != null)
             {
@@ -263,7 +265,7 @@ namespace YapartMarket.React.Controllers
                                 CountExpress = x.Count,
                                 UpdateExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                             }).ToList();
-                            await _productRepository.BulkUpdateCountExpressData(result);
+                            await _productRepository.BulkUpdateCountExpressDataAsync(result);
                             productExpress.UpdateProducts = updateProducts.Select(x => new ProductExpressViewModel()
                             {
                                 Sku = x.Sku,
@@ -329,7 +331,7 @@ namespace YapartMarket.React.Controllers
                         Sku = x.Sku,
                         TakeTimeExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                     }).ToList();
-                    await _productRepository.BulkUpdateExpressTakeTime(result);
+                    await _productRepository.BulkUpdateExpressTakeTimeAsync(result);
                 }
                 else
                 {
@@ -338,7 +340,7 @@ namespace YapartMarket.React.Controllers
                         Sku = x.Sku,
                         TakeTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                     }).ToList();
-                    await _productRepository.BulkUpdateTakeTime(result);
+                    await _productRepository.BulkUpdateTakeTimeAsync(result);
                 }
 
             }

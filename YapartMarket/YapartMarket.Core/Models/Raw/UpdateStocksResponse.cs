@@ -13,9 +13,9 @@ namespace YapartMarket.Core.Models.Raw
         public Errors errors { get; set; }
     }
 
-    public class UpdateStocksResponse
+    public sealed class UpdateStocksResponse
     {
-        public string group_id { get; set; }
-        public List<Result> results { get; set; }
+        public string? group_id { get; set; }
+        public List<Result>? results { get; set; }
     }
 }

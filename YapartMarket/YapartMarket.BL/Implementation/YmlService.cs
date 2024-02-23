@@ -36,10 +36,10 @@ namespace YapartMarket.BL.Implementation
                 memoryStream.Position = 0;
                 using (var streamReader = new StreamReader(memoryStream))
                 {
-                    ymlCatalog = (YmlCatalog)xmlSerializer.Deserialize(streamReader);
+                    ymlCatalog = (YmlCatalog)xmlSerializer.Deserialize(streamReader)!;
                 }
             }
-            var productsSku = ymlCatalog?.Shop.Offers.Offer.Select(x => x.VendorCode).ToList();
+            var productsSku = ymlCatalog?.Shop!.Offers!.Offer!.Select(x => x.VendorCode).ToList();
             var products = new Dictionary<string, int>();
             using (var connection = new SqlConnection(connectionSettings.SQLServerConnectionString))
             {
@@ -59,11 +59,11 @@ namespace YapartMarket.BL.Implementation
                     }
                 } while (true);
             }
-            var offers = ymlCatalog.Shop.Offers.Offer.Where(x => products.Any(t => x.VendorCode.ToLower() == t.Key.ToLower())).ToList();
+            var offers = ymlCatalog!.Shop!.Offers!.Offer!.Where(x => products.Any(t => x.VendorCode?.ToLower() == t.Key.ToLower())).ToList();
             foreach (var offer in offers)
             {
-                var product = products.FirstOrDefault(x => x.Key.ToLower() == offer.VendorCode.ToLower());
-                offer.Outlets.Outlet.Instock = product.Value;
+                var product = products.FirstOrDefault(x => x.Key?.ToLower() == offer.VendorCode?.ToLower());
+                offer.Outlets!.Outlet!.Instock = product.Value;
                 offer.Outlets.Outlet.Id = 1;
             }
             var yapartYmlCatalog = new YmlCatalog()

@@ -20,7 +20,7 @@ namespace YapartMarket.Data.Implementation.Azure
             _tableName = tableName;
             _connectionString = connectionString;
         }
-        public async Task BulkUpdateProductId(IReadOnlyList<Product> products)
+        public async Task BulkUpdateProductIdAsync(IReadOnlyList<Product> products)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(products);
@@ -120,7 +120,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
             }
         }
 
-        public async Task BulkUpdateCountExpressData(List<Product> list)
+        public async Task BulkUpdateCountExpressDataAsync(List<Product> list)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(list);
@@ -166,7 +166,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
             }
         }
 
-        public async Task BulkUpdateTakeTime(List<Product> list)
+        public async Task BulkUpdateTakeTimeAsync(List<Product> list)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(list);
@@ -210,7 +210,7 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
             }
         }
 
-        public async Task BulkUpdateExpressTakeTime(List<Product> list)
+        public async Task BulkUpdateExpressTakeTimeAsync(List<Product> list)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(list);

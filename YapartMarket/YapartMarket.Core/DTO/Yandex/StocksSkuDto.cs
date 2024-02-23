@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace YapartMarket.Core.DTO.Yandex
 {
-    public class StocksSkuDto
+    public sealed class StocksSkuDto
     {
         [JsonPropertyName("skus")]
-        public List<SkuInfoDto> Skus { get; set; }
+        public List<SkuInfoDto>? Skus { get; set; }
     }
 }

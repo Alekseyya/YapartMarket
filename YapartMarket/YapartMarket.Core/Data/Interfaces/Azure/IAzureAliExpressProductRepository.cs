@@ -6,6 +6,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
 {
     public interface IAzureAliExpressProductRepository: IAzureQueriesGenericRepository<AliExpressProduct>, IAzureCommandGenericRepository<AliExpressProduct>
     {
-        Task BulkUpdateData(IReadOnlyList<AliExpressProduct> list);
+        Task BulkUpdateDataAsync(IReadOnlyList<AliExpressProduct> list);
     }
 }

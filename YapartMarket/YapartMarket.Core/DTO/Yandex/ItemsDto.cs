@@ -2,8 +2,8 @@
 
 namespace YapartMarket.Core.DTO.Yandex
 {
-    public class ItemsDto
+    public sealed class ItemsDto
     {
-        public List<ItemDto> Products { get; set; }
+        public List<ItemDto>? Products { get; set; }
     }
 }

@@ -1,51 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Dapper;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using YapartMarket.Core.BL;
-using YapartMarket.Core.Config;
-using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.DTO;
-using YapartMarket.Core.DTO.AliExpress;
-using YapartMarket.Core.Extensions;
-using YapartMarket.Core.Models.Azure;
+using YapartMarket.Core.Config;
 using YapartMarket.Core.Models.Raw;
+using YapartMarket.Core.Models.Azure;
+using YapartMarket.Core.DTO.AliExpress;
+using YapartMarket.Core.Data.Interfaces.Azure;
 using Product = YapartMarket.Core.Models.Azure.Product;
 
 namespace YapartMarket.BL.Implementation
 {
     public class AliExpressProductService : SendRequest<ProductRoot>, IAliExpressProductService
     {
-        private readonly IAzureAliExpressProductRepository _azureAliExpressProductRepository;
         private readonly IAzureProductRepository _azureProductRepository;
-        private readonly IProductPropertyRepository _productPropertyRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AliExpressProductService> _logger;
-        private readonly IServiceScopeFactory _scopeFactory;
         private readonly AliExpressOptions _aliExpressOptions;
         private readonly HttpClient _httpClient;
 
-        public AliExpressProductService(IAzureAliExpressProductRepository azureAliExpressProductRepository, IAzureProductRepository azureProductRepository,
-            IProductPropertyRepository productPropertyRepository,
-            IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger,
-            IServiceScopeFactory scopeFactory, IHttpClientFactory factory)
+        public AliExpressProductService(IAzureProductRepository azureProductRepository,
+            IOptions<AliExpressOptions> options, IConfiguration configuration, ILogger<AliExpressProductService> logger, IHttpClientFactory factory)
         {
-            _azureAliExpressProductRepository = azureAliExpressProductRepository;
             _azureProductRepository = azureProductRepository;
-            _productPropertyRepository = productPropertyRepository;
             _configuration = configuration;
             _logger = logger;
-            _scopeFactory = scopeFactory;
             _aliExpressOptions = options.Value;
             _httpClient = factory.CreateClient("aliExpress");
             _httpClient.DefaultRequestHeaders.Add("x-auth-token", options.Value.AuthToken);
@@ -55,23 +44,23 @@ namespace YapartMarket.BL.Implementation
             var products = new List<Product>();
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync().ConfigureAwait(false);
                 var productsInDb = await connection.QueryAsync<Product>("select * FROM dbo.products");
                 products.AddRange(productsInDb);
             }
             var aliProductRequest = new AliProductRequest(_httpClient);
-            var productResponses = await aliProductRequest.Send(products, _aliExpressOptions.GetProducts);
+            var productResponses = await aliProductRequest.Send(products, _aliExpressOptions.GetProducts!);
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync().ConfigureAwait(false);
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
                     var updateSql = @"update products set aliExpressProductId = @aliExpressProductId where sku = @sku;";
                     foreach (var responce in productResponses)
                     {
-                        foreach (var product in responce.data)
+                        foreach (var product in responce.data!)
                         {
-                            var sku = product.sku.FirstOrDefault().code;
+                            var sku = product.sku!.FirstOrDefault()!.code;
                             var aliProductId = product.id;
                             await connection.ExecuteAsync(updateSql, new { aliExpressProductId = aliProductId, sku = sku }, transaction).ConfigureAwait(false);
                         }
@@ -81,7 +70,7 @@ namespace YapartMarket.BL.Implementation
             }
         }
 
-        public async Task<UpdateStocksResponse> UpdateProduct(IReadOnlyList<Product> products)
+        public async Task<UpdateStocksResponse> UpdateProductAsync(IReadOnlyList<Product> products)
         {
             var productsResult = new ProductRoot()
             {
@@ -91,10 +80,10 @@ namespace YapartMarket.BL.Implementation
             {
                 productsResult.products.Add(new()
                 {
-                    product_id = product.AliExpressProductId.ToString(),
-                    skus = new List<Core.Models.Raw.Sku>()
+                    product_id = product.AliExpressProductId.ToString()!,
+                    skus = new List<Sku>()
                     {
-                        new Core.Models.Raw.Sku()
+                        new Sku()
                         {
                             sku_code = product.Sku,
                             inventory = product.Count.ToString()
@@ -108,21 +97,14 @@ namespace YapartMarket.BL.Implementation
             var response = new UpdateStocksResponse();
             while (skip < count)
             {
-                try
+                var tmpProduct = new ProductRoot()
                 {
-                    var tmpProduct = new ProductRoot()
-                    {
-                        products = productsResult.products.Skip(skip).Take(500).ToList()
-                    };
-                    var result = await Request(tmpProduct, _aliExpressOptions.UpdateStocks, _httpClient);
-                    var responseTmp = JsonConvert.DeserializeObject<UpdateStocksResponse>(result);
-                    if (responseTmp != null && responseTmp.results != null && responseTmp.results.Any(x => !x.ok))
-                        response.results.AddRange(responseTmp.results.Where(x => !x.ok).ToList());
-                }
-                catch (Exception e)
-                {
-                    throw e;
-                }
+                    products = productsResult.products.Skip(skip).Take(500).ToList()
+                };
+                var result = await Request(tmpProduct, _aliExpressOptions.UpdateStocks!, _httpClient);
+                var responseTmp = JsonConvert.DeserializeObject<UpdateStocksResponse>(result);
+                if (responseTmp != null && responseTmp.results != null && responseTmp.results.Any(x => !x.ok))
+                    response.results!.AddRange(responseTmp.results.Where(x => !x.ok).ToList());
                 skip += 500;
             }
             return response;
@@ -136,7 +118,7 @@ namespace YapartMarket.BL.Implementation
                 var productsInDb = await connection.QueryAsync<Product>("select * from products p WHERE p.aliExpressProductId is not null;");
                 products = productsInDb.ToList();
             }
-            return await UpdateProduct(products);
+            return await UpdateProductAsync(products);
         }
 
         public IReadOnlyList<ProductInfoResult> DeserializeProductsInfo(IReadOnlyList<string> responseProducts)
@@ -154,7 +136,7 @@ namespace YapartMarket.BL.Implementation
         public ProductInfoResult DeserializeProductInfo(string responseProduct)
         {
             var productInfo = JsonConvert.DeserializeObject<ProductInfoRoot>(responseProduct)?.Response?.ProductInfoResult;
-            return productInfo;
+            return productInfo!;
         }
 
         public async Task<IEnumerable<Product>> ListProductsForUpdateInventoryAsync()
@@ -172,32 +154,31 @@ namespace YapartMarket.BL.Implementation
                 return productsInDb;
             }
         }
-        public async Task<IEnumerable<AliExpressProductDTO>> ExceptProductsFromDataBaseAsync(IEnumerable<AliExpressProductDTO> products)
+        public async Task<IEnumerable<AliExpressProductDTO>?> ExceptProductsFromDataBaseAsync(IEnumerable<AliExpressProductDTO> products)
         {
             if (products.Any())
             {
-                //todo в отдельный 
                 IEnumerable<Product> productsInDb;
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
                     productsInDb = await connection.QueryAsync<Product>("select * from products where aliExpressProductId IN @aliExpressProductIds", new { aliExpressProductIds = products.Select(x => x.ProductId) });
                 }
                 return products.Where(prod => productsInDb.All(prodDb => prodDb.Sku != prod.SkuCode));
             }
             return null;
         }
-        public List<AliExpressProductDTO> SetInventoryFromDatabase(List<AliExpressProductDTO> aliExpressProducts)
+        public async Task<List<AliExpressProductDTO>?> SetInventoryFromDatabaseAsync(List<AliExpressProductDTO> aliExpressProducts)
         {
             if (aliExpressProducts.Any())
             {
                 var newAliExpressProduct = new List<AliExpressProductDTO>();
                 newAliExpressProduct = aliExpressProducts;
-                IEnumerable<Product> productsInDb = null;
+                IEnumerable<Product>? productsInDb = null;
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
                 {
-                    connection.Open();
-                    productsInDb = connection.Query<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) });
+                    await connection.OpenAsync().ConfigureAwait(false);
+                    productsInDb = await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = aliExpressProducts.Select(x => x.SkuCode) }).ConfigureAwait(false);
                 }
 
                 if (productsInDb.Any())
@@ -210,23 +191,22 @@ namespace YapartMarket.BL.Implementation
                     }
                     return newAliExpressProduct;
                 }
-                return null;
             }
             return null;
         }
 
         public async Task ProcessUpdateDatabaseAliExpressProductIdAsync()
         {
-            var updateProducts = await GetProductWhereAliExpressProductIdIsNull();
+            var updateProducts = await GetProductWhereAliExpressProductIdIsNullAsync();
             if (updateProducts.Any())
-                await _azureProductRepository.BulkUpdateProductId(updateProducts.ToList());
+                await _azureProductRepository.BulkUpdateProductIdAsync(updateProducts.ToList());
         }
 
-        public async Task<IEnumerable<Product>> GetProductWhereAliExpressProductIdIsNull()
+        public async Task<IEnumerable<Product>> GetProductWhereAliExpressProductIdIsNullAsync()
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync().ConfigureAwait(false);
                 _logger.LogInformation("Связывание таблиц AliExpressProduct с Product");
                 var lookup = new Dictionary<int, Product>();
                 var productsInDb = await connection.QueryAsync<Product, AliExpressProduct, Product>(

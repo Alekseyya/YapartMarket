@@ -9,9 +9,9 @@ namespace YapartMarket.Core.DTO.Goods
         [Column("id")]
         public Guid Id { get; set; }
         [Column("shipmentId")]
-        public string ShipmentId { get; set; }
+        public string? ShipmentId { get; set; }
         [Column("shipmentDate")]
         public DateTime ShipmentDate { get; set; }
-        public ICollection<OrderItem> OrderDetails { get; set; }
+        public ICollection<OrderItem>? OrderDetails { get; set; }
     }
 }

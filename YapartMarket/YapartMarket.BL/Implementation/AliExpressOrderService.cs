@@ -42,17 +42,17 @@ namespace YapartMarket.BL.Implementation
         }
         //todo написать метод для отправки заказов. Похожий на нижний. Создать еще один десериалйзер. Отправить заказы.
         //todo напечатать этикетки отправления - отдавать отцу метод
-        public async Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetailAsync(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus> orderStatusList = null)
+        public async Task<IReadOnlyList<AliExpressOrder>> QueryOrderDetailAsync(DateTime? startDateTime = null, DateTime? endDateTime = null, List<OrderStatus>? orderStatusList = null)
         {
 
             var getOrderRequest = new GetOrderList()
             {
-                date_start = startDateTime?.ToString("yyy-MM-dd HH:mm:ss"),
-                date_end = endDateTime?.ToString("yyy-MM-dd HH:mm:ss"),
+                date_start = startDateTime?.ToString("yyy-MM-dd HH:mm:ss")!,
+                date_end = endDateTime?.ToString("yyy-MM-dd HH:mm:ss")!,
                 page = 1,
                 page_size = 99
             };
-            var result = await Request(getOrderRequest, _aliExpressOptions.GetOrderList, _httpClient);
+            var result = await Request(getOrderRequest, _aliExpressOptions.GetOrderList!, _httpClient);
             var aliExpressOrderList = new List<AliExpressOrder>();
             using (var scope = _scopeFactory.CreateScope())
             {
@@ -74,7 +74,7 @@ namespace YapartMarket.BL.Implementation
                 page = 1,
                 page_size = 99
             };
-            var getOrderResult = await HttpExtension.Request(getOrderRequest, _aliExpressOptions.GetOrderList, _httpClient);
+            var getOrderResult = await HttpExtension.Request(getOrderRequest, _aliExpressOptions.GetOrderList!, _httpClient);
             var aliExpressOrderList = new List<AliExpressOrder>();
             using (var scope = _scopeFactory.CreateScope())
             {
@@ -112,7 +112,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         orders = logisticOrderItems.ToList()
                     };
-                    await HttpExtension.Request(logisticOrder, _aliExpressOptions.CreateLogisticOrder, _httpClient);
+                    await HttpExtension.Request(logisticOrder, _aliExpressOptions.CreateLogisticOrder!, _httpClient);
                 }
             }
         } 
@@ -136,16 +136,16 @@ namespace YapartMarket.BL.Implementation
                     aliExpressOrderDetail.OrderId = aliExpressOrder.OrderId;
                 }
             }
-            var newAliExpressOrders = await ExceptOrders(aliExpressOrders);
+            var newAliExpressOrders = await ExceptOrdersAsync(aliExpressOrders);
             if (newAliExpressOrders.Any())
                 await _orderRepository.AddOrdersAsync(newAliExpressOrders);
-            var updatedOrders = await IntersectOrder(aliExpressOrders);
+            var updatedOrders = await IntersectOrderAsync(aliExpressOrders);
             if (updatedOrders.IsAny())
                 await _orderRepository.UpdateAsync(updatedOrders);
-            await AddOrUpdateOrderDetails(aliExpressOrders);
+            await AddOrUpdateOrderDetailsAsync(aliExpressOrders);
         }
 
-        public async Task AddOrUpdateOrderDetails(List<AliExpressOrder> aliExpressOrders)
+        public async Task AddOrUpdateOrderDetailsAsync(List<AliExpressOrder> aliExpressOrders)
         {
             var orderDetails = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).ToList();
             var orderDetailHasInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = orderDetails.Select(x => x.OrderId) });
@@ -157,17 +157,17 @@ namespace YapartMarket.BL.Implementation
                     && t.ProductCount != x.ProductCount && t.ItemPrice != x.ItemPrice 
                     && t.ShowStatus != x.ShowStatus && t.TotalProductAmount != x.TotalProductAmount));
                 if (modifyOrderDetails.IsAny())
-                    await _orderDetailRepository.Update(modifyOrderDetails);
+                    await _orderDetailRepository.UpdateAsync(modifyOrderDetails);
             }
             if (orderDetailNotHasInDb.IsAny())
-                await _orderDetailRepository.Add(orderDetailNotHasInDb);
+                await _orderDetailRepository.AddAsync(orderDetailNotHasInDb);
         }
         /// <summary>
         /// Получить только новые заказы
         /// </summary>
         /// <param name="aliExpressOrderList"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<AliExpressOrder>> ExceptOrders(List<AliExpressOrder> aliExpressOrderList)
+        public async Task<IEnumerable<AliExpressOrder>> ExceptOrdersAsync(List<AliExpressOrder> aliExpressOrderList)
         {
             var orderInDb = await _orderRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
             return aliExpressOrderList.Where(aliOrder => orderInDb.All(orderDb => orderDb.OrderId != aliOrder.OrderId));
@@ -178,7 +178,7 @@ namespace YapartMarket.BL.Implementation
         /// </summary>
         /// <param name="aliExpressOrderList"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<AliExpressOrder>> IntersectOrder(List<AliExpressOrder> aliExpressOrderList)
+        public async Task<IEnumerable<AliExpressOrder>> IntersectOrderAsync(List<AliExpressOrder> aliExpressOrderList)
         {
             var ordersInDb = await _orderRepository.GetInAsync("order_id", new { order_id = aliExpressOrderList.Select(x => x.OrderId) });
             //значит что-то поменялось в заказе, количество товара, цена мб
@@ -195,7 +195,7 @@ namespace YapartMarket.BL.Implementation
                 if (orderUpdates.Any(x => x.OrderId == orderInDb.OrderId))
                 {
                     var orderUpdate = orderUpdates.FirstOrDefault(x=>x.OrderId == orderInDb.OrderId);
-                    orderUpdate.Id = orderInDb.Id;
+                    orderUpdate!.Id = orderInDb.Id;
                 }
             }
             return orderUpdates;

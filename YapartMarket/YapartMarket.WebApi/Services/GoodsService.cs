@@ -38,7 +38,7 @@ namespace YapartMarket.WebApi.Services
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync().ConfigureAwait(false);
                 var shipmentId = orderViewModel.OrderNewDataViewModel.Shipments[0].ShipmentId;
                 var sql = @"select * from goods_order o inner join goods_orderItem od on o.Id = od.orderId where o.shipmentId = @shipmentId";
                 var orderDictionary = new Dictionary<Guid, Order>();
@@ -51,11 +51,11 @@ namespace YapartMarket.WebApi.Services
                         orderDictionary.Add(docEntry.Id, docEntry);
                     }
 
-                    if (orderDetail != null) docEntry.OrderDetails.Add(orderDetail);
-                    docEntry.OrderDetails = docEntry.OrderDetails.Distinct().ToList();
+                    if (orderDetail != null) docEntry.OrderDetails!.Add(orderDetail);
+                    docEntry.OrderDetails = docEntry.OrderDetails!.Distinct().ToList();
 
                     return docEntry;
-                }, splitOn: "orderid", param: new { shipmentId });
+                }, splitOn: "orderid", param: new { shipmentId }).ConfigureAwait(false);
 
                 return orderResult.FirstOrDefault();
             }
@@ -77,14 +77,14 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
                         docEntry.OrderDetails = new List<OrderItem>();
                         orderDictionary.Add(docEntry.Id, docEntry);
                     }
-                    docEntry.OrderDetails.Add(orderDetail);
+                    docEntry.OrderDetails!.Add(orderDetail);
                     return docEntry;
                 }, splitOn: "orderid", param: new { dateTimeStart, dateTimeEnd });
                 var ordersResult = queryResult.GroupBy(x => x.ShipmentId);
                 foreach (var orderResult in ordersResult)
                 {
                     var order = orderResult.First();
-                    var orderItemsResult = orderResult.SelectMany(x => x.OrderDetails).GroupBy(x => x.OfferId)
+                    var orderItemsResult = orderResult.SelectMany(x => x.OrderDetails!).GroupBy(x => x.OfferId)
                         .Select(x => new { OfferId = x.Key, Quantity = x.Sum(q => q.Quantity), Price = x.Sum(q => q.Price) }).ToList();
                     var products = await connection.QueryAsync<Product>(@"select * from products where offerId IN @offerId", new { offerId = orderItemsResult.Select(x => x.OfferId) });
                     var items = new List<Model.Goods.OrderItemViewModel>();
@@ -94,14 +94,14 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
                         items.Add(new()
                         {
                             OfferId = orderDetails.OfferId,
-                            Sku = sku,
+                            Sku = sku!,
                             Quantity = orderDetails.Quantity,
                             Price = orderDetails.Price
                         });
                     }
                     orderViewModel.Add(new()
                     {
-                        ShipmentId = order.ShipmentId,
+                        ShipmentId = order.ShipmentId!,
                         ShipmentDate = order.ShipmentDate,
                         Items = items
                     });
@@ -133,7 +133,7 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
             {
                 data = new ViewModel.Goods.Packing.Data()
                 {
-                    token = _configuration.GetSection("goodsToken").Value,
+                    token = _configuration.GetSection("goodsToken").Value!,
                     shipments = new List<ViewModel.Goods.Packing.Shipment>()
                     {
                         new()
@@ -174,9 +174,9 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
                    },
                     reason = new()
                     {
-                        type = Enum.GetName(typeof(ReasonType), ReasonType.OUT_OF_STOCK)
+                        type = Enum.GetName(typeof(ReasonType), ReasonType.OUT_OF_STOCK)!
                     },
-                    token = _configuration.GetSection("goodsToken").Value
+                    token = _configuration.GetSection("goodsToken").Value!
                 },
                 meta = new()
             };
@@ -287,11 +287,11 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                             rejectItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value));
                         if(foundProduct.Count == 0)
                             rejectItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value));
-                        if(foundProduct.Count != 0 && foundProduct.Count >= goods.count)
+                        if(foundProduct.Count != 0 && foundProduct.Count >= goods!.count)
                         {
                             confirmItems.AddRange(orderItems.Where(x => x.OfferId == foundProduct.OfferId!.Value).Take(goods.count));
                         }
-                        if(foundProduct.Count != 0 && foundProduct.Count < goods.count)
+                        if(foundProduct.Count != 0 && foundProduct.Count < goods!.count)
                         {
                             var countConfirm = foundProduct.Count;
                             var countReject = goods.count - countConfirm;
@@ -302,8 +302,8 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     }
                     if (confirmItems.Any() && rejectItems.Any())
                     {
-                        var confirmResult = await ConfirmAsync(shipmentId, confirmItems.ToList());
-                        var rejectResult = await RejectAsync(shipmentId, rejectItems.ToList());
+                        var confirmResult = await ConfirmAsync(shipmentId!, confirmItems.ToList());
+                        var rejectResult = await RejectAsync(shipmentId!, rejectItems.ToList());
                         var packingResult = await PackingAsync(shipmentId, confirmItems.ToList());
                         //var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
                         var result = SuccessResult.Combine(confirmResult, rejectResult, packingResult /*, shipmentResult*/);
@@ -312,8 +312,8 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     }
                     if (confirmItems.Any() && !rejectItems.Any())
                     {
-                        var confirmResult = await ConfirmAsync(shipmentId, confirmItems.ToList());
-                        var packingResult = await PackingAsync(shipmentId, confirmItems.ToList());
+                        var confirmResult = await ConfirmAsync(shipmentId!, confirmItems.ToList());
+                        var packingResult = await PackingAsync(shipmentId!, confirmItems.ToList());
                         //var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
                         var result = SuccessResult.Combine(confirmResult, packingResult /*, shipmentResult*/);
                         if (!result.Succeeded)
@@ -321,7 +321,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     }
                     if (!confirmItems.Any() && rejectItems.Any())
                     {
-                        var rejectResult = await RejectAsync(shipmentId, rejectItems.ToList());
+                        var rejectResult = await RejectAsync(shipmentId!, rejectItems.ToList());
                         var result = SuccessResult.Combine(rejectResult);
                         if (!result.Succeeded)
                             return result;
@@ -350,7 +350,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             {
                 data = new()
                 {
-                    token = _configuration.GetSection("goodsToken").Value,
+                    token = _configuration.GetSection("goodsToken").Value!,
                     shipments = new List<ViewModel.Goods.Shipping.Shipment>()
                     {
                         new()
@@ -384,7 +384,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             {
                 data = new()
                 {
-                    token = _configuration.GetSection("goodsToken").Value,
+                    token = _configuration.GetSection("goodsToken").Value!,
                     shipments = new List<ViewModel.Goods.Confirm.Shipment>()
                     {
                         new()
@@ -418,7 +418,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 PropertyNameCaseInsensitive = true
             };
             var confirmResponse = JsonSerializer.Deserialize<ConfirmResponse>(response, jsonSerializerOptions);
-            if (confirmResponse.success == 0)
+            if (confirmResponse!.success == 0)
                 return new SuccessResult($"Confirm : {confirmResponse.error.message}");
             return SuccessResult.Success;
         }
@@ -432,7 +432,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 PropertyNameCaseInsensitive = true
             };
             var packingResponse = JsonSerializer.Deserialize<ShippingResponse>(response, jsonSerializerOptions);
-            if (packingResponse.success == 0)
+            if (packingResponse!.success == 0)
                 return new SuccessResult($"Shipping : {packingResponse.error.message}");
             return SuccessResult.Success;
         }
@@ -446,7 +446,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 PropertyNameCaseInsensitive = true
             };
             var packagedResponse = JsonSerializer.Deserialize<PackingResponse>(response, jsonSerializerOptions);
-            if (packagedResponse.success == 0)
+            if (packagedResponse!.success == 0)
                 return new SuccessResult($"Packing : {packagedResponse.error.message}");
             return SuccessResult.Success;
         }
@@ -460,7 +460,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                 PropertyNameCaseInsensitive = true
             };
             var rejectResponse = JsonSerializer.Deserialize<RejectResponse>(response, jsonSerializerOptions);
-            if (rejectResponse.success == 0)
+            if (rejectResponse!.success == 0)
                 return new SuccessResult($"Reject : {rejectResponse.error.message}");
             return SuccessResult.Success;
         }

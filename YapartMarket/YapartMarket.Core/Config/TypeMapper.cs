@@ -17,7 +17,7 @@ namespace YapartMarket.Core.Config
             {
                 var mapper = (SqlMapper.ITypeMap)Activator
                     .CreateInstance(typeof(ColumnAttributeTypeMapper<>)
-                        .MakeGenericType(type));
+                        .MakeGenericType(type))!;
                 SqlMapper.SetTypeMap(type, mapper);
             });
         }

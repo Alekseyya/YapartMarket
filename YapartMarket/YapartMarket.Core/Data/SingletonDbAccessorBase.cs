@@ -7,7 +7,7 @@ namespace YapartMarket.Core.Data
     {
         private bool _disposed = false;
 
-        protected TDbContext DbContext { get; set; } = null;
+        protected TDbContext? DbContext { get; set; }
 
         public TDbContext GetDbContext()
         {

@@ -37,7 +37,7 @@ namespace YapartMarket.Core.Data
         TEntity Update(TEntity entity);
 
         void RemoveRange(IList<TEntity> entries);
-        void RemoveRangeAsync(IList<TEntity> entries);
+        Task RemoveRangeAsync(IList<TEntity> entries);
         void Delete(TEntity entity);
 
         void Delete(TId id);

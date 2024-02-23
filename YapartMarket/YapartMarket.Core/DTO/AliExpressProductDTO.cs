@@ -6,13 +6,13 @@ namespace YapartMarket.Core.DTO
     {
         [JsonProperty("product_id")]
         public long ProductId { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public int Inventory { get; set; }
         /// <summary>
         /// Валюта
         /// </summary>
         [JsonProperty("currency_code")]
-        public string CurrencyCode { get; set; }
+        public string? CurrencyCode { get; set; }
         /// <summary>
         /// Количество товара
         /// </summary>
@@ -22,7 +22,7 @@ namespace YapartMarket.Core.DTO
         /// SKU код
         /// </summary>
         [JsonProperty("sku_code")]
-        public string SkuCode { get; set; }
+        public string? SkuCode { get; set; }
 
         /// <summary>
         /// Цена со скидкой

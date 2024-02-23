@@ -21,7 +21,7 @@ namespace YapartMarket.Data.Implementation.Azure
             _connectionString = connectionString;
         }
 
-        public async Task Update(IEnumerable<AliExpressOrderDetail> orderDetails)
+        public async Task UpdateAsync(IEnumerable<AliExpressOrderDetail> orderDetails)
         {
             try
             {
@@ -55,7 +55,7 @@ namespace YapartMarket.Data.Implementation.Azure
             
         }
 
-        public async Task Add(IEnumerable<AliExpressOrderDetail> orderDetails)
+        public async Task AddAsync(IEnumerable<AliExpressOrderDetail> orderDetails)
         {
             try
             {

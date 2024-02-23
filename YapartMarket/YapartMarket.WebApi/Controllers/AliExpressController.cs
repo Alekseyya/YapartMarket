@@ -29,7 +29,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("CurrentDay")]
         [Produces("application/json")]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAsync()
         {
             try
             {
@@ -49,7 +49,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("Yesterday")]
         [Produces("application/json")]
-        public async Task<IActionResult> Yesterday()
+        public async Task<IActionResult> YesterdayAsync()
         {
             try
             {
@@ -68,7 +68,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("Day")]
         [Produces("application/json")]
-        public async Task<IActionResult> Get(DateTime day)
+        public async Task<IActionResult> GetAsync(DateTime day)
         {
             var ordersByDay = await _aliExpressOrderService.GetOrdersAsync(day.StartOfDay(), day.EndOfDay());
             if (ordersByDay.IsAny())
@@ -78,7 +78,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("updateStocks")]
         [Produces("application/json")]
-        public async Task<IActionResult> UpdateStocks()
+        public async Task<IActionResult> UpdateStocksAsync()
         {
             var response = await _productService.ProcessUpdateStocksAsync();
             return Ok(response);
@@ -87,7 +87,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("updateProducts")]
         [Produces("application/json")]
-        public async Task<IActionResult> UpdateProducts()
+        public async Task<IActionResult> UpdateProductsAsync()
         {
             await _productService.ProcessUpdateProductSkuAsync();
             return Ok();
@@ -96,7 +96,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("createLogisticOrder")]
         [Produces("application/json")]
-        public async Task<IActionResult> CreateLogisticOrder()
+        public async Task<IActionResult> CreateLogisticOrderAsync()
         {
             await _aliExpressOrderService.CreateLogisticOrderAsync();
             return Ok();
@@ -104,7 +104,7 @@ namespace YapartMarket.WebApi.Controllers
 
         [HttpPost]
         [Route("downloadNewOrders")]
-        public async Task<IActionResult> DownloadNewOrders()
+        public async Task<IActionResult> DownloadNewOrdersAsync()
         {
             try
             {
