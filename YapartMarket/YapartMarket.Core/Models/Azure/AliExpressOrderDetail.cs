@@ -12,7 +12,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("id")]
         public int Id { get; set; }
         [Column("logistics_service_name")]
-        public string LogisticsServiceName { get; set; }
+        public string? LogisticsServiceName { get; set; }
         [Column("order_id")]
         public long OrderId { get; set; }
         [Column("product_count")]
@@ -22,7 +22,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("sku_id")]
         public long SkuId { get; set; }
         [Column("product_name")]
-        public string ProductName { get; set; }
+        public string? ProductName { get; set; }
         [Column("product_unit_price")]
         public decimal ItemPrice { get; set; }
         [Column("show_status")]
@@ -44,6 +44,6 @@ namespace YapartMarket.Core.Models.Azure
         [Column("updated")]
         public DateTime Updated { get; set; }
         [Computed]
-        public Product Product { get; set; }
+        public Product? Product { get; set; }
     }
 }

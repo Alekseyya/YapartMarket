@@ -7,11 +7,11 @@ namespace YapartMarket.Core.Models.Azure.Goods
         [Column("Id")]
         public int Id { get; set; }
         [Column("offerId")]
-        public string OfferId { get; set; }
+        public string? OfferId { get; set; }
         [Column("orderId")]
         public int OrderId { get; set; }
         [Column("itemIndex")]
-        public string ItemIndex { get; set; }
+        public string? ItemIndex { get; set; }
         [Column("reasonType")]
         public int ReasonType { get; set; }
     }

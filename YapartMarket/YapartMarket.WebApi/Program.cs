@@ -1,27 +1,24 @@
+using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
-using Quartz;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using YapartMarket.BL.Implementation;
 using YapartMarket.Core;
-using YapartMarket.Core.BL;
-using YapartMarket.Core.Config;
-using YapartMarket.Core.Data.Interfaces.Azure;
-using YapartMarket.Core.DTO;
-using YapartMarket.Core.Models.Azure;
 using YapartMarket.Data;
-using YapartMarket.Data.Implementation.Azure;
-using YapartMarket.WebApi.Job;
-using YapartMarket.WebApi.Mapper.AliExpress;
+using YapartMarket.Core.BL;
+using YapartMarket.Core.DTO;
+using YapartMarket.Core.Config;
 using YapartMarket.WebApi.Services;
+using YapartMarket.BL.Implementation;
+using YapartMarket.Core.Models.Azure;
+using YapartMarket.WebApi.Mapper.AliExpress;
+using YapartMarket.Data.Implementation.Azure;
+using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.WebApi.Services.Interfaces;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,19 +53,19 @@ builder.Services.AddTransient<IAliExpressOrderService, AliExpressOrderService>()
 builder.Services.AddTransient<IAliExpressProductService, AliExpressProductService>();
 builder.Services.AddTransient<YmlServiceBase, YmlService>();
 
-builder.Services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
-builder.Services.AddTransient<IProductPropertyRepository>(m => new ProductPropertiesRepository("dbo.ali_product_properties", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
-builder.Services.AddTransient<IAzureAliExpressProductRepository>(m => new AzureAliExpressProductRepository("aliExpressProducts", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
-builder.Services.AddTransient<IAliExpressOrderRepository>(m => new AliExpressOrderRepository(new Logger<AliExpressOrderRepository>(new LoggerFactory()), "dbo.orders", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
-builder.Services.AddTransient<IAliExpressOrderDetailRepository>(m => new AliExpressOrderDetailRepository("dbo.order_details", builder.Configuration.GetConnectionString("SQLServerConnectionString")));
-builder.Services.Configure<AliExpressOptions>(builder.Configuration.GetSection(AliExpressOptions.AliExpress));
+builder.Services.AddTransient<IAzureProductRepository>(m => new AzureProductRepository("products", builder.Configuration.GetConnectionString("SQLServerConnectionString")!));
+builder.Services.AddTransient<IProductPropertyRepository>(m => new ProductPropertiesRepository("dbo.ali_product_properties", builder.Configuration.GetConnectionString("SQLServerConnectionString")!));
+builder.Services.AddTransient<IAzureAliExpressProductRepository>(m => new AzureAliExpressProductRepository("aliExpressProducts", builder.Configuration.GetConnectionString("SQLServerConnectionString")!));
+builder.Services.AddTransient<IAliExpressOrderRepository>(m => new AliExpressOrderRepository(new Logger<AliExpressOrderRepository>(new LoggerFactory()), "dbo.orders", builder.Configuration.GetConnectionString("SQLServerConnectionString")!));
+builder.Services.AddTransient<IAliExpressOrderDetailRepository>(m => new AliExpressOrderDetailRepository("dbo.order_details", builder.Configuration.GetConnectionString("SQLServerConnectionString")!));
+builder.Services.Configure<AliExpressOptions>(builder.Configuration.GetSection(AliExpressOptions.AliExpress!));
 
 builder.Services.AddTransient<IGoodsService, GoodsService>();
 
 builder.Services.AddSingleton(typeof(Deserializer<IReadOnlyList<AliExpressOrder>>), s => new OrderDeserializer());
 builder.Services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("https://partner.sbermegamarket.ru"));
 
-builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]));
+builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]!));
 
 //builder.Services.AddQuartz(q =>
 //{

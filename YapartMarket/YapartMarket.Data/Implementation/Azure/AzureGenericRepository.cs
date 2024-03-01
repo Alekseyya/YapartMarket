@@ -52,7 +52,7 @@ namespace YapartMarket.Data.Implementation.Azure
                 throw;
             }
         }
-        public DataTable ConvertToDataTable<T>(IEnumerable<T> data)
+        public DataTable ConvertToDataTable(IEnumerable<T> data)
         {
             var properties = typeof(T).GetProperties();
             DataTable table = new DataTable();
@@ -152,7 +152,7 @@ namespace YapartMarket.Data.Implementation.Azure
             }
         }
 
-        public async Task<T> GetById(int id)
+        public async Task<T> GetByIdAsync(int id)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -261,18 +261,6 @@ namespace YapartMarket.Data.Implementation.Azure
             {
                 await connection.OpenAsync();
                 await connection.ExecuteAsync(updateSQL, action);
-            }
-        }
-
-        public virtual async Task Update(string sql, List<object> actions)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-                foreach (var action in actions)
-                {
-                    await connection.ExecuteAsync(sql, action);
-                }
             }
         }
     }

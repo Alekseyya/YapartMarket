@@ -4,6 +4,6 @@
     {
         public CancelData? data { get; set; }
         public int success { get; set; }
-        public CancelMeta meta { get; set; }
+        public CancelMeta? meta { get; set; }
     }
 }

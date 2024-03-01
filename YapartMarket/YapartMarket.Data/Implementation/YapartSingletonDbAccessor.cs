@@ -7,7 +7,7 @@ namespace YapartMarket.Data.Implementation
 {
     public sealed class YapartSingletonDbAccessor : SingletonDbAccessorBase<YapartContext>, IYapartDbAccessor
     {
-        private IDbContextTransaction _transaction = null;
+        IDbContextTransaction _transaction = null!;
 
         private readonly DbContextOptions<YapartContext> _options;
 
@@ -24,7 +24,7 @@ namespace YapartMarket.Data.Implementation
             throw new NotImplementedException();
         }
 
-        public DbContext GetDbContext()
+        public new DbContext GetDbContext()
         {
             return new YapartContext(_options);
         }
@@ -45,7 +45,7 @@ namespace YapartMarket.Data.Implementation
             {
                 _transaction.Commit();
                 _transaction.Dispose();
-                _transaction = null;
+                _transaction = null!;
             }
         }
 
@@ -55,7 +55,7 @@ namespace YapartMarket.Data.Implementation
             {
                 _transaction.Rollback();
                 _transaction.Dispose();
-                _transaction = null;
+                _transaction = null!;
             }
         }
 

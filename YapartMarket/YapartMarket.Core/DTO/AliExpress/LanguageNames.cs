@@ -5,10 +5,10 @@ namespace YapartMarket.Core.DTO.AliExpress
     public sealed class LanguageNames
     {
         [JsonProperty("ru")]
-        public string Ru { get; set; }
+        public string? Ru { get; set; }
         [JsonProperty("en")]
-        public string En { get; set; }
+        public string? En { get; set; }
         [JsonProperty("cn")]
-        public string Cn { get; set; }
+        public string? Cn { get; set; }
     }
 }

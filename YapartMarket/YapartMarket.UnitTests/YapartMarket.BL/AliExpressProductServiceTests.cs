@@ -75,18 +75,6 @@ namespace YapartMarket.UnitTests.YapartMarket.BL
             _mockHttpClientFactory = mockFactory;
         }
 
-
-        [Fact]
-        public async Task TestAliExpressProductService_UpdateProducts_NotNUll()
-        {
-            //Act
-            var aliExpressProductService = new AliExpressProductService(_mockAzureAliExpressRepository.Object,
-                _mockAzureProductService.Object, _mockProductPropertyRepository.Object, _aliExpressOption,
-                _configuration, _mockLogger.Object, _mockServiceScopeFactory.Object, _mockHttpClientFactory.Object);
-            //Arrange
-            //await aliExpressProductService.UpdateProductFromSql();
-
-        }
 //        [Fact]
 //        public void TestAliExpressProductService_ProcessAliExpressProductId_UpdateOneRow()
 //        {

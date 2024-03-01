@@ -17,14 +17,14 @@ namespace YapartMarket.Core
                 {
                     BuyerName = order.buyer_name,
                     OrderId = order.id,
-                    OrderStatus = GetOrderStatus(order.order_display_status),
-                    CreateAt = GetDateTime(order.created_at),
-                    UpdateAt = GetDateTime(order.updated_at),
-                    PaidAt = GetDateTime(order.paid_at),
+                    OrderStatus = GetOrderStatus(order.order_display_status!),
+                    CreateAt = GetDateTime(order.created_at!),
+                    UpdateAt = GetDateTime(order.updated_at!),
+                    PaidAt = GetDateTime(order.paid_at!),
                     PaymentStatus = GetPaymentStatus(order.payment_status),
-                    TotalProductCount = (int)order.order_lines.Select(x=> x.quantity).Aggregate((a, b) => a + b),
+                    TotalProductCount = (int)order.order_lines!.Select(x=> x.quantity).Aggregate((a, b) => a + b),
                     TotalPayAmount = GetDecimal(order.total_amount),
-                    AliExpressOrderDetails = GetOrderDetails(order.order_lines).ToList()
+                    AliExpressOrderDetails = GetOrderDetails(order.order_lines!).ToList()
                 });
             }
             return aliOrders;
@@ -36,8 +36,8 @@ namespace YapartMarket.Core
             {
                 aliOrderDetails.Add(new AliExpressOrderDetail()
                 {
-                    ProductId = GetLong(orderDetail.item_id),
-                    SkuId = GetLong(orderDetail.sku_id),
+                    ProductId = GetLong(orderDetail.item_id!),
+                    SkuId = GetLong(orderDetail.sku_id!),
                     ProductName = orderDetail.sku_code,
                     ProductCount = (int)orderDetail.quantity,
                     ItemPrice = GetDecimal(orderDetail.item_price),

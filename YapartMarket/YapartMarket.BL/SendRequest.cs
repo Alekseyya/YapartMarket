@@ -7,7 +7,7 @@ namespace YapartMarket.BL
 {
     public abstract class SendRequest<T>
     {
-        protected virtual async Task<string> Send(HttpClient httpClient, string url, string body)
+        protected virtual async Task<string> SendAsync(HttpClient httpClient, string url, string body)
         {
             var content = new StringContent(body, Encoding.UTF8, "application/json");
             var result = await httpClient.PostAsync(url, content);
@@ -15,10 +15,10 @@ namespace YapartMarket.BL
             return resultContent;
         }
 
-        protected virtual async Task<string> Request(T model, string url, HttpClient httpClient)
+        protected virtual async Task<string> RequestAsync(T model, string url, HttpClient httpClient)
         {
             var body = JsonConvert.SerializeObject(model);
-            return await Send(httpClient, url, body);
+            return await SendAsync(httpClient, url, body);
         }
     }
 }

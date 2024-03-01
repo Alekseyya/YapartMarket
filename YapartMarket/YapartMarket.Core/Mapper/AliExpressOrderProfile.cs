@@ -42,10 +42,10 @@ namespace YapartMarket.Core.Mapper
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.gmt_pay_time))
                 .ForMember(aliExpressOrder => aliExpressOrder.TotalProductCount,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x =>
-                        x.product_list!.order_product_dto.Select(t => t.product_count).Aggregate((a, b) => a + b)))
+                        x.product_list!.order_product_dto!.Select(t => t.product_count).Aggregate((a, b) => a + b)))
                 .ForMember(aliExpressOrder => aliExpressOrder.TotalPayAmount,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x =>
-                        x.product_list!.order_product_dto.Select(t => Convert.ToDecimal(t.total_product_amount!.amount, new CultureInfo("en-US")))
+                        x.product_list!.order_product_dto!.Select(t => Convert.ToDecimal(t.total_product_amount!.amount, new CultureInfo("en-US")))
                             .Aggregate((a, b) => a + b)))
                 .ForMember(aliExpressOrder => aliExpressOrder.OrderStatus,
                     aliExpressOrderDto => aliExpressOrderDto.MapFrom(x => x.order_status))

@@ -49,7 +49,7 @@ namespace YapartMarket.BL.Implementation
                 products.AddRange(productsInDb);
             }
             var aliProductRequest = new AliProductRequest(_httpClient);
-            var productResponses = await aliProductRequest.Send(products, _aliExpressOptions.GetProducts!);
+            var productResponses = await aliProductRequest.SendAsync(products, _aliExpressOptions.GetProducts!);
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync().ConfigureAwait(false);
@@ -85,7 +85,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         new Sku()
                         {
-                            sku_code = product.Sku,
+                            sku_code = product.Sku!,
                             inventory = product.Count.ToString()
                         }
                     }
@@ -101,7 +101,7 @@ namespace YapartMarket.BL.Implementation
                 {
                     products = productsResult.products.Skip(skip).Take(500).ToList()
                 };
-                var result = await Request(tmpProduct, _aliExpressOptions.UpdateStocks!, _httpClient);
+                var result = await RequestAsync(tmpProduct, _aliExpressOptions.UpdateStocks!, _httpClient);
                 var responseTmp = JsonConvert.DeserializeObject<UpdateStocksResponse>(result);
                 if (responseTmp != null && responseTmp.results != null && responseTmp.results.Any(x => !x.ok))
                     response.results!.AddRange(responseTmp.results.Where(x => !x.ok).ToList());
@@ -199,7 +199,7 @@ namespace YapartMarket.BL.Implementation
         {
             var updateProducts = await GetProductWhereAliExpressProductIdIsNullAsync();
             if (updateProducts.Any())
-                await _azureProductRepository.BulkUpdateProductIdAsync(updateProducts.ToList());
+                await _azureProductRepository.BulkUpdateProductIdAsync(updateProducts.ToList(), default);
         }
 
         public async Task<IEnumerable<Product>> GetProductWhereAliExpressProductIdIsNullAsync()

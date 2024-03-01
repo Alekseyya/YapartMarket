@@ -62,7 +62,7 @@ namespace YapartMarket.Core.DTO.AliExpress.OrderGetResponse
         [JsonProperty("logisitcs_escrow_fee_rate")]
         public string? logisitcs_escrow_fee_rate { get; set; }
         [JsonProperty("loan_amount")]
-        public LoanAmount loan_amount { get; set; }
+        public LoanAmount? loan_amount { get; set; }
         [JsonProperty("left_send_good_min")]
         public string? left_send_good_min { get; set; }
         [JsonProperty("left_send_good_hour")]
@@ -180,7 +180,7 @@ namespace YapartMarket.Core.DTO.AliExpress.OrderGetResponse
     public class ProductList
     {
         [JsonProperty("order_product_dto")]
-        public List<OrderProductDto> order_product_dto { get; set; }
+        public List<OrderProductDto>? order_product_dto { get; set; }
     }
 
     public class ProductUnitPrice
@@ -198,7 +198,7 @@ namespace YapartMarket.Core.DTO.AliExpress.OrderGetResponse
         [JsonProperty("total_count")]
         public int total_count { get; set; }
         [JsonProperty("target_list")]
-        public TargetList target_list { get; set; }
+        public TargetList? target_list { get; set; }
         [JsonProperty("page_size")]
         public int page_size { get; set; }
         [JsonProperty("error_code")]
@@ -216,13 +216,13 @@ namespace YapartMarket.Core.DTO.AliExpress.OrderGetResponse
     public class OrderRootDto
     {
         [JsonProperty("aliexpress_solution_order_get_response")]
-        public AliexpressSolutionOrderGetResponse aliexpress_solution_order_get_response { get; set; }
+        public AliexpressSolutionOrderGetResponse? aliexpress_solution_order_get_response { get; set; }
     }
 
     public class TargetList
     {
         [JsonProperty("order_dto")]
-        public List<OrderDto> order_dto { get; set; }
+        public List<OrderDto>? order_dto { get; set; }
     }
 
     public class TotalProductAmount

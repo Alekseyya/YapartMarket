@@ -9,8 +9,8 @@ namespace YapartMarket.Core.Models.Raw
     public class Result
     {
         public bool ok { get; set; }
-        public string task_id { get; set; }
-        public Errors errors { get; set; }
+        public string? task_id { get; set; }
+        public Errors? errors { get; set; }
     }
 
     public sealed class UpdateStocksResponse

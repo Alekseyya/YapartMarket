@@ -13,7 +13,7 @@ namespace YapartMarket.Core.Models.Azure
         [Column("id")]
         public int Id { get; set; }
         [Column("seller_signer_fullname")]
-        public string BuyerName { get; set; }
+        public string? BuyerName { get; set; }
         [Column("order_id")]
         public long OrderId { get; set; }
         [Column("order_status")]
@@ -30,6 +30,6 @@ namespace YapartMarket.Core.Models.Azure
         public DateTime? CreateAt { get; set; }
         [Column("fund_status")]
         public PaymentStatus PaymentStatus { get; set; }
-        public virtual IList<AliExpressOrderDetail> AliExpressOrderDetails { get; set; }
+        public virtual IList<AliExpressOrderDetail>? AliExpressOrderDetails { get; set; }
     }
 }

@@ -12,11 +12,11 @@ namespace YapartMarket.Core.Models.Azure.Goods
         [Column("box_index")]
         public int BoxIndex { get; set; }
         [Column("box_code")]
-        public string BoxCode { get; set; }
+        public string? BoxCode { get; set; }
         [Column("digital_marks")]
-        public string DigitalRemarks { get; set; }
+        public string? DigitalRemarks { get; set; }
         [Column("shipment_id")]
-        public string ShipmentId { get; set; }
+        public string? ShipmentId { get; set; }
         [Column("create")]
         public DateTime Create { get; set; }
     }

@@ -39,12 +39,6 @@ namespace YapartMarket.BL.Implementation
             RepositoryFactory.GetRepository<TRepository>().RemoveRange(entries);
         }
 
-        public virtual Task RemoveRangeAsync(IList<TEntry> entries)
-        {
-            RepositoryFactory.GetRepository<TRepository>().RemoveRangeAsync(entries);
-            return Task.CompletedTask;
-        }
-
         public virtual TEntry GetById(TId id)
         {
             return RepositoryFactory.GetRepository<TRepository>().GetById(id);
@@ -63,7 +57,7 @@ namespace YapartMarket.BL.Implementation
             return delegateExpr(repositoryQuery);
         }
 
-        public virtual async Task<List<TEntry>> Get()
+        public virtual async Task<List<TEntry>> GetAsync()
         {
             return await RepositoryFactory.GetRepository<TRepository>().GetQueryable().ToListAsync();
         }

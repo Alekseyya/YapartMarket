@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Models.Azure;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -20,51 +21,54 @@ namespace YapartMarket.Data.Implementation.Azure
             _tableName = tableName;
             _connectionString = connectionString;
         }
-        public async Task BulkUpdateProductIdAsync(IReadOnlyList<Product> products)
+        public async Task BulkUpdateProductIdAsync(IReadOnlyList<Product> products, CancellationToken cancellationToken)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(products);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_productId (
+                using (var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_productId (
 sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 aliExpressProductId bigint NULL,
-updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", conn))
-                {
-                    try
+updatedAt varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL);", connection))
                     {
-                        await conn.OpenAsync();
-                        await command.ExecuteNonQueryAsync();
-
-                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                        try
                         {
-                            bulkcopy.BulkCopyTimeout = 6600;
-                            bulkcopy.DestinationTableName = "products_productId";
-                            bulkcopy.ColumnMappings.Clear();
-                            bulkcopy.ColumnMappings.Add("sku", "sku");
-                            bulkcopy.ColumnMappings.Add("aliExpressProductId", "aliExpressProductId");
-                            bulkcopy.ColumnMappings.Add("updatedAt", "updatedAt");
-                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
-                            bulkcopy.Close();
-                        }
+                            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+
+                            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(connection))
+                            {
+                                bulkcopy.BulkCopyTimeout = 6600;
+                                bulkcopy.DestinationTableName = "products_productId";
+                                bulkcopy.ColumnMappings.Clear();
+                                bulkcopy.ColumnMappings.Add("sku", "sku");
+                                bulkcopy.ColumnMappings.Add("aliExpressProductId", "aliExpressProductId");
+                                bulkcopy.ColumnMappings.Add("updatedAt", "updatedAt");
+                                await bulkcopy.WriteToServerAsync(dt.CreateDataReader(), cancellationToken).ConfigureAwait(false);
+                                bulkcopy.Close();
+                            }
 
 
-                        command.CommandTimeout = 3000;
-                        command.CommandText = @"UPDATE P SET P.aliExpressProductId = T.aliExpressProductId, P.updatedAt = T.updatedAt
+                            command.CommandTimeout = 3000;
+                            command.CommandText = @"UPDATE P SET P.aliExpressProductId = T.aliExpressProductId, P.updatedAt = T.updatedAt
 FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
-                        await command.ExecuteNonQueryAsync();
-                        command.CommandText = "DROP TABLE products_productId;";
-                        await command.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        // Handle exception properly
-                        throw ex;
-                    }
-                    finally
-                    {
-                        conn.Close();
+                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                            command.CommandText = "DROP TABLE products_productId;";
+                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception)
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                            await connection.CloseAsync().ConfigureAwait(false);
+                        }
                     }
                 }
             }
@@ -103,11 +107,9 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
                             command.CommandText = "DROP TABLE products_tmpCount;";
                             await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                            // Handle exception properly
-                            throw ex;
                         }
                         finally
                         {
@@ -120,135 +122,146 @@ FROM products AS P INNER JOIN products_productId AS T ON P.sku = T.sku;";
             }
         }
 
-        public async Task BulkUpdateCountExpressDataAsync(List<Product> list)
+        public async Task BulkUpdateCountExpressDataAsync(List<Product> list, CancellationToken cancellationToken)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(list);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_express_count (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, countExpress int NULL, updateExpress datetime2(6) NULL);", conn))
+                using (var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    try
+                    using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_express_count (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, countExpress int NULL, updateExpress datetime2(6) NULL);", connection))
                     {
-                        await conn.OpenAsync();
-                        await command.ExecuteNonQueryAsync();
-
-                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                        try
                         {
-                            bulkcopy.BulkCopyTimeout = 6600;
-                            bulkcopy.DestinationTableName = "products_express_count";
-                            bulkcopy.ColumnMappings.Clear();
-                            bulkcopy.ColumnMappings.Add("sku", "sku");
-                            bulkcopy.ColumnMappings.Add("countExpress", "countExpress");
-                            bulkcopy.ColumnMappings.Add("updateExpress", "updateExpress");
-                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
-                            bulkcopy.Close();
+                            await connection.OpenAsync();
+                            await command.ExecuteNonQueryAsync();
+
+                            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(connection))
+                            {
+                                bulkcopy.BulkCopyTimeout = 6600;
+                                bulkcopy.DestinationTableName = "products_express_count";
+                                bulkcopy.ColumnMappings.Clear();
+                                bulkcopy.ColumnMappings.Add("sku", "sku");
+                                bulkcopy.ColumnMappings.Add("countExpress", "countExpress");
+                                bulkcopy.ColumnMappings.Add("updateExpress", "updateExpress");
+                                await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
+                                bulkcopy.Close();
+                            }
+
+
+                            command.CommandTimeout = 3000;
+                            command.CommandText = "UPDATE P SET P.countExpress = T.countExpress, P.updateExpress = T.updateExpress  FROM products AS P INNER JOIN products_express_count AS T ON P.sku = T.sku;";
+                            await command.ExecuteNonQueryAsync();
+                            command.CommandText = "DROP TABLE products_express_count;";
+                            await command.ExecuteNonQueryAsync();
                         }
-
-
-                        command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.countExpress = T.countExpress, P.updateExpress = T.updateExpress  FROM products AS P INNER JOIN products_express_count AS T ON P.sku = T.sku;";
-                        await command.ExecuteNonQueryAsync();
-                        command.CommandText = "DROP TABLE products_express_count;";
-                        await command.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        // Handle exception properly
-                        throw ex;
-                    }
-                    finally
-                    {
-                        conn.Close();
+                        catch (Exception)
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                            await connection.CloseAsync().ConfigureAwait(false);
+                        }
                     }
                 }
             }
         }
 
-        public async Task BulkUpdateTakeTimeAsync(List<Product> list)
+        public async Task BulkUpdateTakeTimeAsync(List<Product> list, CancellationToken cancellationToken)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(list);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", conn))
+                using (var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    try
+                    using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_tmpTakeTime (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTime datetime2(0) NULL);", connection))
                     {
-                        await conn.OpenAsync();
-                        await command.ExecuteNonQueryAsync();
-
-                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                        try
                         {
-                            bulkcopy.BulkCopyTimeout = 6600;
-                            bulkcopy.DestinationTableName = "products_tmpTakeTime";
-                            bulkcopy.ColumnMappings.Clear();
-                            bulkcopy.ColumnMappings.Add("sku", "sku");
-                            bulkcopy.ColumnMappings.Add("takeTime", "takeTime");
-                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
-                            bulkcopy.Close();
+                            await connection.OpenAsync();
+                            await command.ExecuteNonQueryAsync();
+
+                            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(connection))
+                            {
+                                bulkcopy.BulkCopyTimeout = 6600;
+                                bulkcopy.DestinationTableName = "products_tmpTakeTime";
+                                bulkcopy.ColumnMappings.Clear();
+                                bulkcopy.ColumnMappings.Add("sku", "sku");
+                                bulkcopy.ColumnMappings.Add("takeTime", "takeTime");
+                                await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
+                                bulkcopy.Close();
+                            }
+
+
+                            command.CommandTimeout = 3000;
+                            command.CommandText = "UPDATE P SET P.takeTime = T.takeTime FROM products AS P INNER JOIN products_tmpTakeTime AS T ON P.sku = T.sku;";
+                            await command.ExecuteNonQueryAsync();
+                            command.CommandText = "DROP TABLE products_tmpTakeTime;";
+                            await command.ExecuteNonQueryAsync();
                         }
-
-
-                        command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.takeTime = T.takeTime FROM products AS P INNER JOIN products_tmpTakeTime AS T ON P.sku = T.sku;";
-                        await command.ExecuteNonQueryAsync();
-                        command.CommandText = "DROP TABLE products_tmpTakeTime;";
-                        await command.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw ex;
-                    }
-                    finally
-                    {
-                        await conn.CloseAsync();
+                        catch (Exception)
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                            await connection.CloseAsync().ConfigureAwait(false);
+                        }
                     }
                 }
             }
         }
 
-        public async Task BulkUpdateExpressTakeTimeAsync(List<Product> list)
+        public async Task BulkUpdateExpressTakeTimeAsync(List<Product> list, CancellationToken cancellationToken)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(list);
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_express_take (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTimeExpress datetime2(6) NULL);", conn))
+                using (var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    try
+                    using (SqlCommand command = new SqlCommand(@"CREATE TABLE products_express_take (sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, takeTimeExpress datetime2(6) NULL);", connection))
                     {
-                        await conn.OpenAsync();
-                        await command.ExecuteNonQueryAsync();
-
-                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                        try
                         {
-                            bulkcopy.BulkCopyTimeout = 6600;
-                            bulkcopy.DestinationTableName = "products_express_take";
-                            bulkcopy.ColumnMappings.Clear();
-                            bulkcopy.ColumnMappings.Add("sku", "sku");
-                            bulkcopy.ColumnMappings.Add("takeTimeExpress", "takeTimeExpress");
-                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
-                            bulkcopy.Close();
+                            await connection.OpenAsync();
+                            await command.ExecuteNonQueryAsync();
+
+                            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(connection))
+                            {
+                                bulkcopy.BulkCopyTimeout = 6600;
+                                bulkcopy.DestinationTableName = "products_express_take";
+                                bulkcopy.ColumnMappings.Clear();
+                                bulkcopy.ColumnMappings.Add("sku", "sku");
+                                bulkcopy.ColumnMappings.Add("takeTimeExpress", "takeTimeExpress");
+                                await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
+                                bulkcopy.Close();
+                            }
+
+
+                            command.CommandTimeout = 3000;
+                            command.CommandText = "UPDATE P SET P.takeTimeExpress = T.takeTimeExpress FROM products AS P INNER JOIN products_express_take AS T ON P.sku = T.sku;";
+                            await command.ExecuteNonQueryAsync();
+                            command.CommandText = "DROP TABLE products_express_take;";
+                            await command.ExecuteNonQueryAsync();
                         }
-
-
-                        command.CommandTimeout = 3000;
-                        command.CommandText = "UPDATE P SET P.takeTimeExpress = T.takeTimeExpress FROM products AS P INNER JOIN products_express_take AS T ON P.sku = T.sku;";
-                        await command.ExecuteNonQueryAsync();
-                        command.CommandText = "DROP TABLE products_express_take;";
-                        await command.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw ex;
-                    }
-                    finally
-                    {
-                        await conn.CloseAsync();
+                        catch (Exception)
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                            await connection.CloseAsync().ConfigureAwait(false);
+                        }
                     }
                 }
             }

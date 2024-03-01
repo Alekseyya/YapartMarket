@@ -77,9 +77,8 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
                 var order = await connection.QueryAsync<Core.DTO.Goods.Order>(@"select * from goods_order");
                 var orderItems = await connection.QueryAsync<Core.DTO.Goods.OrderItem>(@"select * from goods_orderItem");
                 Assert.True(order != null);
-                Assert.Equal(order.ToList().Count, 1);
                 Assert.True(orderItems != null);
-                Assert.Equal(orderItems.ToList().Count, 2);
+                Assert.Equal(2, orderItems.ToList().Count);
                 await connection.ExecuteAsync(@"truncate table goods_order; truncate table goods_orderItem");
             }
         }

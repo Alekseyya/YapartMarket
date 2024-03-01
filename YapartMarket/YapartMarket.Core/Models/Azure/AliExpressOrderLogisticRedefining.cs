@@ -10,16 +10,16 @@ namespace YapartMarket.Core.Models.Azure
         [Column("recommend_order")]
         public long RecommendOrder { get; set; }
         [Column("tracking_no_regex")]
-        public string TrackingNoRegex { get; set; }
+        public string? TrackingNoRegex { get; set; }
         [Column("min_process_day")]
         public int MinProcessDay { get; set; }
         [Column("logistic_company")]
-        public string LogisticCompany { get; set; }
+        public string? LogisticCompany { get; set; }
         [Column("max_process_day")]
         public int MaxProcessDay { get; set; }
         [Column("display_name")]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
         [Column("service_name")]
-        public string ServiceName { get; set; }
+        public string? ServiceName { get; set; }
     }
 }

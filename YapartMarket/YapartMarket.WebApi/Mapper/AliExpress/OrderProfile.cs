@@ -17,7 +17,7 @@ namespace YapartMarket.WebApi.Mapper.AliExpress
                 .ForMember(x => x.ProductUnitPrice, y => y.MapFrom(t => t.ItemPrice))
                 .ForMember(x => x.ShowStatus, y => y.MapFrom(t => t.ShowStatus))
                 .ForMember(x => x.ProductId, y => y.MapFrom(t => t.ProductId))
-                .ForMember(x => x.Sku, y => y.MapFrom(t => t.Product.Sku));
+                .ForMember(x => x.Sku, y => y.MapFrom(t => t.Product!.Sku));
             CreateMap<AliExpressOrder, Order>()
                 .ForMember(x => x.OrderStatus, y => y.MapFrom(t => t.OrderStatus))
                 .ForMember(x => x.FundStatus, y => y.MapFrom(t => t.PaymentStatus))

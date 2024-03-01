@@ -5,6 +5,8 @@ using System.Data;
 using System.Threading.Tasks;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.Core.Models.Azure;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Threading;
 
 namespace YapartMarket.Data.Implementation.Azure
 {
@@ -17,14 +19,17 @@ namespace YapartMarket.Data.Implementation.Azure
             _tableName = tableName;
             _connectionString = connectionString;
         }
-        public async Task BulkUpdateDataAsync(IReadOnlyList<AliExpressProduct> products)
+        //todo сделать что-то типа OperationResult
+        public async Task BulkUpdateDataAsync(IReadOnlyList<AliExpressProduct> products, CancellationToken cancellationToken)
         {
             var dt = new DataTable(_tableName);
             dt = ConvertToDataTable(products);
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (SqlCommand command = new SqlCommand(@"CREATE TABLE aliProducts_tmp (
+                using (var transaction = await conn.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    using (SqlCommand command = new SqlCommand(@"CREATE TABLE aliProducts_tmp (
 sku nvarchar(60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 productId bigint NULL,
 created varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -38,37 +43,37 @@ product_price decimal NULL,
 product_status_type nvarchar(100) NULL,
 product_unit bigint NULL,
 gross_weight varchar(10) NULL);", conn))
-                {
-                    try
                     {
-                        await conn.OpenAsync();
-                        await command.ExecuteNonQueryAsync();
-
-                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                        try
                         {
-                            bulkcopy.BulkCopyTimeout = 6600;
-                            bulkcopy.DestinationTableName = "aliProducts_tmp";
-                            bulkcopy.ColumnMappings.Clear();
-                            bulkcopy.ColumnMappings.Add("sku", "sku");
-                            bulkcopy.ColumnMappings.Add("productId", "productId");
-                            bulkcopy.ColumnMappings.Add("created", "created");
-                            bulkcopy.ColumnMappings.Add("updatedAt", "updatedAt");
-                            bulkcopy.ColumnMappings.Add("category_id", "category_id");
-                            bulkcopy.ColumnMappings.Add("currency_code", "currency_code");
-                            bulkcopy.ColumnMappings.Add("group_id", "group_id");
-                            bulkcopy.ColumnMappings.Add("package_height", "package_height");
-                            bulkcopy.ColumnMappings.Add("package_length", "package_length");
-                            bulkcopy.ColumnMappings.Add("product_price", "product_price");
-                            bulkcopy.ColumnMappings.Add("product_status_type", "product_status_type");
-                            bulkcopy.ColumnMappings.Add("product_unit", "product_unit");
-                            bulkcopy.ColumnMappings.Add("gross_weight", "gross_weight");
-                            await bulkcopy.WriteToServerAsync(dt.CreateDataReader());
-                            bulkcopy.Close();
-                        }
+                            await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+
+                            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(conn))
+                            {
+                                bulkcopy.BulkCopyTimeout = 6600;
+                                bulkcopy.DestinationTableName = "aliProducts_tmp";
+                                bulkcopy.ColumnMappings.Clear();
+                                bulkcopy.ColumnMappings.Add("sku", "sku");
+                                bulkcopy.ColumnMappings.Add("productId", "productId");
+                                bulkcopy.ColumnMappings.Add("created", "created");
+                                bulkcopy.ColumnMappings.Add("updatedAt", "updatedAt");
+                                bulkcopy.ColumnMappings.Add("category_id", "category_id");
+                                bulkcopy.ColumnMappings.Add("currency_code", "currency_code");
+                                bulkcopy.ColumnMappings.Add("group_id", "group_id");
+                                bulkcopy.ColumnMappings.Add("package_height", "package_height");
+                                bulkcopy.ColumnMappings.Add("package_length", "package_length");
+                                bulkcopy.ColumnMappings.Add("product_price", "product_price");
+                                bulkcopy.ColumnMappings.Add("product_status_type", "product_status_type");
+                                bulkcopy.ColumnMappings.Add("product_unit", "product_unit");
+                                bulkcopy.ColumnMappings.Add("gross_weight", "gross_weight");
+                                await bulkcopy.WriteToServerAsync(dt.CreateDataReader(), cancellationToken);
+                                bulkcopy.Close();
+                            }
 
 
-                        command.CommandTimeout = 3000;
-                        command.CommandText = @"UPDATE P SET 
+                            command.CommandTimeout = 3000;
+                            command.CommandText = @"UPDATE P SET 
 P.sku = T.sku, 
 P.created = T.created, 
 P.updatedAt = T.updatedAt, 
@@ -82,16 +87,17 @@ P.product_status_type = T.product_status_type,
 P.product_unit = T.product_unit, 
 P.gross_weight = T.gross_weight 
 FROM aliExpressProducts AS P INNER JOIN aliProducts_tmp AS T ON P.productId = T.productId; DROP TABLE aliProducts_tmp;";
-                        await command.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        // Handle exception properly
-                        throw ex;
-                    }
-                    finally
-                    {
-                        conn.Close();
+                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception)
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                            await conn.CloseAsync();
+                        }
                     }
                 }
             }

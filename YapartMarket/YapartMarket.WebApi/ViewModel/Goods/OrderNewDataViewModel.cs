@@ -8,6 +8,6 @@ namespace YapartMarket.WebApi.ViewModel.Goods
         [JsonPropertyName("merchantId")]
         public int MerchantId { get; set; }
         [JsonPropertyName("shipments")]
-        public List<OrderNewShipment> Shipments { get; set; }
+        public List<OrderNewShipment>? Shipments { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace YapartMarket.Core.Models.Azure.Goods
         [Column("orderId")]
         public int OrderId { get; set; }
         [Column("shipmentId")]
-        public string ShipmentId { get; set; }
+        public string? ShipmentId { get; set; }
         [Column("create")]
         public DateTime Create { get; set; }
     }

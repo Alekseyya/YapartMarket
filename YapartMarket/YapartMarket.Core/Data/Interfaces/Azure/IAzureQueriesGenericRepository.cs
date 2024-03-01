@@ -11,6 +11,6 @@ namespace YapartMarket.Core.Data.Interfaces.Azure
         Task<IEnumerable<T>> GetAsync(string sql);
         Task<IEnumerable<T>> GetAsync(string sql, object action);
         //Task<IEnumerable<T>> GetAsync(string sql, DynamicParameters dynamicParameters);
-        Task<T> GetById(int id);
+        Task<T> GetByIdAsync(int id);
     }
 }

@@ -120,7 +120,7 @@ namespace YapartMarket.React.Controllers
                 return StatusCode(403);
             if (cartDto != null)
             {
-                if (cartDto.Cart.CartItems != null)
+                if (cartDto.Cart!.CartItems != null)
                 {
                     var cartViewModel = new CartViewModel
                     {
@@ -178,11 +178,11 @@ namespace YapartMarket.React.Controllers
                     using (var connection = new SqlConnection(connectionSettings.SQLServerConnectionString))
                     {
                         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                        var takeSkus = itemsDto.Products.Select(x => x.Sku);
+                        var takeSkus = itemsDto.Products!.Select(x => x.Sku);
                         productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
                     }
-                    var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.Count != x.Count)).ToList();
-                    var insertProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
+                    var updateProducts = itemsDto.Products!.Where(x => productsByInsertSkuInDb.Any(t => t.Sku!.Equals(x.Sku) && t.Count != x.Count)).ToList();
+                    var insertProducts = itemsDto.Products!.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
                     if (updateProducts.Any())
                     {
                         var result = updateProducts.Select(x => new Product
@@ -228,6 +228,7 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> SetProductsExpressAsync([FromBody] ItemsDto itemsDto)
         {
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
             if (itemsDto != null)
             {
                 var productExpress = new ProductExpressInfoViewModel();
@@ -241,22 +242,22 @@ namespace YapartMarket.React.Controllers
                         var productsByInsertSkuInDb = new List<Product>();
                         do
                         {
-                            var takeSkus = itemsDto.Products.Select(x => x.Sku).Skip(skip).Take(take);
+                            var takeSkus = itemsDto.Products!.Select(x => x.Sku).Skip(skip).Take(take);
                             skip += take;
                             if (!takeSkus.Any())
                                 break;
                             productsByInsertSkuInDb.AddRange(await connection.QueryAsync<Product>("select * from products where sku IN @skus", new { skus = takeSkus }));
                         } while (true);
-                        var missingProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
+                        var missingProducts = itemsDto.Products!.Where(x => productsByInsertSkuInDb.All(t => t.Sku != x.Sku));
                         if (missingProducts.IsAny())
                         {
                             productExpress.MissingProducts = missingProducts.Select(x => new ProductExpressViewModel()
                             {
-                                Sku = x.Sku,
+                                Sku = x.Sku!,
                                 Count = x.Count
                             }).ToList();
                         }
-                        var updateProducts = itemsDto.Products.Where(x => productsByInsertSkuInDb.Any(t => t.Sku.Equals(x.Sku) && t.CountExpress != x.Count)).ToList();
+                        var updateProducts = itemsDto.Products!.Where(x => productsByInsertSkuInDb.Any(t => t.Sku!.Equals(x.Sku) && t.CountExpress != x.Count)).ToList();
                         if (updateProducts.Any())
                         {
                             var result = updateProducts.Select(x => new Product
@@ -265,10 +266,10 @@ namespace YapartMarket.React.Controllers
                                 CountExpress = x.Count,
                                 UpdateExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                             }).ToList();
-                            await _productRepository.BulkUpdateCountExpressDataAsync(result);
+                            await _productRepository.BulkUpdateCountExpressDataAsync(result, cancellationToken);
                             productExpress.UpdateProducts = updateProducts.Select(x => new ProductExpressViewModel()
                             {
-                                Sku = x.Sku,
+                                Sku = x.Sku!,
                                 Count = x.Count
                             }).ToList();
                         }
@@ -288,6 +289,7 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> StocksAsync([FromBody] StockDto stockDto, [FromQuery(Name = "auth-token")] string authToken)
         {
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
             if (stockDto == null)
                 return BadRequest();
             if (string.IsNullOrEmpty(authToken))
@@ -331,7 +333,7 @@ namespace YapartMarket.React.Controllers
                         Sku = x.Sku,
                         TakeTimeExpress = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                     }).ToList();
-                    await _productRepository.BulkUpdateExpressTakeTimeAsync(result);
+                    await _productRepository.BulkUpdateExpressTakeTimeAsync(result, cancellationToken);
                 }
                 else
                 {
@@ -340,7 +342,7 @@ namespace YapartMarket.React.Controllers
                         Sku = x.Sku,
                         TakeTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK")
                     }).ToList();
-                    await _productRepository.BulkUpdateTakeTimeAsync(result);
+                    await _productRepository.BulkUpdateTakeTimeAsync(result, cancellationToken);
                 }
 
             }

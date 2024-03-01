@@ -2,6 +2,6 @@
 {
     public class BrandViewModel
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

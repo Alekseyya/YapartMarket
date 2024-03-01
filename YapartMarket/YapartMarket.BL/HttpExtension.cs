@@ -7,7 +7,7 @@ namespace YapartMarket.BL
 {
     public static class HttpExtension
     {
-        public static async Task<string> Send(HttpClient httpClient, string url, string body)
+        public static async Task<string> SendAsync(HttpClient httpClient, string url, string body)
         {
             var content = new StringContent(body, Encoding.UTF8, "application/json");
             var result = await httpClient.PostAsync(url, content);
@@ -15,10 +15,10 @@ namespace YapartMarket.BL
             return resultContent;
         }
 
-        public static async Task<string> Request<T>(T model, string url, HttpClient httpClient)
+        public static async Task<string> RequestAsync<T>(T model, string url, HttpClient httpClient)
         {
             var body = JsonConvert.SerializeObject(model);
-            return await Send(httpClient, url, body);
+            return await SendAsync(httpClient, url, body);
         }
     }
 }

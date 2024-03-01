@@ -14,9 +14,9 @@ namespace YapartMarket.Core.Models.Azure
         [Column("logistic_order_id")]
         public long LogisticOrderId { get; set; }
         [Column("out_order_code")]
-        public string OutOrderCode { get; set; }
+        public string? OutOrderCode { get; set; }
         [Column("logistic_status")]
-        public string LogisticStatus { get; set; }
+        public string? LogisticStatus { get; set; }
         [Column("gmt_create")]
         public DateTime GmtCreate { get; set; }
     }

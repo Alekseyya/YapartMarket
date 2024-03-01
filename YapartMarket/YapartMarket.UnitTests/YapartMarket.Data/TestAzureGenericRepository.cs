@@ -71,7 +71,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             Assert.Equal(product.Type, dataTable.Rows[0]["type"]);
         }
         [Fact]
-        private void BulkUpdateData_UpdateProductTmp_Success()
+        private async void BulkUpdateData_UpdateProductTmp_Success()
         {
             //arrange
             var product = new Product()
@@ -85,7 +85,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             list.Add(product);
             var azureProductRepository = new AzureProductRepository("dbo.products_tmp", _configuration.GetConnectionString("SQLServerConnectionString"));
             //act
-            azureProductRepository.BulkUpdateCountData(list);
+            await azureProductRepository.BulkUpdateCountDataAsync(list, default);
             //assert
             //Assert.NotNull(dataTable);
         }
@@ -99,7 +99,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             var products = (await azureProductRepository.GetAsync("select TOP 20000* from dbo.products_tmp")).ToList();
             //act
             timer.Start();
-            await azureProductRepository.BulkUpdateCountData(products);
+            await azureProductRepository.BulkUpdateCountDataAsync(products, default);
             timer.Stop();
             //assert
             TimeSpan timeTaken = timer.Elapsed;
@@ -139,7 +139,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             var products = (await azureProductRepository.GetAsync("select TOP 20000* from dbo.products_tmp")).ToList();
             //act
             timer.Start();
-            azureProductRepository.BulkUpdateCountData(products);
+            await azureProductRepository.BulkUpdateCountDataAsync(products, default);
             timer.Stop();
             //assert
             TimeSpan timeTaken = timer.Elapsed;

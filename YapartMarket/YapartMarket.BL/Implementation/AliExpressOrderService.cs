@@ -52,7 +52,7 @@ namespace YapartMarket.BL.Implementation
                 page = 1,
                 page_size = 99
             };
-            var result = await Request(getOrderRequest, _aliExpressOptions.GetOrderList!, _httpClient);
+            var result = await RequestAsync(getOrderRequest, _aliExpressOptions.GetOrderList!, _httpClient);
             var aliExpressOrderList = new List<AliExpressOrder>();
             using (var scope = _scopeFactory.CreateScope())
             {
@@ -74,7 +74,7 @@ namespace YapartMarket.BL.Implementation
                 page = 1,
                 page_size = 99
             };
-            var getOrderResult = await HttpExtension.Request(getOrderRequest, _aliExpressOptions.GetOrderList!, _httpClient);
+            var getOrderResult = await HttpExtension.RequestAsync(getOrderRequest, _aliExpressOptions.GetOrderList!, _httpClient);
             var aliExpressOrderList = new List<AliExpressOrder>();
             using (var scope = _scopeFactory.CreateScope())
             {
@@ -90,16 +90,16 @@ namespace YapartMarket.BL.Implementation
                 {
                     var orderId = goods.OrderId;
                     var orderDetails = goods.AliExpressOrderDetails;
-                    var maxLength = orderDetails.Max(x => x.Length);
-                    var summHeight = orderDetails.Sum(x => x.Height);
-                    var summWeight = (double)orderDetails.Sum(x => x.Weight) / 1000;
-                    var summWidth = orderDetails.Sum(x => x.Width);
-                    var items = goods.AliExpressOrderDetails.Select(x => new LogisticOrderItemInfo()
+                    var maxLength = orderDetails!.Max(x => x.Length);
+                    var summHeight = orderDetails!.Sum(x => x.Height);
+                    var summWeight = (double)orderDetails!.Sum(x => x.Weight) / 1000;
+                    var summWidth = orderDetails!.Sum(x => x.Width);
+                    var items = goods.AliExpressOrderDetails!.Select(x => new LogisticOrderItemInfo()
                     {
                         quantity = x.ProductCount,
                         sku_id = x.SkuId
                     });
-                    var logisticOrderItems = orderDetails.Select(x => new LogisticOrderItem()
+                    var logisticOrderItems = orderDetails!.Select(x => new LogisticOrderItem()
                     {
                         trade_order_id = orderId,
                         total_length = maxLength,
@@ -112,7 +112,7 @@ namespace YapartMarket.BL.Implementation
                     {
                         orders = logisticOrderItems.ToList()
                     };
-                    await HttpExtension.Request(logisticOrder, _aliExpressOptions.CreateLogisticOrder!, _httpClient);
+                    await HttpExtension.RequestAsync(logisticOrder, _aliExpressOptions.CreateLogisticOrder!, _httpClient);
                 }
             }
         } 
@@ -131,7 +131,7 @@ namespace YapartMarket.BL.Implementation
         {
             foreach (var aliExpressOrder in aliExpressOrders)
             {
-                foreach (var aliExpressOrderDetail in aliExpressOrder.AliExpressOrderDetails)
+                foreach (var aliExpressOrderDetail in aliExpressOrder.AliExpressOrderDetails!)
                 {
                     aliExpressOrderDetail.OrderId = aliExpressOrder.OrderId;
                 }
@@ -147,7 +147,7 @@ namespace YapartMarket.BL.Implementation
 
         public async Task AddOrUpdateOrderDetailsAsync(List<AliExpressOrder> aliExpressOrders)
         {
-            var orderDetails = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails).ToList();
+            var orderDetails = aliExpressOrders.SelectMany(x => x.AliExpressOrderDetails!).ToList();
             var orderDetailHasInDb = await _orderDetailRepository.GetInAsync("order_id", new { order_id = orderDetails.Select(x => x.OrderId) });
             var orderDetailNotHasInDb = orderDetails.Where(x => orderDetailHasInDb.All(t => t.OrderId != x.OrderId)).ToList();
             if (orderDetailHasInDb.IsAny())

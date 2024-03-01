@@ -16,7 +16,7 @@ namespace YapartMarket.BL
         {
             this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
-        public async Task<List<ProductResponse>> Send(IReadOnlyList<Product> products, string url)
+        public async Task<List<ProductResponse>> SendAsync(IReadOnlyList<Product> products, string url)
         {
             var contentValues = products.Select(x => x.Sku).ToList();
             var skip = 0;
@@ -32,19 +32,19 @@ namespace YapartMarket.BL
                         {
                             search_content = new()
                             {
-                                content_values = contentValues.Skip(skip).Take(50).ToList(),
+                                content_values = contentValues.Skip(skip).Take(50).ToList()!,
                                 content_type = "SKU_SELLER_SKU"
                             }
                         },
                         limit = 50
                     };
-                    var result = await Request(productFilter, url, httpClient);
-                    response.Add(JsonConvert.DeserializeObject<ProductResponse>(result));
+                    var result = await RequestAsync(productFilter, url, httpClient);
+                    response.Add(JsonConvert.DeserializeObject<ProductResponse>(result)!);
 
                 }
                 catch (Exception e)
                 {
-                    throw e;
+                    return new List<ProductResponse>() { new ProductResponse() { error = e.Message } };
                 }
                 skip += 50;
             }

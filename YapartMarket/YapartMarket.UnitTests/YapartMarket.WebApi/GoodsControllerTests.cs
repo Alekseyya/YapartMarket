@@ -92,11 +92,11 @@ namespace YapartMarket.UnitTests.YapartMarket.WebApi
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
             httpRequestMessage.Content = content;
 
-            var responseMessage = await client.SendAsync(httpRequestMessage).ConfigureAwait(true);
+            var responseMessage = await client.SendAsync(httpRequestMessage);
             //Assert
-            var message = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
-            Assert.Equal(responseMessage.StatusCode, HttpStatusCode.BadRequest);
-            Assert.True(message.Contains("No object found"));
+            var message = await responseMessage.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.BadRequest, responseMessage.StatusCode);
+            Assert.Contains(message, "No object found");
         }
     }
 }

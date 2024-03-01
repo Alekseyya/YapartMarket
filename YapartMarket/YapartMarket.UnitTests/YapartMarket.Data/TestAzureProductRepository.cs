@@ -22,7 +22,7 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             var azureProductRepository = new AzureProductRepository("dbo.products", _configuration.GetConnectionString("SQLServerConnectionString"));
             var id = 34737;
             //act
-            var product = azureProductRepository.GetById(id);
+            var product = azureProductRepository.GetByIdAsync(id);
             //assert
             //Assert.Equal();
         }

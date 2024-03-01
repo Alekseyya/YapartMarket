@@ -41,7 +41,9 @@ namespace YapartMarket.Core
                 "seller_send_part_goods" => LogisticsStatus.SELLER_SEND_PART_GOODS,
                 "seller_send_goods" => LogisticsStatus.SELLER_SEND_GOODS,
                 "buyer_accept_goods" => LogisticsStatus.BUYER_ACCEPT_GOODS,
-                "no_logistics" => LogisticsStatus.NO_LOGISTICS
+                "no_logistics" => LogisticsStatus.NO_LOGISTICS,
+                "unc" => LogisticsStatus.UNKNOWN,
+                _ => throw new NotImplementedException()
             };
         }
 
@@ -54,6 +56,7 @@ namespace YapartMarket.Core
                 "ae_common" => BizType.AE_COMMON,
                 "ae_trial" => BizType.AE_TRIAL,
                 "ae_recharge" => BizType.AE_RECHARGE,
+                _ => throw new NotImplementedException(),
             };
         }
         protected OrderStatus GetOrderStatus(string orderStatus)
@@ -75,7 +78,8 @@ namespace YapartMarket.Core
                 "close" => OrderStatus.Close,
                 "finish" => OrderStatus.Finish,
                 "infrozen" => OrderStatus.InFrozen,
-                "inissue" => OrderStatus.InIssue
+                "inissue" => OrderStatus.InIssue,
+                _ => throw new NotImplementedException()
             };
         }
 
@@ -89,7 +93,8 @@ namespace YapartMarket.Core
                 "hold" => PaymentStatus.Hold,
                 "paid" => PaymentStatus.Paid,
                 "cancelled" => PaymentStatus.Cancelled,
-                "failed" => PaymentStatus.Failed
+                "failed" => PaymentStatus.Failed,
+                _ => throw new NotImplementedException()
             };
         }
 
@@ -116,10 +121,10 @@ namespace YapartMarket.Core
             var orderRootMessage = JsonSerializer.Deserialize<OrderRoot>(data, jsonSerializerOptions);
             if (orderRootMessage == null)
                 throw new FormatException("OrderRoot can't be deserialized to null.");
-            var result = orderRootMessage.data.orders;
+            var result = orderRootMessage.data!.orders;
             var orderList = new List<Order>();
-            if (result.IsAny())
-                orderList.AddRange(result);
+            if (result!.IsAny())
+                orderList.AddRange(result!);
                 //ValidateJson(result, orderRootMessage);
             return CreateInstanceFromMessage(orderList);
         }

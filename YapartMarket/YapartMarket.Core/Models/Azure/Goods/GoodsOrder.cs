@@ -7,6 +7,6 @@ namespace YapartMarket.Core.Models.Azure.Goods
         [Column("id")]
         public int Id { get; set; }
         [Column("shipmentId")]
-        public string ShipmentId { get; set; }
+        public string? ShipmentId { get; set; }
     }
 }

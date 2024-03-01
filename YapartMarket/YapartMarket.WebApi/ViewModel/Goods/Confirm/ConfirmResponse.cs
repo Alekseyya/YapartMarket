@@ -5,6 +5,6 @@ namespace YapartMarket.WebApi.ViewModel.Goods.Confirm
     public sealed class ConfirmResponse : SuccessResponse
     {
         public Goods.Data? data { get; set; }
-        public Error error { get; set; }
+        public Error? error { get; set; }
     }
 }

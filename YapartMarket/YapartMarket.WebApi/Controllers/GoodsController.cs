@@ -37,13 +37,13 @@ namespace YapartMarket.WebApi.Controllers
         [HttpPost]
         [Route("order/new")]
         [Produces("application/json")]
-        public async Task<IActionResult> New([FromBody] OrderNewViewModel order)
+        public async Task<IActionResult> NewAsync([FromBody] OrderNewViewModel order)
         {
             try
             {
                 if (order != null)
                 {
-                    var shipmentId = order.OrderNewDataViewModel.Shipments[0].ShipmentId;
+                    var shipmentId = order.OrderNewDataViewModel!.Shipments![0].ShipmentId;
                     await _goodsService.SaveOrderAsync(order);
                     var result = await _goodsService.ProcessConfirmOrRejectAsync(shipmentId);
                     if (result.Succeeded)
@@ -62,7 +62,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("CurrentDay")]
         [Produces("application/json")]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAsync()
         {
             try
             {
@@ -79,7 +79,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpGet]
         [Route("yml")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetYml(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetYmlAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -99,7 +99,7 @@ namespace YapartMarket.WebApi.Controllers
         [HttpPost]
         [Route("order/cancel")]
         [Produces("application/json")]
-        public async Task<IActionResult> Cancel([FromBody] Cancel order)
+        public async Task<IActionResult> CancelAsync([FromBody] Cancel order)
         {
             if (order != null)
             {

@@ -8,7 +8,7 @@ namespace YapartMarket.WebApi.ViewModel
     public class CartDto
     {
         [JsonPropertyName("cart")]
-        public CartInfoDto Cart { get; set; }
+        public CartInfoDto? Cart { get; set; }
     }
 
     public class CartInfoDto

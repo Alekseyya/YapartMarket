@@ -12,9 +12,14 @@ namespace YapartMarket.WebApi.Job
         {
             _productService = productService;
         }
-        public async Task Execute(IJobExecutionContext context)
+
+        public Task Execute(IJobExecutionContext context)
         {
-            //await _productService.UpdateProductFromSql();
+            throw new System.NotImplementedException();
         }
+        //public async Task Execute(IJobExecutionContext context)
+        //{
+        //    //await _productService.UpdateProductFromSql();
+        //}
     }
 }

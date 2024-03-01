@@ -5,5 +5,5 @@ namespace YapartMarket.WebApi.ViewModel.Goods;
 public class OrderNewViewModel
 {
     [JsonPropertyName("data")]
-    public OrderNewDataViewModel OrderNewDataViewModel { get; set; }
+    public OrderNewDataViewModel? OrderNewDataViewModel { get; set; }
 }

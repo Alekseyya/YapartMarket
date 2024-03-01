@@ -39,12 +39,12 @@ namespace YapartMarket.WebApi.Services
             using (var connection = new SqlConnection(_configuration.GetConnectionString("SQLServerConnectionString")))
             {
                 await connection.OpenAsync().ConfigureAwait(false);
-                var shipmentId = orderViewModel.OrderNewDataViewModel.Shipments[0].ShipmentId;
+                var shipmentId = orderViewModel!.OrderNewDataViewModel!.Shipments![0].ShipmentId;
                 var sql = @"select * from goods_order o inner join goods_orderItem od on o.Id = od.orderId where o.shipmentId = @shipmentId";
                 var orderDictionary = new Dictionary<Guid, Order>();
                 var orderResult = await connection.QueryAsync<Order, OrderItem, Order>(sql, (order, orderDetail) =>
                 {
-                    if (!orderDictionary.TryGetValue(order.Id, out Order docEntry))
+                    if (!orderDictionary.TryGetValue(order.Id, out var docEntry))
                     {
                         docEntry = order;
                         docEntry.OrderDetails = new List<OrderItem>();
@@ -71,7 +71,7 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
                 var orderDictionary = new Dictionary<Guid, Order>();
                 var queryResult = await connection.QueryAsync<Order, OrderItem, Order>(sql, (order, orderDetail) =>
                 {
-                    if (!orderDictionary.TryGetValue(order.Id, out Order docEntry))
+                    if (!orderDictionary.TryGetValue(order.Id, out var docEntry))
                     {
                         docEntry = order;
                         docEntry.OrderDetails = new List<OrderItem>();
@@ -190,7 +190,7 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
                 await connection.OpenAsync();
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
-                    var canceledOrder = cancelOrder.data.shipments.First();
+                    var canceledOrder = cancelOrder.data!.shipments!.First();
                     var order = await connection.QueryFirstAsync<Order>(@"select * from goods_order where shipmentId = @shipmentid", new { shipmentId = canceledOrder.shipmentId },
                         transaction);
                     if (order != null)
@@ -199,7 +199,7 @@ where shipmentDate >= @dateTimeStart and shipmentDate <= @dateTimeEnd";
                         var orderId = order.Id;
                         var updateSql = @"update goods_orderItem set cancel = 0 where orderId = @orderId and itemIndex = @itemIndex and goodsId = @goodsId and offerId = @offerId
 and cancelDateTime = @cancelDateTime;";
-                        var canceledOrderTmp = canceledOrder.items.Select(x => new { itemIndex = x.itemIndex, offerId = x.offerId, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
+                        var canceledOrderTmp = canceledOrder.items!.Select(x => new { itemIndex = x.itemIndex, offerId = x.offerId, goodsId = x.goodsId, cancelDateTime = cancelDateTime });
                         foreach (var cancelOrderTmp in canceledOrderTmp)
                         {
                             var orderItem = await connection.QueryFirstAsync<OrderItem>(@"select * from goods_orderItem where itemIndex = @itemIndex and offerId = @offerId", cancelOrderTmp,
@@ -224,7 +224,7 @@ and cancelDateTime = @cancelDateTime;";
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
 
-                    var shipment = orderViewModel.OrderNewDataViewModel.Shipments.First();
+                    var shipment = orderViewModel.OrderNewDataViewModel!.Shipments!.First();
                     var order = await connection.QueryAsync<Order>(@"select * from goods_order where shipmentId = @shipmentid",
                         new
                         {
@@ -232,7 +232,7 @@ and cancelDateTime = @cancelDateTime;";
                         }, transaction);
                     if (!order.IsAny())
                     {
-                        var shipmentDate = DateTime.Parse(shipment.ShipmentDate);
+                        var shipmentDate = DateTime.Parse(shipment.ShipmentDate!);
                         var orderId = Guid.NewGuid();
                         var addOrderSql = @$"insert into goods_order(id, shipmentId, shipmentDate) values(@orderId, @shipmentid, @shipmentdate)";
                         await connection.ExecuteAsync(addOrderSql, new
@@ -241,11 +241,11 @@ and cancelDateTime = @cancelDateTime;";
                             shipmentId = shipment.ShipmentId,
                             shipmentDate = shipmentDate
                         }, transaction);
-                        var orderDetails = shipment.Items.Select(x => new
+                        var orderDetails = shipment.Items!.Select(x => new
                         {
                             id = Guid.NewGuid(),
                             orderId = orderId,
-                            itemIndex = int.Parse(x.ItemIndex),
+                            itemIndex = int.Parse(x.ItemIndex!),
                             goodsId = x.GoodsId,
                             offerId = x.OfferId,
                             itemName = x.ItemName,
@@ -304,7 +304,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
                     {
                         var confirmResult = await ConfirmAsync(shipmentId!, confirmItems.ToList());
                         var rejectResult = await RejectAsync(shipmentId!, rejectItems.ToList());
-                        var packingResult = await PackingAsync(shipmentId, confirmItems.ToList());
+                        var packingResult = await PackingAsync(shipmentId!, confirmItems.ToList());
                         //var shipmentResult = await ShippingAsync(shipmentId, confirmItems.ToList());
                         var result = SuccessResult.Combine(confirmResult, rejectResult, packingResult /*, shipmentResult*/);
                         if (!result.Succeeded)
@@ -419,7 +419,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var confirmResponse = JsonSerializer.Deserialize<ConfirmResponse>(response, jsonSerializerOptions);
             if (confirmResponse!.success == 0)
-                return new SuccessResult($"Confirm : {confirmResponse.error.message}");
+                return new SuccessResult($"Confirm : {confirmResponse.error!.message}");
             return SuccessResult.Success;
         }
         private async Task<SuccessResult> SendShippingRequestAsync(string json)
@@ -433,7 +433,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var packingResponse = JsonSerializer.Deserialize<ShippingResponse>(response, jsonSerializerOptions);
             if (packingResponse!.success == 0)
-                return new SuccessResult($"Shipping : {packingResponse.error.message}");
+                return new SuccessResult($"Shipping : {packingResponse.error!.message}");
             return SuccessResult.Success;
         }
         private async Task<SuccessResult> SendPackageRequestAsync(string json)
@@ -447,7 +447,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var packagedResponse = JsonSerializer.Deserialize<PackingResponse>(response, jsonSerializerOptions);
             if (packagedResponse!.success == 0)
-                return new SuccessResult($"Packing : {packagedResponse.error.message}");
+                return new SuccessResult($"Packing : {packagedResponse.error!.message}");
             return SuccessResult.Success;
         }
         private async Task<SuccessResult> SendRejectRequestAsync(string json)
@@ -461,7 +461,7 @@ values(@id, @orderId, @itemIndex, @goodsId, @offerId, @itemName, @price, @finalP
             };
             var rejectResponse = JsonSerializer.Deserialize<RejectResponse>(response, jsonSerializerOptions);
             if (rejectResponse!.success == 0)
-                return new SuccessResult($"Reject : {rejectResponse.error.message}");
+                return new SuccessResult($"Reject : {rejectResponse.error!.message}");
             return SuccessResult.Success;
         }
     }

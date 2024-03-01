@@ -22,7 +22,7 @@ namespace YapartMarket.WebApi.Services
                     PaymentStatus = order.PaymentStatus.ToString(),
                     TotalProductCount = order.TotalProductCount,
                     TotalPayAmount = order.TotalPayAmount,
-                    OrderDetails = GetOrderDetails((IReadOnlyList<Core.Models.Azure.AliExpressOrderDetail>)order.AliExpressOrderDetails).ToList()
+                    OrderDetails = GetOrderDetails((IReadOnlyList<Core.Models.Azure.AliExpressOrderDetail>)order.AliExpressOrderDetails!).ToList()
                 });
             }
             return aliOrders;

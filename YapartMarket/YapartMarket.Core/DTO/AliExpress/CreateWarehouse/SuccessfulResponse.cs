@@ -5,14 +5,14 @@ namespace YapartMarket.React.ViewModels.AliExpress
     public class SuccessfulResponse
     {
         [JsonProperty("cainiao_global_logistic_order_create_response")]
-        public CainiaoGlobalLogisticOrderCreateResponse cainiao_global_logistic_order_create_response { get; set; }
+        public CainiaoGlobalLogisticOrderCreateResponse? cainiao_global_logistic_order_create_response { get; set; }
     }
     public class CainiaoGlobalLogisticOrderCreateResponse
     {
         [JsonProperty("result")]
-        public Result result { get; set; }
+        public Result? result { get; set; }
         [JsonProperty("request_id")]
-        public string request_id { get; set; }
+        public string? request_id { get; set; }
     }
 
     public class Result

@@ -5,7 +5,7 @@ namespace YapartMarket.WebApi.ViewModel
     public class OrderViewModel
     {
         [JsonPropertyName("order")]
-        public OrderInfoViewModel OrderInfoViewModel { get; set; }
+        public OrderInfoViewModel? OrderInfoViewModel { get; set; }
     }
 
     public class OrderInfoViewModel
@@ -13,10 +13,10 @@ namespace YapartMarket.WebApi.ViewModel
         [JsonPropertyName("accepted")]
         public bool Accepted { get; set; }
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         [JsonIgnore]
         [JsonPropertyName("reason")]
-        public string Reason { get; set; }
+        public string? Reason { get; set; }
     }
 
     public enum Reason

@@ -29,22 +29,22 @@ namespace YapartMarket.Data.Implementation
 
         public virtual IList<TEntity> GetAll()
         {
-            return GetAll(null, null, null);
+            return GetAll(null!, null!, null!);
         }
 
         public virtual IList<TEntity> GetAll(Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc)
         {
-            return GetAll(null, sortFunc, null);
+            return GetAll(null!, sortFunc, null!);
         }
 
         public virtual IList<TEntity> GetAll(Func<IQueryable<TEntity>, IQueryable<TEntity>> includeFuncs)
         {
-            return GetAll(null, null, includeFuncs);
+            return GetAll(null!, null!, includeFuncs);
         }
 
         public virtual IList<TEntity> GetAll(Expression<Func<TEntity, bool>> condition)
         {
-            return GetAll(condition, null, null); 
+            return GetAll(condition, null!, null!); 
         }
 
         public virtual IList<TEntity> GetAll(Expression<Func<TEntity, bool>> condition, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeFuncs)
@@ -55,7 +55,7 @@ namespace YapartMarket.Data.Implementation
 
         public virtual int GetCount()
         {
-            return GetCount(null);
+            return GetCount(null!);
         }
 
         public virtual int GetCount(Expression<Func<TEntity, bool>> condition)
@@ -66,7 +66,7 @@ namespace YapartMarket.Data.Implementation
 
         public virtual IList<TEntity> GetWindow(int startFrom, int windowSize, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc)
         {
-            return GetWindow(null, startFrom, windowSize, sortFunc);
+            return GetWindow(null!, startFrom, windowSize, sortFunc);
         }
 
         public virtual IList<TEntity> GetWindow(Expression<Func<TEntity, bool>> condition, int startFrom, int windowSize, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sortFunc)
@@ -75,13 +75,13 @@ namespace YapartMarket.Data.Implementation
             return GetWindowInternal(data, condition, startFrom, windowSize, sortFunc);
         }
 
-        public virtual Task<TEntity> AddAsync(TEntity entry)
+        public virtual async Task<TEntity> AddAsync(TEntity entry)
         {
             if (entry == null)
                 throw new ArgumentNullException(nameof(entry));
-            DbSet.AddAsync(entry);
-            DbContext.SaveChangesAsync();
-            return Task.FromResult(entry);
+            await DbSet.AddAsync(entry);
+            await DbContext.SaveChangesAsync();
+            return entry;
         }
 
         public virtual TEntity Add(TEntity entity)
@@ -105,10 +105,10 @@ namespace YapartMarket.Data.Implementation
             DbContext.SaveChanges();
         }
 
-        public void RemoveRangeAsync(IList<TEntity> entries)
+        public async Task RemoveRangeAsync(IList<TEntity> entries)
         {
             DbSet.RemoveRange(entries);
-            DbContext.SaveChangesAsync();
+            await DbContext.SaveChangesAsync();
         }
 
         public virtual void Delete(TEntity entity)
@@ -146,7 +146,7 @@ namespace YapartMarket.Data.Implementation
         {
             var keyValues = GetEntityKeyValues(id);
             var entity = DbSet.Find(keyValues);
-            return entity;
+            return entity!;
         }
 
         protected virtual IList<TEntity> GetAllInternal(IQueryable<TEntity> data, Expression<Func<TEntity, bool>> condition,
@@ -200,32 +200,8 @@ namespace YapartMarket.Data.Implementation
 
             if (!DbSet.Local.Any(item => item == entity))
                 DbContext.Entry(entity).State = EntityState.Modified;
-            try
-            {
+            
                 DbContext.SaveChanges();
-            }
-            //Todo пока нету аналогов, смотреть https://stackoverflow.com/questions/46430619/net-core-2-ef-core-error-handling-save-changes
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
-            //{
-            //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
-            //    {
-            //        foreach (var validationError in validationErrors.ValidationErrors)
-            //        {
-            //            string message = string.Format("{0}:{1}",
-            //                validationErrors.Entry.Entity.ToString(),
-            //                validationError.ErrorMessage);
-            //            // raise a new exception nesting
-            //            // the current instance as InnerException
-            //            raise = new InvalidOperationException(message, raise);
-            //        }
-            //    }
-            //    throw raise;
-            //}
-            catch (DbUpdateConcurrencyException exc)
-            {
-                throw new EntityNotFoundException(typeof(TEntity).Name, exc);
-            }
             return entity;
         }
 
@@ -237,14 +213,7 @@ namespace YapartMarket.Data.Implementation
             if (!DbSet.Local.Any(item => item == entity))
                 DbSet.Attach(entity);
             DbSet.Remove(entity);
-            try
-            {
                 DbContext.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException exc)
-            {
-                throw new EntityNotFoundException(typeof(TEntity).Name, exc);
-            }
         }
 
         protected virtual void DeleteInternal(TId id)
@@ -259,38 +228,7 @@ namespace YapartMarket.Data.Implementation
                 DbSet.Attach(entity);
             }
             DbSet.Remove(entity);
-            try
-            {
                 DbContext.SaveChanges();
-            }
-            //TODO пока нету аналогов на .net core
-            //https://stackoverflow.com/questions/46430619/net-core-2-ef-core-error-handling-save-changes
-            //catch (DbEntityValidationException dbEx)
-            //{
-            //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
-            //    {
-            //        foreach (var validationError in validationErrors.ValidationErrors)
-            //        {
-            //            string message = string.Format("{0}:{1}",
-            //                validationErrors.Entry.Entity.ToString(),
-            //                validationError.ErrorMessage);
-            //            // raise a new exception nesting
-            //            // the current instance as InnerException
-            //            raise = new InvalidOperationException(message, raise);
-            //        }
-            //    }
-            //    throw raise;
-            //}
-
-            catch (DbUpdateConcurrencyException exc)
-            {
-                throw new EntityNotFoundException(typeof(TEntity).Name, exc);
-            }
-            catch (DbUpdateException exc)
-            {
-                throw exc;
-            }
         }
 
         #endregion

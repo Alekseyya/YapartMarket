@@ -4,7 +4,7 @@ namespace YapartMarket.Core.Models.Raw
 {
     public sealed class LogisticOrder
     {
-        public List<LogisticOrderItem> orders { get; set; }
+        public List<LogisticOrderItem>? orders { get; set; }
     }
 
     public class LogisticOrderItemInfo
@@ -20,6 +20,6 @@ namespace YapartMarket.Core.Models.Raw
         public int total_width { get; set; }
         public int total_height { get; set; }
         public double total_weight { get; set; }
-        public List<LogisticOrderItemInfo> items { get; set; }
+        public List<LogisticOrderItemInfo>? items { get; set; }
     }
 }

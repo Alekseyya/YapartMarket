@@ -76,9 +76,9 @@ namespace YapartMarket.Core.Extensions
 
 
                     if (property.IsDefined(typeof(KeyAttribute), false) || validKeyNames.Contains(name))
-                        propertyContainer.AddId(name, value);
+                        propertyContainer.AddId(name, value!);
                     else
-                        propertyContainer.AddValue(name, value);
+                        propertyContainer.AddValue(name, value!);
                 }
             }
             return propertyContainer;
