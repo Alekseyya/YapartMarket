@@ -71,41 +71,6 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             Assert.Equal(product.Type, dataTable.Rows[0]["type"]);
         }
         [Fact]
-        private async void BulkUpdateData_UpdateProductTmp_Success()
-        {
-            //arrange
-            var product = new Product()
-            {
-                Id = 1,
-                Sku = "HCRET4WD013B",
-                Count = 2,
-                UpdatedAt = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
-            };
-            var list = new List<Product>();
-            list.Add(product);
-            var azureProductRepository = new AzureProductRepository("dbo.products_tmp", _configuration.GetConnectionString("SQLServerConnectionString"));
-            //act
-            await azureProductRepository.BulkUpdateCountDataAsync(list, default);
-            //assert
-            //Assert.NotNull(dataTable);
-        }
-        [Fact]
-        private async Task BulkUpdateData_UpdateAllProductTmpCount_Success()
-        {
-            //arrange
-            var timer = new Stopwatch();
-            
-            var azureProductRepository = new AzureProductRepository("dbo.products_tmp", _configuration.GetConnectionString("SQLServerConnectionString"));
-            var products = (await azureProductRepository.GetAsync("select TOP 20000* from dbo.products_tmp")).ToList();
-            //act
-            timer.Start();
-            await azureProductRepository.BulkUpdateCountDataAsync(products, default);
-            timer.Stop();
-            //assert
-            TimeSpan timeTaken = timer.Elapsed;
-            _testOutputHelper.WriteLine("Time taken: " + timeTaken.ToString(@"m\:ss\.fff"));
-        }
-        [Fact]
         private async Task Update_UpdateDapper_Success()
         {
             //arrange
@@ -123,23 +88,6 @@ namespace YapartMarket.UnitTests.YapartMarket.Data
             //act
             timer.Start();
             await azureProductRepository.UpdateAsync(sql,actions);
-            timer.Stop();
-            //assert
-            TimeSpan timeTaken = timer.Elapsed;
-            _testOutputHelper.WriteLine("Time taken: " + timeTaken.ToString(@"m\:ss\.fff"));
-        }
-
-        [Fact]
-        private async Task BulkUpdateData_NewProducts_Success()
-        {
-            //arrange
-            var timer = new Stopwatch();
-
-            var azureProductRepository = new AzureProductRepository("dbo.products_tmp", _configuration.GetConnectionString("SQLServerConnectionString"));
-            var products = (await azureProductRepository.GetAsync("select TOP 20000* from dbo.products_tmp")).ToList();
-            //act
-            timer.Start();
-            await azureProductRepository.BulkUpdateCountDataAsync(products, default);
             timer.Stop();
             //assert
             TimeSpan timeTaken = timer.Elapsed;

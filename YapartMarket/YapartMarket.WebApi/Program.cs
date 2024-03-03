@@ -1,5 +1,8 @@
 using System;
+using System.Threading;
 using System.Collections.Generic;
+using Quartz;
+using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,8 +11,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using YapartMarket.Core;
 using YapartMarket.Data;
+using YapartMarket.WebApi;
 using YapartMarket.Core.BL;
 using YapartMarket.Core.DTO;
+using YapartMarket.WebApi.Job;
 using YapartMarket.Core.Config;
 using YapartMarket.WebApi.Services;
 using YapartMarket.BL.Implementation;
@@ -18,7 +23,6 @@ using YapartMarket.WebApi.Mapper.AliExpress;
 using YapartMarket.Data.Implementation.Azure;
 using YapartMarket.Core.Data.Interfaces.Azure;
 using YapartMarket.WebApi.Services.Interfaces;
-using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,29 +71,33 @@ builder.Services.AddHttpClient("goodsClient", c => c.BaseAddress = new Uri("http
 
 builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builder.Configuration["AliExpress:Url"]!));
 
-//builder.Services.AddQuartz(q =>
-//{
-//    var jobKey = new JobKey("UpdateInventotyJob");
-//    q.AddJob<UpdateInventoryJon>(opts => opts.WithIdentity(jobKey));
+var commonSemaphore = new SemaphoreSlim(1);
+builder.Services.AddSingleton(commonSemaphore);
 
-//    q.AddTrigger(opts => opts
-//        .ForJob(jobKey)
-//        .WithIdentity("UpdateInventoryTrigger")
-//        .WithCronSchedule("0 */2 * * * ?"));
 
-//});
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("UpdateInventoryJob");
+    q.AddJob<UpdateInventoryJob>(opts => opts.WithIdentity(jobKey));
 
-//builder.Services.AddQuartz(q =>
-//{
-//    var jobKey = new JobKey("CreateLogisticOrderJob");
-//    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("UpdateInventoryTrigger")
+        .WithCronSchedule("0 */2 * * * ?"));
 
-//    q.AddTrigger(opts => opts
-//        .ForJob(jobKey)
-//        .WithIdentity("CreateLogisticOrderTrigger")
-//        .WithCronSchedule("*/15 * * * * ?"));
+});
 
-//});
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("CreateLogisticOrderJob");
+    q.AddJob<CreateLogisticOrderJob>(opts => opts.WithIdentity(jobKey));
+
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("CreateLogisticOrderTrigger")
+        .WithCronSchedule("*/15 * * * * ?"));
+
+});
 //builder.Services.AddQuartz(q =>
 //{
 //    var jobKey = new JobKey("CreateYMLFileJob");
@@ -101,15 +109,26 @@ builder.Services.AddHttpClient("aliExpress", c => c.BaseAddress = new Uri(builde
 //        .WithCronSchedule("*/20 * * * * ?"));
 
 //});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+builder.Services.AddApplicationInsightsTelemetry();
 
-//builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+builder.Services.AddTransient<RequestBodyLoggingMiddleware>();
+builder.Services.AddTransient<ResponseBodyLoggingMiddleware>();
 
 var app = builder.Build();
+
+
 
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+if (app.Environment.IsProduction())
+{
+    app.UseRequestBodyLogging();
+    app.UseResponseBodyLogging();
+}
+
 
 app.UseSwagger();
 app.UseSwaggerUI(option => option.SwaggerEndpoint("/swagger/v1/swagger.json", "YapartStore v1"));

@@ -2,7 +2,11 @@
 	<Import Project="..\Common.targets" />
 	<ItemGroup>
 	  <PackageReference Include="AutoMapper" />
+	  <PackageReference Include="Microsoft.ApplicationInsights" />
+	  <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
 	  <PackageReference Include="Quartz" />
+	  <PackageReference Include="Quartz.Extensions.DependencyInjection" />
+	  <PackageReference Include="Quartz.Extensions.Hosting" />
 	  <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
 	  <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
 	  <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
@@ -11,5 +15,15 @@
 		<ProjectReference Include="..\YapartMarket.BL\YapartMarket.BL.csproj" />
 		<ProjectReference Include="..\YapartMarket.Core\YapartMarket.Core.csproj" />
 		<ProjectReference Include="..\YapartMarket.Data\YapartMarket.Data.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Update="Roslynator.Analyzers">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	</ItemGroup>
 </Project>
