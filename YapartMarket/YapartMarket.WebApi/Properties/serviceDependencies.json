@@ -1,11 +1,13 @@
 {
   "dependencies": {
-    "apis1": {
-      "type": "apis"
-    },
     "mssql1": {
       "type": "mssql",
       "connectionId": "ConnectionStrings:SQLServerConnectionString",
+      "dynamicId": null
+    },
+    "appInsights1": {
+      "type": "appInsights",
+      "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING",
       "dynamicId": null
     }
   }
