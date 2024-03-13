@@ -61,14 +61,17 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> AcceptOrder([FromBody] OrderDto orderDto)
         {
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
             if (orderDto != null)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    return BadRequest("Request aborted.");
                 var isAccepted = true;
                 using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                 {
                     //Пройтись по всем товарам, если хоть одного нету или количество меньше того что есть на сервере = отменить заказа
-                    await connection.OpenAsync();
-                    foreach (var orderItem in orderDto.OrderInfoDto.OrderItemsDto)
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var orderItem in orderDto.OrderInfoDto!.OrderItemsDto!)
                     {
                         var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku and count >= @count", new { sku = orderItem.OfferId, count = orderItem.Count });
                         if (productInDb == null)
@@ -78,7 +81,9 @@ namespace YapartMarket.React.Controllers
                         }
                     }
                 }
-                return Ok(isAccepted ? new OrderViewModel { OrderInfoViewModel = new OrderInfoViewModel { Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString() } } : new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = "OUT_OF_DATE" });
+                return Ok(isAccepted ? 
+                    new OrderViewModel { OrderInfoViewModel = new OrderInfoViewModel { Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString() } } :
+                    new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = Reason.OUT_OF_DATE.ToString() });
             }
             return BadRequest();
         }
@@ -109,6 +114,7 @@ namespace YapartMarket.React.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> GetInfoFromCart([FromBody] CartDto cartDto, [FromQuery(Name = "auth-token")] string authToken)
         {
+            var cancellationToken = HttpContext?.RequestAborted ?? default;
             if (string.IsNullOrEmpty(authToken))
                 return StatusCode(500);
             var yapartToken = configuration.GetValue<string>("auth-token");
@@ -125,36 +131,32 @@ namespace YapartMarket.React.Controllers
                     {
                         Cart = new CartInfoViewModel
                         {
-                            CartItems = new List<CartItemViewModel>()
+                            CartItems = new List<CartItemViewModel>(),
+                            PaymentMethods = new List<string> { "CARD_ON_DELIVERY", "CASH_ON_DELIVERY", "B2B_ACCOUNT_POSTPAYMENT" }
                         }
                     };
                     using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                     {
-                        await connection.OpenAsync();
+                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                         foreach (var cartItemDto in cartDto.Cart.CartItems)
                         {
-                            var isDelivery = false;
                             var count = 0;
                             var productInDb = await connection.QueryFirstOrDefaultAsync<Product>("select * from products where sku = @sku",
-                                new { sku = cartItemDto.OfferId });
+                                new { sku = cartItemDto.OfferId }).ConfigureAwait(false);
                             if (productInDb != null)
                             {
-                                isDelivery = true;
                                 count = productInDb.Count >= cartItemDto.Count ? cartItemDto.Count : productInDb.Count;
                             }
 
                             cartViewModel.Cart.CartItems.Add(new CartItemViewModel
                             {
                                 FeedId = cartItemDto.FeedId,
-                                OfferId = cartItemDto.OfferId,
-                                Count = count,
-                                Delivery = isDelivery
+                                OfferId = cartItemDto.OfferId!,
+                                Count = count
                             });
                         }
+                        
                     }
-                    //если в заказе все позиции отсуствуют items = пустым.
-                    if (cartViewModel.Cart.CartItems.All(x => x.Count == 0))
-                        cartViewModel.Cart.CartItems = new List<CartItemViewModel>();
                     return Ok(cartViewModel);
                 }
             }
@@ -309,9 +311,9 @@ namespace YapartMarket.React.Controllers
                 var listSkuInfo = new List<SkuInfoDto>();
                 using (var connection = new SqlConnection(configuration.GetConnectionString("SQLServerConnectionString")))
                 {
-                    await connection.OpenAsync();
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                     var stocksSku = stockDto.Skus;
-                    var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new { skus = stocksSku });
+                    var productsFromDb = await connection.QueryAsync<Product>("select * from dbo.products where sku IN @skus", new { skus = stocksSku }).ConfigureAwait(false);
                     foreach (var productFromDb in productsFromDb)
                     {
                         var currentDateTime = DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK");

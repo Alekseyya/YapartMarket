@@ -14,18 +14,17 @@ namespace YapartMarket.WebApi.ViewModel
     {
         [JsonPropertyName("items")]
         public List<CartItemViewModel> CartItems { get; set; }
+        [JsonPropertyName("paymentMethods")]
+        public List<string> PaymentMethods { get; set; }
     }
-
     public class CartItemViewModel
     {
         [JsonPropertyName("feedId")]
-        public Int64 FeedId { get; set; }
+        public long FeedId { get; set; }
         [JsonPropertyName("offerId")]
         public string OfferId { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
-        [JsonPropertyName("delivery")]
-        public bool Delivery { get; set; }
     }
 
 }
