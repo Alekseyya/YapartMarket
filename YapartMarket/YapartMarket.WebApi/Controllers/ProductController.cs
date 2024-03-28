@@ -82,8 +82,8 @@ namespace YapartMarket.React.Controllers
                     }
                 }
                 return Ok(isAccepted ? 
-                    new OrderViewModel { OrderInfoViewModel = new OrderInfoViewModel { Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString() } } :
-                    new { accepted = false, id = orderDto.OrderInfoDto.Id.ToString(), reason = Reason.OUT_OF_DATE.ToString() });
+                    new OrderSuccessViewModel { OrderInfoViewModel = new OrderInfoSuccessViewModel { Accepted = true, Id = orderDto.OrderInfoDto.Id.ToString() } } :
+                    new OrderFailViewModel { OrderInfoViewModel = new OrderInfoFailViewModel { Accepted = false, Reason = Reason.OUT_OF_DATE.ToString() } });
             }
             return BadRequest();
         }
